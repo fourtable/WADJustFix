@@ -9,6 +9,7 @@ import 'bootstrap/dist/css/bootstrap.css'; // No need to import 'bootstrap' if y
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getFirestore } from "firebase/firestore"; // Import Firestore
+import { getStorage } from 'firebase/storage';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -28,15 +29,84 @@ const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const provider = new GoogleAuthProvider();
 const db = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 
-// Create and mount the Vue app
-const app = createApp(App);
-
-// Use Vue Router
-app.use(router);
-
+createApp(App).use(router).mount('#app');
 // Export Firebase services
-export { auth, provider, db, signInWithPopup };
+export { firebaseApp, storage, auth, provider, db, signInWithPopup };
 
-// Mount the Vue app
-app.mount('#app');
+// Function to fetch repairers from Firestore
+async function fetchRepairmen() {
+    const q = query(collection(db, 'users'), where('userType', '==', 'repairer'));
+    const querySnapshot = await getDocs(q);
+    const repairmen = [];
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.businessLocation && data.businessLocation.lat && data.businessLocation.lng) {
+            repairmen.push({
+                name: data.name,
+                lat: data.businessLocation.lat,
+                lng: data.businessLocation.lng
+            });
+        }
+    });
+    return repairmen;
+}
+
+// Google Maps initialization function
+let map;
+
+async function initMap() {
+    const { Map } = await google.maps.importLibrary("maps");
+    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+    map = new Map(document.getElementById('map'), {
+        center: { lat: 1.3521, lng: 103.8198 },
+        zoom: 12,
+        mapId: 'your-map-id'
+    });
+
+    // Fetch repairer locations and add markers
+    const repairmen = await fetchRepairmen();
+    repairmen.forEach((repairman) => {
+        const customContent = document.createElement('div');
+        const img = document.createElement('img');
+        img.src = './images/newpin.png';
+        img.style.width = '100px';
+        img.style.height = '100px';
+        customContent.appendChild(img);
+
+        new AdvancedMarkerElement({
+            position: { lat: repairman.lat, lng: repairman.lng },
+            map: map,
+            title: repairman.name,
+            content: customContent
+        });
+    });
+}
+
+window.initMap = initMap;
+
+(g => {
+    var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window;
+    b = b[c] || (b[c] = {});
+    var d = b.maps || (b.maps = {}),
+        r = new Set,
+        e = new URLSearchParams,
+        u = () => h || (h = new Promise(async(f, n) => {
+            await (a = m.createElement("script"));
+            e.set("libraries", [...r] + "");
+            for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]);
+            e.set("callback", c + ".maps." + q);
+            a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
+            d[q] = f;
+            a.onerror = () => h = n(Error(p + " could not load."));
+            a.nonce = m.querySelector("script[nonce]")?.nonce || "";
+            m.head.append(a)
+        }));
+    d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n))
+})({
+    key: "AIzaSyAe51tIu9Mpq06AxiZRLbiziX_NH2X6cLw",
+    v: "weekly",
+});
+

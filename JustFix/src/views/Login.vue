@@ -81,9 +81,10 @@ export default {
             this.errorMessage = ''; // Clear previous error messages
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password);
-                console.log(userCredential);
+                // console.log(userCredential);
                 await this.retrieveUsername(this.email);
-                Cookies.set('uid',this.email);
+                Cookies.set('uid',userCredential.user.uid);
+                // console.log(Cookies.get('uid'));
                 window.location.href = '/'
             } catch (error) {
                 this.errorMessage = error.message || 'Invalid login credentials';

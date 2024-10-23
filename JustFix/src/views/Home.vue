@@ -43,77 +43,73 @@
             </div>
         </section>
 </template>
-<script type="module">
-    // Import Firebase SDK
-    // import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
-    // import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js';
+<script>
+import { db } from "../main";
+import { query, collection, where, getDocs } from "firebase/firestore"; // Import Firestore methods
+import newpin from '../assets/newpin.png';
 
-    // // Firebase Config
-    // const firebaseConfig = {
-    //     apiKey: "AIzaSyDiBHdWrHj34O4hn0qP98qgThAAgDuL5JU",
-    //     authDomain: "justfix-726f7.firebaseapp.com",
-    //     projectId: "justfix-726f7",
-    //     storageBucket: "justfix-726f7.appspot.com",
-    //     messagingSenderId: "297198741199",
-    //     appId: "1:297198741199:web:4a00011fa3067f8014b9ba",
-    //     measurementId: "G-YN894CVT62"
-    // };
-
-    // // Initialize Firebase
-    // const firebaseApp = initializeApp(firebaseConfig);
-
-    // // Initialize Firestore
-    // const db = getFirestore(firebaseApp);
-
-    // Function to fetch repairers from Firestore
-    async function fetchRepairmen() {
-        const q = query(collection(db, 'users'), where('userType', '==', 'repairer'));
-        const querySnapshot = await getDocs(q);
-        const repairmen = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.businessLocation && data.businessLocation.lat && data.businessLocation.lng) {
-                repairmen.push({
-                    name: data.name,
-                    lat: data.businessLocation.lat,
-                    lng: data.businessLocation.lng
-                });
-            }
-        });
-        return repairmen;
-    }
-
-    // Google Maps initialization function
-    let map;
-
-    async function initMap() {
-        const { Map } = await google.maps.importLibrary("maps");
-        const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-
-        map = new Map(document.getElementById('map'), {
-            center: { lat: 1.3521, lng: 103.8198 },
-            zoom: 12,
-            mapId: 'your-map-id'
-        });
-
-        // Fetch repairer locations and add markers
-        const repairmen = await fetchRepairmen();
-        repairmen.forEach((repairman) => {
-            const customContent = document.createElement('div');
-            const img = document.createElement('img');
-            img.src = './images/newpin.png';
-            img.style.width = '100px';
-            img.style.height = '100px';
-            customContent.appendChild(img);
-
-            new AdvancedMarkerElement({
-                position: { lat: repairman.lat, lng: repairman.lng },
-                map: map,
-                title: repairman.name,
-                content: customContent
+export default {
+    data() {
+        return {
+            searchQuery: '',
+            repairLink: '#', // Define your links
+            registerLink: '#',
+            eventLink: '#'
+        };
+    },
+    mounted() {
+        this.initMap();
+    },
+    methods: {
+        async fetchRepairers() {
+            const q = query(collection(db, 'users'), where('userType', '==', 'repairer'));
+            const querySnapshot = await getDocs(q);
+            const repairmen = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.businessLocation && data.businessLocation.lat && data.businessLocation.lng) {
+                    repairmen.push({
+                        name: data.name,
+                        lat: data.businessLocation.lat,
+                        lng: data.businessLocation.lng
+                    });
+                }
             });
-        });
-    }
+            return repairmen;
+        },
+        async initMap() {
+            const { Map } = await google.maps.importLibrary("maps");
+            const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
-    window.initMap = initMap;
-    </script>
+            const map = new Map(document.getElementById('map'), {
+                center: { lat: 1.3521, lng: 103.8198 },
+                zoom: 12,
+                mapId: 'your-map-id' // Replace with your map ID if you have one
+            });
+
+            const repairmen = await this.fetchRepairers();
+            repairmen.forEach((repairman) => {
+                const customContent = document.createElement('div');
+                const img = document.createElement('img');
+                img.src = newpin; // Ensure this path is correct
+                img.style.width = '100px';
+                img.style.height = '100px';
+                customContent.appendChild(img);
+
+                new AdvancedMarkerElement({
+                    position: { lat: repairman.lat, lng: repairman.lng },
+                    map: map,
+                    title: repairman.name,
+                    content: customContent
+                });
+            });
+        }
+    }
+}
+</script>
+<style>
+.map-container {
+    width: 100%;
+    height: 500px; /* Set a default height */
+}
+</style>

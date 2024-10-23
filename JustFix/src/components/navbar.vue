@@ -40,14 +40,15 @@
         <div v-else class="dropdown">
           <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
             data-bs-toggle="dropdown" aria-expanded="false">{{ username }}
-            <img :src="person" alt="Profile" class="d-inline-block align-text-top" width="30" height="30" />
+            <img v-if="profileImage" :src="profileImage " alt="Profile" class="d-inline-block align-text-top" width="30" height="30" />
+            <img v-else :src="profilePic" alt="Profile" class="d-inline-block align-text-top" width="30" height="30" />
           </button>
           <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="dropdownMenuButton">
             <li>
               <router-link class="dropdown-item" :to="{ name: 'profile' }">Profile</router-link>
             </li>
             <li>
-              <router-link class="dropdown-item btn" @click="logout" >Logout</router-link>
+              <a class="dropdown-item btn" @click="logout" >Logout</a>
               <!-- Logout Option -->
             </li>
           </ul>
@@ -59,11 +60,18 @@
 
 <script>
 import Cookies from 'js-cookie'
+import defaultProfile from '../assets/person.svg'
 export default {
+  props: {
+    profileImage: {
+      type: String,
+      default: '',
+    },
+  },
   data() {
     return {
       username: '', // Add username data property
-      person: '../assets/defaultProfile.png' // Update with the actual default profile image path
+      profilePic: defaultProfile // Update with the actual default profile image path
     }
   },
   created() {
@@ -78,10 +86,17 @@ export default {
       Cookies.remove('username');
 
       // Clear the username in Vuex store
-      this.$store.dispatch('updateUserName', '');
-
+      //this.$store.dispatch('updateUserName', '');
+      //this.$router.push({ path: '/' })
       window.location.href = '/login';
     }
   }
 }
 </script>
+<style scoped>
+.profile-icon img {
+  border-radius: 50%; /* Ensure the image is round */
+  width: 40px; /* Adjust size as needed */
+  height: 40px; /* Adjust size as needed */
+}
+</style>
