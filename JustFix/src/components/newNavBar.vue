@@ -50,7 +50,7 @@
                 <i @click="toggleMobileNav" v-show="mobile" class="fa fa-bars"
                     :class="{ 'icon-active': mobileNav }"></i>
             </div>
-            <transition v-if="username" name="mobile-nav" >
+            <transition v-if="username" name="mobile-nav">
                 <ul v-show="mobileNav" class="dropdown-nav">
                     <li>
                         <router-link class="link" :to="{ name: 'home' }">Home</router-link>
@@ -95,6 +95,7 @@
 <script>
 import Cookies from 'js-cookie'
 import defaultProfile from '../assets/person.svg'
+import { getAuth, signOut } from "firebase/auth";
 export default {
     props: {
         profileImage: {
@@ -144,15 +145,23 @@ export default {
         },
         // Define methods for interactivity, e.g., logout function
         logout() {
-            console.log('User logged out');
-            // You can implement actual logout logic here
-            Cookies.remove('username');
-            Cookies.remove('uid');
+            const auth = getAuth();
 
-            // Clear the username in Vuex store
-            //this.$store.dispatch('updateUserName', '');
-            //this.$router.push({ path: '/' })
-            window.location.href = '/login';
+            signOut(auth)
+                .then(() => {
+                    // Clear the cookies after signing out
+                    console.log('user signed out');
+                    Cookies.remove('username');
+                    Cookies.remove('uid');
+                    sessionStorage.removeItem('username');
+                    sessionStorage.removeItem('uid');
+
+                    // Redirect to login or homepage
+                    window.location.href = '/login';
+                })
+                .catch((error) => {
+                    console.error('Error signing out:', error);
+                });
         }
     },
     mounted() {
