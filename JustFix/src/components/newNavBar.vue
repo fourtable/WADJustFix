@@ -47,7 +47,7 @@
                 <i @click="toggleMobileNav" v-show="mobile" class="fa fa-bars"
                     :class="{ 'icon-active': mobileNav }"></i>
             </div>
-            <transition name="mobileNav" v-if="username && mobileNav">
+            <transition v-if="username" name="mobile-nav" >
                 <ul v-show="mobileNav" class="dropdown-nav">
                     <li>
                         <router-link class="link" :to="{ name: 'home' }">Home</router-link>
@@ -66,7 +66,7 @@
                     </li>
                 </ul>
             </transition>
-            <transition v-if="!username && mobileNav">
+            <transition v-else name="mobile-nav">
                 <ul v-show="mobileNav" class="dropdown-nav">
                     <li>
                         <router-link class="link" :to="{ name: 'home' }">Home</router-link>
@@ -294,6 +294,24 @@ header {
                 }
             }
         }
+
+        .mobile-nav-enter-active,
+        .mobile-nav-leave-active {
+            transition: 1s ease all;
+            /* Smooth transition effect */
+        }
+
+        .mobile-nav-enter-from,
+        .mobile-nav-leave-to {
+            transform: translateX(-250px);
+            /* Start hidden to the left */
+        }
+
+        .mobile-nav-enter-to {
+            transform: translateX(0);
+            /* Slide in to be visible */
+        }
+
     }
 }
 
