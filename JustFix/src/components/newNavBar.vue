@@ -15,6 +15,9 @@
                 <li>
                     <router-link class="link" :to="{ name: 'repair' }">Repairers</router-link>
                 </li>
+                <li v-if="username">
+                    <router-link class="link" :to="{ name: 'chat' }">Chat</router-link>
+                </li>
             </ul>
             <ul v-if="!username && !mobile" class="navigation auth-buttons">
                 <li>
@@ -113,7 +116,7 @@ export default {
         window.addEventListener('resize', this.checkScreen);
         this.checkScreen();
         // Retrieve username from cookies and assign it to the username data property
-        this.username = Cookies.get('username') || ''; // Assign cookie value or empty string if not found
+        this.username = Cookies.get('username') || sessionStorage.getItem('username'); // Assign cookie value or empty string if not found
     },
     methods: {
         toggleMobileNav() {
@@ -144,6 +147,7 @@ export default {
             console.log('User logged out');
             // You can implement actual logout logic here
             Cookies.remove('username');
+            Cookies.remove('uid');
 
             // Clear the username in Vuex store
             //this.$store.dispatch('updateUserName', '');

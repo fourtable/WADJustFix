@@ -83,8 +83,10 @@ export default {
                 const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password);
                 // console.log(userCredential);
                 await this.retrieveUsername(this.email);
-                Cookies.set('uid',userCredential.user.uid);
-                // console.log(Cookies.get('uid'));
+                if (this.rememberMe){
+                    Cookies.set('uid',userCredential.user.uid);
+                }
+                sessionStorage.setItem('uid', userCredential.user.uid);
                 window.location.href = '/'
             } catch (error) {
                 this.errorMessage = error.message || 'Invalid login credentials';
@@ -118,7 +120,10 @@ export default {
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const userName = data.name; // Adjust to your actual field name
-                    Cookies.set('username', userName, { expires: 7 }); // Set the username in a cookie
+                    if (this.rememberMe){
+                        Cookies.set('username', userName, { expires: 7 }); // Set the username in a cookie
+                    }
+                    sessionStorage.setItem('username', userName);
                     console.log(Cookies.get('username'));
                     // store.dispatch('updateUserName', userName); // Update the Vuex store with the username
                 });
