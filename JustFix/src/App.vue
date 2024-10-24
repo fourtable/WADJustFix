@@ -1,5 +1,6 @@
 <script setup>
 import Navbar from './components/navbar.vue'
+import newNavBar from './components/newNavBar.vue';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from './main'; // Your Firebase setup
 import { doc, getDoc } from 'firebase/firestore';
@@ -7,10 +8,11 @@ import { doc, getDoc } from 'firebase/firestore';
 
 <template>
   <div>
-    <Navbar :profileImage="userData.imageUrl"></Navbar>
+    <!-- <Navbar :profileImage="userData.imageUrl"></Navbar> -->
+    <newNavBar :profileImage="userData.imageUrl"/>
   </div>
-  <main>
-    <router-view />
+  <main class="content">
+    <router-view/>
   </main>
 </template>
 
@@ -18,6 +20,7 @@ import { doc, getDoc } from 'firebase/firestore';
 export default {
   components: {
     Navbar,
+    newNavBar,
   },
   data() {
     return {
@@ -43,3 +46,8 @@ export default {
   },
 };
 </script>
+<style>
+.content {
+  padding-top: 60px; /* Adjust this based on your navbar height */
+}
+</style>

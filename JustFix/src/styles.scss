@@ -16,106 +16,18 @@ body {
     height: 100vh;
 }
 
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: $background-white;
-    padding: 10px 20px;
-    border-bottom: 1px solid #ddd;
-    position: sticky !important;
-    top: 0;
-    z-index: 1000;
-    /* Ensure it stays on top of other content */
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-}
-
-.logo img {
-    width: 30px;
-    margin-right: 10px;
-}
-
-.navbar-item .nav-link {
-    font-weight: bold;
-    color: $navbar-bg;
-    /* Optional: Adjust color if needed */
-}
-
-.nav-link {
-    list-style: none;
-    display: flex;
-    gap: 20px;
-}
-
-.nav-link li a {
-    text-decoration: none;
-    color: $navbar-bg;
-    font-weight: bold;
-}
-
-.nav-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.nav-buttons button {
-    padding: 10px 20px;
-    border: none;
-    background-color: $button-bg;
-    color: #fff;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-/* Updated styles for buttons */
-.nav-buttons .btn {
-    padding: 10px 20px;
-    border: none;
-    background-color: $button-bg;
-    color: #fff;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-/* Dropdown styles for smaller screens */
-@media (max-width: 768px) {
-    .nav-buttons .btn {
-        background-color: transparent;
-        /* Remove button background */
-        color: $navbar-bg;
-        /* Set text color to match links */
-        border: none;
-        /* Remove border */
-        padding: 0;
-        /* Remove padding */
-        width: 100%;
-        /* Full width in dropdown */
-        text-align: left;
-        /* Align text to the left */
-    }
-}
 
 /* Hero Section */
 .hero {
-    height: 90vh;
-    /* Full viewport height */
-    display: flex;
-    /* Flexbox for centering */
-    align-items: stretch;
-    /* Center content vertically */
-    justify-content: center;
-    /* Center content horizontally */
-    padding: 40px;
-    /* Adjust padding as needed */
-    background-color: $background-white;
-    /* Set a background if needed */
+    height: 90vh; /* Full viewport height */
+    display: flex; /* Flexbox for centering */
+    align-items: stretch; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+    padding: 40px; /* Adjust padding as needed */
+    background-color: $background-white; /* Set a background if needed */   
 }
 
-.row {
+.row{
     display: flex;
     flex-wrap: wrap;
     height: 100%;
@@ -124,22 +36,23 @@ nav {
 .col-lg-6 {
     display: flex;
     flex-direction: column;
-
-}
+    
+  }
 
 
 .hero-box {
     display: flexbox;
     align-content: center;
     flex: 1;
-    padding: 40px;
-    /* increased padding */
-    border-radius: 20px;
-    /* rounded corners to match image */
-    color: $text-color-black;
-    /* update color to black */
+    padding: 40px; /* increased padding */
+    border-radius: 20px; /* rounded corners to match image */
+    color: $text-color-black; /* update color to black */
     text-align: left;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); 
+    
+    h1, h2 {
+        font-size: 50px;
+    }
 }
 
 .light-blue {
@@ -158,11 +71,7 @@ nav {
     color: $text-color-white;
 }
 
-h1,
-h2 {
 
-    font-size: 50px;
-}
 
 .hero-box p {
     font-size: 24px;
@@ -181,61 +90,14 @@ h2 {
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); // Added shadow to button
     transition: background-color 0.3s ease, color 0.3s ease;
-
+    
     &:hover {
         background-color: $text-color-black;
         color: $text-color-white;
     }
 }
 
-/* Resize profile icon to match button height */
-.dropdown {
-    margin-right: 150px;
 
-    button {
-        display: flex;
-        align-items: center;
-    }
-
-    img {
-        height: 40px !important;
-        /* Same as button height (adjust if necessary) */
-        width: auto !important;
-        /* Maintain aspect ratio */
-        border: 100px #000;
-        border-radius: 50% !important;
-        /* Optional: make it circular */
-        vertical-align: middle;
-        margin-left: 5px;
-    }
-
-    .dropdown-toggle {
-        border: 1px solid #085C44;
-        /* Match the border color */
-        background-color: #fff;
-        /* Match the background color */
-        color: #000;
-        /* Match the text color */
-        display: flex; /* Make sure it's a flex container */
-        align-items: center; /* Vertically center items */
-    }
-
-    .dropdown-menu {
-        border: 1px solid #085C44;
-        /* Match the border color */
-    }
-
-    .dropdown-item {
-        padding: 0.5rem 1rem;
-        /* Match padding for dropdown items */
-    }
-
-    .dropdown-item:hover {
-        background-color: rgba(0, 123, 255, 0.1);
-        /* Change background on hover */
-    }
-
-}
 
 // Login
 .full-height {
@@ -263,7 +125,7 @@ h2 {
         background-size: cover;
         background-position: center;
         width: 50vw;
-        height: 90vh;
+        height: 93vh;
     }
 
     .right-section {
@@ -272,7 +134,7 @@ h2 {
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 90vh;
+        height: 93vh;
     }
 
     .register-section {
