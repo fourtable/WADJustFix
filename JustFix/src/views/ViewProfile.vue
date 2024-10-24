@@ -90,7 +90,6 @@ import { doc, getDoc } from "firebase/firestore";
 import Cookies from 'js-cookie'
 import { computed } from "vue";
 
-console.log(Cookies.get('uid'));
 export default {
     data() {
         return {

@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory} from "vue-router";
 import Home from '../views/Home.vue'
-import Event from '../views/Event.vue'; // Import Event component
-import Repair from '../views/Repair.vue'; // Import Repair component
-import Login from '../views/Login.vue'; // Import Login component
-import Register from '../views/Register.vue'; // Import Register component
-import Profile from '../views/ViewProfile.vue'; // Import Profile component
-import EditProfile from '../views/EditProfile.vue'; // Import EditProfile component
+import Event from '../views/Event.vue'; // Import Event view
+import Repair from '../views/Repair.vue'; // Import Repair view
+import Login from '../views/Login.vue'; // Import Login view
+import Register from '../views/Register.vue'; // Import Register view
+import Profile from '../views/ViewProfile.vue'; // Import Profile view
+import EditProfile from '../views/EditProfile.vue'; // Import EditProfile view
+import Chat from '../views/Chat.vue' //Import Chat view
 
 const routes = [
     {
@@ -42,6 +43,11 @@ const routes = [
         path: '/editProfile',
         name: 'editProfile',
         component: EditProfile
+    },
+    {
+        path: '/chat',
+        name: 'chat',
+        component: Chat
     },
     
 ];
