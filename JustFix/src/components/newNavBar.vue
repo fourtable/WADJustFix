@@ -187,7 +187,7 @@ header {
         transition: .5s ease all;
         width: 100%;
         margin: 0 auto;
-
+        
 
 
         ul,
@@ -200,7 +200,6 @@ header {
 
         li {
             text-transform: uppercase;
-
             margin-left: 16px;
         }
 
@@ -224,8 +223,9 @@ header {
         }
 
         .navigation {
+            margin: auto;
             display: flex;
-            align-items: center;
+            align-items: end;
             flex: 0;
             justify-content: end;
         }

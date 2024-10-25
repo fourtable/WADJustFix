@@ -111,11 +111,11 @@ export default {
             const userDoc = await getDoc(doc(db, 'users', uid));
             if (userDoc.exists()) {
                 this.userData = userDoc.data();
-                console.log("User Data:", this.userData.imageUrl);
+                // console.log("User Data:", this.userData.imageUrl);
 
                 // Set the expertise list
                 this.expertiseList = this.userData.expertise || [];
-                console.log(this.expertiseList);
+                // console.log(this.expertiseList);
             } else {
                 console.error("No user data found!");
             }

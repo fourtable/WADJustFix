@@ -48,7 +48,7 @@ export default {
 </script>
 <style>
 .content {
-  padding-top: 5%; /* Adjust this based on your navbar height */
+  padding-top: 3%; /* Adjust this based on your navbar height */
   margin-bottom: 5%;
 }
 </style>
