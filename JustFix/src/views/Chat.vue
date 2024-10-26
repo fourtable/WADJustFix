@@ -1,325 +1,75 @@
 <template>
     <div v-if="username" class="container">
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="panel panel-white border-top-green">
-                    <div class="panel-body chat">
-                        <div class="row chat-wrapper">
-                            <div class="col-md-4">
-                                <div class="compose-area">
-                                    <a href="javascript:void(0);" class="btn btn-default"><i class="fa fa-edit"></i> New
-                                        Chat</a>
+        <div class="card">
+            <div class="row g-0">
+                <!-- Sidebar: List of recent chats -->
+                <div class="col-12 col-lg-5 col-xl-3 border-end">
+                    <div class="p-3">
+                        <input type="text" class="form-control mb-3" placeholder="Search...">
+                        <ul class="list-unstyled chat-list">
+                            <li v-if="contacts.length === 0" class="text-muted text-center">No recent chats</li>
+                            <li v-else v-for="contact in contacts" :key="contact.id" class="chat-item" @click="selectContact(contact)">
+                                <img :src="contact.photoURL" class="rounded-circle me-2" width="40" height="40">
+                                <div class="chat-info">
+                                    <strong>{{ contact.name }}</strong>
+                                    <small class="d-block text-muted">{{ contact.status }}</small>
                                 </div>
-
-                                <div>
-                                    <div class="slimScrollDiv"
-                                        style="position: relative; overflow: hidden; width: auto; height: 550px;">
-                                        <div class="chat-list-wrapper"
-                                            style="overflow-y: auto; width: auto; height: 550px;">
-                                            <ul class="chat-list">
-                                                <li class="new">
-                                                    <span class="avatar available">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="header">
-                                                            <span class="username">Gavin Free</span>
-                                                            <small class="timestamp text-muted">
-                                                                <i class="fa fa-clock-o"></i>1 secs ago
-                                                            </small>
-                                                        </div>
-                                                        <p>
-                                                            Hey, have you finished up with the Ladybug project?
-                                                        </p>
-                                                    </div>
-                                                </li>
-                                                <li class="active">
-                                                    <span class="avatar available">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar2.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="header">
-                                                            <span class="username">Yanique Robinson</span>
-                                                            <small class="timestamp text-muted">
-                                                                <i class="fa fa-clock-o"></i>3 secs ago
-                                                            </small>
-                                                        </div>
-                                                        <p>
-                                                            Cool. I'll see you guys then.
-                                                        </p>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <span class="avatar">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="header">
-                                                            <span class="username">Ryan Haywood</span>
-                                                            <small class="timestamp text-muted">
-                                                                <i class="fa fa-clock-o"></i>12 mins ago
-                                                            </small>
-                                                        </div>
-                                                        <p>
-                                                            Kevin, tomorrow is GoT night at my house. Bring your HDMI
-                                                            extension. Thanks.
-                                                        </p>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <span class="avatar busy">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar4.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="header">
-                                                            <span class="username">Geoff Ramsey</span>
-                                                            <small class="timestamp text-muted">
-                                                                <i class="fa fa-clock-o"></i>1 hour ago
-                                                            </small>
-                                                        </div>
-                                                        <p>
-                                                            Sales want to see you. Something about the new product.
-                                                        </p>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <span class="avatar">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar5.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="header">
-                                                            <span class="username">Kara Mendly</span>
-                                                            <small class="timestamp text-muted">
-                                                                <i class="fa fa-clock-o"></i>5 hours ago
-                                                            </small>
-                                                        </div>
-                                                        <p>
-                                                            Meeting next week Tuesday. Nothing serious, just bring teams
-                                                            work progress with you.
-                                                        </p>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <span class="avatar busy">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="header">
-                                                            <span class="username">Jack Patillo</span>
-                                                            <small class="timestamp text-muted">
-                                                                <i class="fa fa-clock-o"></i>12 mins ago
-                                                            </small>
-                                                        </div>
-                                                        <p>
-                                                            hey, what does this error mean?
-                                                        </p>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="slimScrollBar"
-                                            style="width: 7px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 478.639px; background: rgb(0, 0, 0);">
-                                        </div>
-                                        <div class="slimScrollRail"
-                                            style="width: 7px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; opacity: 0.2; z-index: 90; right: 1px; background: rgb(51, 51, 51);">
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-8">
-
-                                <div class="recipient-box">
-                                    <select data-placeholder=" " class="form-control chzn-select chzn-done" multiple=""
-                                        style="display: none;">
-                                        <option value="k.mckoy@ztapps.com">Kevin Mckoy</option>
-                                        <option value="y.robinson@ztapps.com" selected="">Yanique Robinson</option>
-                                        <option value="gavino@ztapps.com">Gavino Free</option>
-                                        <option value="ggeoff@ztapps.com">Geoff Ramsey</option>
-                                        <option value="kkara@ztapps.com">Kara Kingsley</option>
-                                        <option value="barbs@ztapps.com">Barbara Dundkleman</option>
-                                    </select>
-                                </div>
-
-                                <div>
-
-                                    <div class="slimScrollDiv"
-                                        style="position: relative; overflow: hidden; width: auto; height: 452px;">
-                                        <div class="message-list-wrapper"
-                                            style="overflow: hidden; width: auto; height: 452px;">
-                                            <ul class="message-list">
-                                                <li class="text-center">
-                                                    <a href="javascript:void(0);" class="btn btn-default">Load More
-                                                        Messages</a>
-                                                </li>
-                                                <li class="left">
-                                                    <span class="username">Yanique Robinson</span>
-                                                    <small class="timestamp">
-                                                        <i class="fa fa-clock-o"></i>9 mins ago
-                                                    </small>
-                                                    <span class="avatar available tooltips" data-toggle="tooltip "
-                                                        data-placement="right" data-original-title="Yanique Robinson">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="message well well-sm">
-                                                            Hey, are you busy at the moment?
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li class="right">
-                                                    <span class="username">Kevin Mckoy</span>
-                                                    <small class="timestamp">
-                                                        <i class="fa fa-clock-o"></i>5 mins ago
-                                                    </small>
-                                                    <span class="avatar tooltips" data-toggle="tooltip "
-                                                        data-placement="left" data-original-title="Kevin Mckoy">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar2.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="message well well-sm">
-                                                            Um, no actually. I've just wrapped up my last project for
-                                                            the day.
-                                                        </div>
-                                                        <div class="clearfix"></div>
-                                                        <div class="message well well-sm">
-                                                            Whats up?
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li class="left">
-                                                    <span class="username">Yanique Robinson</span>
-                                                    <small class="timestamp">
-                                                        <i class="fa fa-clock-o"></i>3 mins ago
-                                                    </small>
-                                                    <span class="avatar available tooltips" data-toggle="tooltip "
-                                                        data-placement="right" data-original-title="Yanique Robinson">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="message well well-sm">
-                                                            Well, I wanted to find out if you have any plans for
-                                                            tonight.
-                                                        </div>
-                                                        <div class="clearfix"></div>
-                                                        <div class="message well well-sm">
-                                                            <p><a href="#" class="white">Barbara</a> and I are going to
-                                                                this restaurant out of town.</p>
-                                                            <img src="https://www.bootdey.com/image/300x200" alt="">
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li class="right">
-                                                    <span class="username">Kevin Mckoy</span>
-                                                    <small class="timestamp">
-                                                        <i class="fa fa-clock-o"></i>2 mins ago
-                                                    </small>
-                                                    <span class="avatar tooltips" data-toggle="tooltip "
-                                                        data-placement="left" data-original-title="Kevin Mckoy">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar2.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="message well well-sm">
-                                                            Wow that sounds great.
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li class="left">
-                                                    <span class="username">Yanique Robinson</span>
-                                                    <small class="timestamp">
-                                                        <i class="fa fa-clock-o"></i>56 secs ago
-                                                    </small>
-                                                    <span class="avatar available tooltips" data-toggle="tooltip "
-                                                        data-placement="right" data-original-title="Yanique Robinson">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="message well well-sm">
-                                                            Ok! We'll swing by your office at 5.
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li class="right">
-                                                    <span class="username">Kevin Mckoy</span>
-                                                    <small class="timestamp">
-                                                        <i class="fa fa-clock-o"></i>3 secs ago
-                                                    </small>
-                                                    <span class="avatar tooltips" data-toggle="tooltip "
-                                                        data-placement="left" data-original-title="Kevin Mckoy">
-                                                        <img src="https://bootdey.com/img/Content/avatar/avatar2.png"
-                                                            alt="avatar" class="img-circle">
-                                                    </span>
-                                                    <div class="body">
-                                                        <div class="message well well-sm">
-                                                            Cool. I'l see you guys then.
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="slimScrollBar"
-                                            style="width: 7px; position: absolute; top: 265px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 187.092px; background: rgb(0, 0, 0);">
-                                        </div>
-                                        <div class="slimScrollRail"
-                                            style="width: 7px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; opacity: 0.2; z-index: 90; right: 1px; background: rgb(51, 51, 51);">
-                                        </div>
-                                    </div>
-
-                                    <div class="compose-box">
-                                        <div class="row">
-                                            <div class="col-xs-12 mg-btm-10">
-                                                <textarea id="btn-input" class="form-control input-sm"
-                                                    placeholder="Type your message here..."></textarea>
-                                            </div>
-                                            <div class="col-xs-8">
-                                                <button class="btn btn-green btn-sm">
-                                                    <i class="fa fa-camera"></i>
-                                                </button>
-                                                <button class="btn btn-green btn-sm">
-                                                    <i class="fa fa-video-camera"></i>
-                                                </button>
-                                                <button class="btn btn-green btn-sm">
-                                                    <i class="fa fa-file"></i>
-                                                </button>
-                                            </div>
-                                            <div class="col-xs-4">
-                                                <button class="btn btn-green btn-sm pull-right">
-                                                    <i class="fa fa-location-arrow"></i> Send
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                            </div>
-                        </div>
-
+                            </li>
+                        </ul>
                     </div>
                 </div>
-            </div>
 
+                <!-- Main Chat Area -->
+                <div class="col-12 col-lg-7 col-xl-9 chat-container">
+                    <div class="p-3 chat-header">
+                        <img v-if="selectedContact" :src="selectedContact.photoURL" class="rounded-circle me-2" width="40" height="40">
+                        <div v-if="selectedContact">
+                            <strong>{{ selectedContact.name }}</strong>
+                            <small class="text-muted d-block">Last seen: {{ selectedContact.lastSeen }}</small>
+                        </div>
+                    </div>
+
+                    <div class="chat-messages">
+                        <div v-if="chatHistory.length === 0" class="text-center mt-3">
+                            <em>No messages yet. Start the conversation!</em>
+                        </div>
+                        <div v-else>
+                            <div v-for="message in chatHistory" :key="message.id"
+                                :class="{'chat-message-right': message.senderId === user.uid, 'chat-message-left': message.senderId !== user.uid}">
+                                <div>
+                                    <img :src="message.photoURL" width="40" height="40" class="rounded-circle">
+                                    <div class="message-content">{{ message.text }}</div>
+                                    <small class="text-muted">{{ message.timestamp }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="input-group">
+                <input v-model="newMessage" type="text" class="form-control" placeholder="Enter text here..." />
+                <button @click="sendMessage" class="btn btn-success">
+                    <i class="fa fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
     </div>
 </template>
+
+
+
 <script>
 import Cookies from 'js-cookie';
-import { db, auth } from "../main"; // Importing your Firebase setup
+import { db, auth, useAuth } from "../main"; // Importing your Firebase setup
 import { onAuthStateChanged } from "firebase/auth";
+import { ref, watch, nextTick, onMounted, reactive } from 'vue';
+import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useChat } from '../main'
+
 
 export default {
+    
     data() {
         return {
 
@@ -340,437 +90,172 @@ export default {
             }
         });
     },
+    setup() {
+        const user = ref(null);
+        const contacts = ref([]);
+        const chatHistory = ref([]);
+        const newMessage = ref('');
+        const selectedContact = ref(null);
+
+        onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+                user.value = currentUser;
+                loadContacts();
+            } else {
+                window.location.href = './login';
+            }
+        });
+
+        // Load contacts the user has recently chatted with
+        const loadContacts = () => {
+            const contactsQuery = query(collection(db, 'contacts'), where('userId', '==', user.value.uid), orderBy('lastMessageTime', 'desc'));
+            onSnapshot(contactsQuery, (snapshot) => {
+                contacts.value = snapshot.empty ? [] : snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            });
+        };
+
+        // Load chat history with a selected contact
+        const loadChatHistory = (contactId) => {
+            const chatQuery = query(
+                collection(db, 'chats'),
+                where('participants', 'array-contains', user.value.uid),
+                orderBy('timestamp')
+            );
+            onSnapshot(chatQuery, (snapshot) => {
+                chatHistory.value = snapshot.empty ? [] : snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            });
+        };
+
+        // Select a contact to chat with
+        const selectContact = (contact) => {
+            selectedContact.value = contact;
+            loadChatHistory(contact.id);
+        };
+
+        // Send a message
+        const sendMessage = async () => {
+            if (newMessage.value.trim()) {
+                await addDoc(collection(db, 'chats'), {
+                    text: newMessage.value,
+                    senderId: user.value.uid,
+                    receiverId: selectedContact.value.id,
+                    timestamp: serverTimestamp(),
+                });
+                newMessage.value = '';
+            }
+        };
+
+        return { user, contacts, chatHistory, newMessage, selectedContact, selectContact, sendMessage };
+    }
 }
 </script>
 <style lang="scss" scoped>
-body {
-    margin-top: 20px;
+.container {
+    padding-top: 4%;
+
+    @media (max-width: 1140px) {
+        padding-top: 7%;
+    }
+
+    @media (max-width: 900px) {
+        padding-top: 10%;
+    }
+
+    @media (max-width: 700px) {
+        padding-top: 13%;
+    }
 }
 
+.card {
+    min-height: 80vh;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 
-/* Component: Chat */
-.chat .chat-wrapper .chat-list-wrapper {
-    border: 1px solid #ddd;
-    height: 510px;
+    .row {
+        height: 100vh;
+    }
+}
+
+.chat-list {
+    max-height: 70vh;
     overflow-y: auto;
 }
 
-.chat .chat-wrapper .chat-list-wrapper .chat-list {
-    padding: 0;
-}
-
-.chat .chat-wrapper .chat-list-wrapper .chat-list li {
-    display: block;
-    padding: 20px 10px;
-    clear: both;
+.chat-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
     cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.chat-item:hover {
+    background-color: #f1f1f1;
+}
+
+.chat-info {
+    flex-grow: 1;
+}
+
+.chat-container {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    height: 100%;          /* Full height to fill the parent */
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
     border-bottom: 1px solid #ddd;
-    -webkit-transition: all 0.2s ease-in-out;
-    -moz-transition: all 0.2s ease-in-out;
-    -ms-transition: all 0.2s ease-in-out;
-    -o-transition: all 0.2s ease-in-out;
-    transition: all 0.2s ease-in-out;
+    flex-shrink: 0;        /* Prevent the header from shrinking */
 }
 
-.chat .chat-wrapper .chat-list-wrapper .chat-list li .avatar {
-    margin-right: 12px;
-    float: left;
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 220px); /* Adjust according to header height and input group height */
+    overflow-y: auto; /* Enable scrolling if necessary */
+    flex-grow: 1; /* Allow messages to fill the available space */
 }
 
-.chat .chat-wrapper .chat-list-wrapper .chat-list li .avatar img {
-    width: 60px;
-    height: auto;
-    border: 4px solid transparent;
+.chat-message-left,
+.chat-message-right {
+    display: flex;
+    flex-shrink: 0;
+    margin-bottom: 15px;
 }
 
-.chat .chat-wrapper .chat-list-wrapper .chat-list li .avatar.available img {
-    border-color: #2ecc71;
+.chat-message-left {
+    margin-right: auto;
 }
 
-.chat .chat-wrapper .chat-list-wrapper .chat-list li .avatar.busy img {
-    border-color: #ff530d;
+.chat-message-right {
+    flex-direction: row-reverse;
+    margin-left: auto;
 }
 
-.chat .chat-wrapper .chat-list-wrapper .chat-list li .body .header {
-    margin-top: 4px;
-    margin-bottom: 4px;
+.message-content {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 10px;
+    margin-left: 10px;
 }
 
-.chat .chat-wrapper .chat-list-wrapper .chat-list li .body .header .username {
-    font-weight: bold;
-}
+.input-group {
+    display: flex;               /* Enable flexbox for the input group */
+    padding: 0.5rem;            /* Add some padding */
+    border-top: 1px solid #ddd; /* Optional border for distinction */
 
-.chat .chat-wrapper .chat-list-wrapper .chat-list li .body .header .timestamp {
-    float: right;
-    color: #999;
-    font-size: 11px;
-    line-height: 18px;
-    font-style: italic;
-}
-
-.chat .chat-wrapper .chat-list-wrapper .chat-list li .body .header .timestamp i {
-    margin-right: 4px;
-}
-
-.chat .chat-wrapper .chat-list-wrapper .chat-list li .body p {
-    font-size: 12px;
-    line-height: 16px;
-    max-height: 32px;
-    overflow: hidden;
-}
-
-.chat .chat-wrapper .chat-list-wrapper .chat-list li:hover {
-    background-color: #f4f4f4;
-}
-
-.chat .chat-wrapper .chat-list-wrapper .chat-list li.active {
-    background-color: #eee;
-    color: black;
-}
-
-.chat .chat-wrapper .chat-list-wrapper .chat-list li.active .body .timestamp {
-    color: black;
-}
-
-.chat .chat-wrapper .chat-list-wrapper .chat-list li.new {
-    border-left: 2px solid #2ecc71;
-}
-
-.chat .chat-wrapper .message-list-wrapper {
-    border: 1px solid #ddd;
-    height: 452px;
-    position: relative;
-    overflow-y: auto;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list {
-    padding: 0;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li {
-    display: block;
-    padding: 20px 10px;
-    clear: both;
-    position: relative;
-    color: white;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .avatar {
-    margin-right: 12px;
-    display: block;
-    float: left;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .avatar img {
-    width: 60px;
-    height: auto;
-    border: 2px solid transparent;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .avatar.available img {
-    border-color: #2ecc71;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .avatar.busy img {
-    border-color: #ff530d;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .username {
-    float: left;
-    display: none;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .timestamp {
-    text-align: left;
-    display: block;
-    color: #999;
-    font-size: 11px;
-    line-height: 18px;
-    font-style: italic;
-    margin-bottom: 4px;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .timestamp i {
-    margin-right: 4px;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .body {
-    display: block;
-    width: 87%;
-    float: left;
-    position: relative;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .body .message {
-    font-size: 12px;
-    line-height: 16px;
-    display: inline-block;
-    width: auto;
-    background: #2ecc71;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .body .message:before {
-    content: '';
-    display: block;
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 9px 9px 9px 0;
-    border-color: transparent #2ecc71 transparent transparent;
-    left: 0;
-    top: 10px;
-    margin-left: -8px;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .body .message a.white {
-    color: white;
-    font-weight: bolder;
-    text-decoration: underline;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.left .body .message img {
-    max-width: 320px;
-    max-height: 320px;
-    width: 100%;
-    height: auto;
-    margin-bottom: 5px;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .avatar {
-    margin-left: 12px;
-    display: block;
-    float: right;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .avatar img {
-    width: 60px;
-    height: auto;
-    border: 2px solid transparent;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .avatar.available img {
-    border-color: #2ecc71;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .avatar.busy img {
-    border-color: #ff530d;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .username {
-    float: right;
-    display: none;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .timestamp {
-    text-align: right;
-    display: block;
-    color: #999;
-    font-size: 11px;
-    line-height: 18px;
-    font-style: italic;
-    margin-bottom: 4px;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .timestamp i {
-    margin-right: 4px;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .body {
-    display: block;
-    width: 87%;
-    float: right;
-    position: relative;
-    text-align: right;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .body .message {
-    font-size: 12px;
-    line-height: 16px;
-    display: inline-block;
-    width: auto;
-    background: #3498db;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .body .message:after {
-    content: '';
-    display: block;
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 9px 9px 9px 0;
-    border-color: transparent #3498db transparent transparent;
-    right: 0;
-    top: 10px;
-    margin-right: -7px;
-    -moz-transform: rotate(180deg);
-    -o-transform: rotate(180deg);
-    -webkit-transform: rotate(180deg);
-    -ms-transform: rotate(180deg);
-    transform: rotate(180deg);
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .body .message a.white {
-    color: white;
-    font-weight: bold;
-}
-
-.chat .chat-wrapper .message-list-wrapper .message-list li.right .body .message img {
-    max-width: 320px;
-    max-height: 320px;
-    width: 100%;
-    height: auto;
-    margin-bottom: 5px;
-}
-
-.chat .chat-wrapper .compose-area {
-    padding: 10px 0;
-    text-align: right;
-}
-
-.chat .chat-wrapper .compose-box {
-    padding: 10px 0;
-}
-
-.chat .chat-wrapper .recipient-box {
-    padding: 10px 0;
-}
-
-.chat .chat-wrapper .recipient-box .bootstrap-tagsinput {
-    display: block;
-    width: 100%;
-    margin-bottom: 0;
-}
-
-@media (max-width: 767px) {
-    .chat .chat-wrapper .chat-list-wrapper {
-        border: 1px solid #ddd;
-        height: 300px;
-        overflow-y: auto;
+    input {
+        flex: 1;                 /* Allow input to grow and take available space */
+        margin-right: 0.5rem;    /* Space between input and button */
+        min-width: 0;           /* Prevent input from overflowing */
+        border-radius: 10px !important;
     }
 
-    .chat .chat-wrapper .chat-list-wrapper .chat-list {
-        padding: 0;
+    .btn-success {
+        flex-shrink: 0;          /* Prevent button from shrinking */
+        border-radius: 50% !important;
     }
-
-    .chat .chat-wrapper .chat-list-wrapper .chat-list li {
-        display: block;
-        padding: 20px 10px;
-        clear: both;
-        border-bottom: 1px solid #ddd;
-    }
-
-    .chat .chat-wrapper .chat-list-wrapper .chat-list li .avatar {
-        display: none;
-    }
-
-    .chat .chat-wrapper .chat-list-wrapper .chat-list li .body .header {
-        margin-top: 4px;
-        margin-bottom: 4px;
-    }
-
-    .chat .chat-wrapper .chat-list-wrapper .chat-list li .body .header .username {
-        font-weight: bold;
-    }
-
-    .chat .chat-wrapper .chat-list-wrapper .chat-list li .body .header .timestamp {
-        float: right;
-        color: #999;
-        font-size: 11px;
-        line-height: 18px;
-        font-style: italic;
-    }
-
-    .chat .chat-wrapper .chat-list-wrapper .chat-list li .body .header .timestamp i {
-        margin-right: 4px;
-    }
-
-    .chat .chat-wrapper .chat-list-wrapper .chat-list li .body p {
-        display: none;
-    }
-
-    .chat .chat-wrapper .chat-list-wrapper .chat-list li.active {
-        color: black;
-    }
-
-    .chat .chat-wrapper .chat-list-wrapper .chat-list li.active .body .timestamp {
-        color: black;
-    }
-
-    .chat .chat-wrapper .chat-list-wrapper .chat-list li.new {
-        font-weight: bolder;
-    }
-
-    .chat .chat-wrapper .chat-list-wrapper .chat-list li.new .body .timestamp {
-        font-weight: bolder;
-    }
-
-    .chat .chat-wrapper .message-list-wrapper .message-list li.left .avatar {
-        display: none;
-    }
-
-    .chat .chat-wrapper .message-list-wrapper .message-list li.left .username {
-        display: inline-block;
-        margin-right: 10px;
-    }
-
-    .chat .chat-wrapper .message-list-wrapper .message-list li.left .body {
-        width: 100%;
-    }
-
-    .chat .chat-wrapper .message-list-wrapper .message-list li.right .avatar {
-        display: none;
-    }
-
-    .chat .chat-wrapper .message-list-wrapper .message-list li.right .username {
-        display: inline-block;
-        margin-left: 10px;
-    }
-
-    .chat .chat-wrapper .message-list-wrapper .message-list li.right .timestamp {
-        text-align: right;
-        display: block;
-        color: #999;
-        font-size: 11px;
-        line-height: 18px;
-        font-style: italic;
-        margin-bottom: 4px;
-    }
-
-    .chat .chat-wrapper .message-list-wrapper .message-list li.right .timestamp i {
-        margin-right: 4px;
-    }
-
-    .chat .chat-wrapper .message-list-wrapper .message-list li.right .body {
-        width: 100%;
-    }
-
-    .chat .chat-wrapper .recipient-box {
-        margin-top: 30px;
-    }
-}
-
-.btn-green {
-    background-color: #2ecc71;
-    border-color: #27ae60;
-    color: white;
-}
-
-.mg-btm-10 {
-    margin-bottom: 10px !important;
-}
-
-.panel-white {
-    border: 1px solid #dddddd;
-}
-
-.panel {
-    border-radius: 0;
-    margin-bottom: 30px;
-}
-
-.border-top-green {
-    border-top: 4px solid #27ae60 !important;
 }
 </style>

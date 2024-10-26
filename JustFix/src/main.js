@@ -1,4 +1,4 @@
-import { createApp } from 'vue';
+import { createApp, onUnmounted, ref, computed } from 'vue';
 import router from './router';
 import './styles.scss';
 import App from './App.vue';
@@ -8,7 +8,7 @@ import 'bootstrap/dist/css/bootstrap.css'; // No need to import 'bootstrap' if y
 // Firebase imports
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { getFirestore } from "firebase/firestore"; // Import Firestore
+import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "firebase/firestore"; // Import Firestore
 import { getStorage } from 'firebase/storage';
 
 // Your web app's Firebase configuration
@@ -30,10 +30,9 @@ const auth = getAuth(firebaseApp);
 const provider = new GoogleAuthProvider();
 const db = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
-
-createApp(App).use(router).mount('#app');
-// Export Firebase services
-export { firebaseApp, storage, auth, provider, db, signInWithPopup };
+const messagesCollection = collection(db, 'messages')
+const messagesQuery = query(messagesCollection, orderBy('createdAt', 'desc'), limit(100));
+// const filter = new filter();
 
 // Function to fetch repairers from Firestore
 async function fetchRepairmen() {
@@ -110,3 +109,48 @@ window.initMap = initMap;
     v: "weekly",
 });
 
+// Check if User has log in
+export function useAuth() {
+    const user = ref(null)
+    const unsubscribe = auth.onAuthStateChanged(_user => (user.value = _user))
+    onUnmounted(unsubscribe)
+    const isLogin = computed(() => user.value !== null)
+  
+    const signIn = async () => {
+      const googleProvider = new firebase.auth.GoogleAuthProvider()
+      await auth.signInWithPopup(googleProvider)
+    }
+    const signOut = () => auth.signOut()
+  
+    return { user, isLogin, signIn, signOut }
+  }
+
+// Message Function
+export function useChat() {
+    const messages = ref([])
+    const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+        messages.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    });
+    onUnmounted(unsubscribe)
+
+    const { user, isLogin } = useAuth()
+    const sendMessage = text => {
+        if (!isLogin.value) return
+        const {photoURL, uid, displayName } = user.value;
+        messagesCollection.add({
+            userName: displayName,
+            userId: uid,
+            userPhotoURL: photoURL,
+            text: text,
+            createdAt: firebaseApp.db.FieldValue.serverTimeStamp(),
+        })
+    }
+
+    return {messages, sendMessage}
+
+}
+
+
+createApp(App).use(router).mount('#app');
+// Export Firebase services
+export { firebaseApp, storage, auth, provider, db, signInWithPopup };
