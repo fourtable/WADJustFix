@@ -21,7 +21,7 @@
 
                 <!-- Main Chat Area -->
                 <div class="col-12 col-lg-7 col-xl-9 chat-container">
-                    <div class="p-3 chat-header">
+                    <div class="chat-header">
                         <img v-if="selectedContact" :src="selectedContact.photoURL" class="rounded-circle me-2" width="40" height="40">
                         <div v-if="selectedContact">
                             <strong>{{ selectedContact.name }}</strong>
@@ -83,7 +83,7 @@ export default {
     mounted() {
         // Check authentication state and fetch user data
         onAuthStateChanged(auth, (user) => {
-            console.log(user);
+            // console.log(user);
             if (!user) {
                 console.error("User is not logged in");
                 window.location.href = "./login";  // Redirect to login if not authenticated
@@ -208,6 +208,7 @@ export default {
     align-items: center;
     border-bottom: 1px solid #ddd;
     flex-shrink: 0;        /* Prevent the header from shrinking */
+    padding: 4%;
 }
 
 .chat-messages {
