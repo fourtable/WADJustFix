@@ -166,9 +166,13 @@
     mounted() {
       // Check authentication state and fetch user data
       onAuthStateChanged(auth, (user) => {
+        console.log(user);
         if (user) {
           this.fetchUserData(user.uid);
         } else {
+          console.log(user);  
+          console.log(this.userData);
+          this.userData = null;
           console.error("User is not logged in");
           window.location.href = "./login";  // Redirect to login if not authenticated
         }
