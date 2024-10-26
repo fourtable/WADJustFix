@@ -142,17 +142,31 @@ export default {
       this.profile.imageUrl = await getDownloadURL(profilePicRef);
     }
 
-    // Prepare fields to update
-    const updatedProfile = {
-      name: this.profile.name,
-      userType: this.profile.userType,
-      expertise: this.profile.expertise,
-      description: this.profile.description,
-      imageUrl: this.profile.imageUrl,
-    };
+    // Prepare fields to update, only add fields if they are defined
+    const updatedProfile = {};
+
+    if (this.profile.name) {
+      updatedProfile.name = this.profile.name;
+    }
+
+    if (this.profile.userType) {
+      updatedProfile.userType = this.profile.userType;
+    }
+
+    if (this.profile.expertise && this.profile.expertise.length > 0) {
+      updatedProfile.expertise = this.profile.expertise;
+    }
+
+    if (this.profile.description) {
+      updatedProfile.description = this.profile.description;
+    }
+
+    if (this.profile.imageUrl) {
+      updatedProfile.imageUrl = this.profile.imageUrl;
+    }
 
     // Only include experience if the user is a repairer
-    if (this.profile.userType === 'repairer') {
+    if (this.profile.userType === 'repairer' && this.profile.experience) {
       updatedProfile.experience = this.profile.experience;
     }
 
@@ -177,6 +191,7 @@ export default {
     console.error('Error updating profile:', error.message);
   }
 }
+
 
 ,
     async fetchUserProfile(uid) {
