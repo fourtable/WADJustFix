@@ -118,58 +118,66 @@ export default {
       return window.URL.createObjectURL(file); // Fix for createObjectURL
     },
     async updateProfile() {
-    try {
-      const user = auth.currentUser;
-      if (!user) {
-        throw new Error('User is not authenticated.');
-      }
-      const userId = user.uid;
-
-      // Ensure expertise is always an array before processing
-      if (!Array.isArray(this.profile.expertise)) {
-        this.profile.expertise = [];
-      }
-
-      // Include other expertise if checked
-      if (this.profile.otherChecked && this.profile.otherExpertise) {
-        this.profile.expertise.push(this.profile.otherExpertise);
-      }
-
-      // Upload profile picture if a new one is selected
-      if (this.profilePicFile) {
-        const profilePicRef = storageRef(storage, `profile_pics/${userId}.jpg`);
-        await uploadBytes(profilePicRef, this.profilePicFile);
-        this.profile.imageUrl = await getDownloadURL(profilePicRef);
-      }
-
-      // Update Firestore
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        name: this.profile.name,
-        userType: this.profile.userType,
-        experience: this.profile.experience,
-        expertise: this.profile.expertise,
-        description: this.profile.description,
-        imageUrl: this.profile.imageUrl
-      });
-
-      console.log('Profile updated successfully');
-      alert('Profile updated');
-      await this.fetchUserProfile(userId);
-
-      // Emit the updated profile info (username and profile image) to be used in other components like Navbar
-      const event = new CustomEvent('profileUpdated', {
-        detail: {
-          username: this.profile.name,
-          profileImage: this.profile.imageUrl,
-        }
-      });
-      window.dispatchEvent(event);  // Dispatch event globally so other components like Navbar can listen to it.
-
-    } catch (error) {
-      console.error('Error updating profile:', error.message);
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('User is not authenticated.');
     }
+    const userId = user.uid;
+
+    // Ensure expertise is always an array before processing
+    if (!Array.isArray(this.profile.expertise)) {
+      this.profile.expertise = [];
+    }
+
+    // Include other expertise if checked
+    if (this.profile.otherChecked && this.profile.otherExpertise) {
+      this.profile.expertise.push(this.profile.otherExpertise);
+    }
+
+    // Upload profile picture if a new one is selected
+    if (this.profilePicFile) {
+      const profilePicRef = storageRef(storage, `profile_pics/${userId}.jpg`);
+      await uploadBytes(profilePicRef, this.profilePicFile);
+      this.profile.imageUrl = await getDownloadURL(profilePicRef);
+    }
+
+    // Prepare fields to update
+    const updatedProfile = {
+      name: this.profile.name,
+      userType: this.profile.userType,
+      expertise: this.profile.expertise,
+      description: this.profile.description,
+      imageUrl: this.profile.imageUrl,
+    };
+
+    // Only include experience if the user is a repairer
+    if (this.profile.userType === 'repairer') {
+      updatedProfile.experience = this.profile.experience;
+    }
+
+    // Update Firestore
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, updatedProfile);
+
+    console.log('Profile updated successfully');
+    alert('Profile updated');
+    await this.fetchUserProfile(userId);
+
+    // Emit the updated profile info (username and profile image) to be used in other components like Navbar
+    const event = new CustomEvent('profileUpdated', {
+      detail: {
+        username: this.profile.name,
+        profileImage: this.profile.imageUrl,
+      },
+    });
+    window.dispatchEvent(event);  // Dispatch event globally so other components like Navbar can listen to it.
+
+  } catch (error) {
+    console.error('Error updating profile:', error.message);
   }
+}
+
 ,
     async fetchUserProfile(uid) {
       const userDoc = await getDoc(doc(db, 'users', uid));
