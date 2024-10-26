@@ -123,7 +123,11 @@ export default {
                 expertise: [],
                 otherChecked: false,
                 otherExpertise: '',
-                businessLocation: ''
+                businessLocation: {
+                    address: '',
+                    lat: null,
+                    lng: null
+                }
             },
             expertiseList: [
                 "Home Appliances (e.g, Microwaves, Ovens, etc.)",
@@ -152,19 +156,24 @@ export default {
                 autocomplete.setComponentRestrictions({ 'country': ['sg'] });
                 autocomplete.addListener('place_changed', () => {
                     const place = autocomplete.getPlace();
-                    const formattedAddress = place.formatted_address || input.value;
-                    const location = place.geometry.location;
+                    if (place.geometry) {
+                        const formattedAddress = place.formatted_address || input.value;
+                        const location = place.geometry.location;
 
-                    // Store the address, latitude, and longitude
-                    this.formData.businessLocation = {
-                        address: formattedAddress, // Only the address will be shown in the input field
-                        lat: location.lat(),
-                        lng: location.lng()
-                    };
+                        // Store the address, latitude, and longitude
+                        this.formData.businessLocation = {
+                            address: formattedAddress, 
+                            lat: location.lat(),
+                            lng: location.lng()
+                        };
 
-                    console.log('Selected place:', place);
-                    console.log('Formatted address:', formattedAddress);
-                    console.log('Coordinates:', location.lat(), location.lng());
+                        console.log('Selected place:', place);
+                        console.log('Formatted address:', formattedAddress);
+                        console.log('Coordinates:', location.lat(), location.lng());
+                    } else {
+                        console.error('No geometry available for this place.');
+                        alert('Please select a valid business location from the suggestions.');
+                    }
                 });
             } else {
                 console.error('Input element not found for Google Autocomplete');
@@ -175,6 +184,12 @@ export default {
                 // Check if passwords match
                 if (this.formData.password !== this.formData.cfmPassword) {
                     alert('Passwords do not match!');
+                    return;
+                }
+
+                // Check if business location is populated
+                if (!this.formData.businessLocation.address) {
+                    alert('Please enter a valid business location.');
                     return;
                 }
 
@@ -245,7 +260,11 @@ export default {
                 expertise: [],
                 otherChecked: false,
                 otherExpertise: '',
-                businessLocation: ''
+                businessLocation: {
+                    address: '',
+                    lat: null,
+                    lng: null
+                }
             };
             this.selectedType = '';
         }
