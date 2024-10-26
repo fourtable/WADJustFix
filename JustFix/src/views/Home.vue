@@ -29,6 +29,9 @@
           <div class="col-12 mb-3">
             <!-- Search bar for location -->
             <input type="text" class="form-control" id="locationInput" placeholder="Enter location..." ref="locationInput" />
+            <!-- Search radius slider -->
+            <label for="radiusSlider" class="mt-3">Search Radius (km): {{ searchRadius }} km</label>
+            <input type="range" id="radiusSlider" v-model="searchRadius" min="1" max="50" class="form-range" />
             <div id="map" class="map-container mt-3"></div>
           </div>
         </div>
@@ -48,17 +51,27 @@ export default {
       repairLink: '#', // Define your links
       registerLink: '#',
       eventLink: '#',
+      searchRadius: 10, // Default search radius in km
+      allRepairmen: [], // Store all repairers
       repairmenMarkers: [], // For storing markers on the map
       map: null, // Reference to the map instance
       locationInput: null, // Reference to location input field
       selectedLocation: null, // Stores the selected location lat/lng
       userLocation: null, // Stores the user's current geolocation
+      searchCircle: null, // Circle on the map to represent search radius
     };
   },
   mounted() {
     this.initMap();
     this.initializeAutocomplete(); // Initialize Google Places Autocomplete on mount
     this.getUserLocation(); // Get the user's geolocation on mount
+  },
+  watch: {
+    // Watch for changes in radius and trigger a map update
+    searchRadius() {
+      this.updateSearchCircle(); // Update the circle radius in real-time
+      this.filterRepairersByLocation(); // Refilter repairers based on updated radius
+    },
   },
   methods: {
     async fetchRepairers() {
@@ -72,10 +85,10 @@ export default {
             name: data.name,
             lat: data.businessLocation.lat,
             lng: data.businessLocation.lng,
-            expertise: data.expertise.join(', '), // Add expertise for filtering purposes
           });
         }
       });
+      this.allRepairmen = repairmen; // Save all repairers for future filtering
       return repairmen;
     },
     async initMap() {
@@ -115,7 +128,10 @@ export default {
         });
         this.repairmenMarkers.push(marker); // Store the marker
       });
+
+      this.adjustMapBounds(repairmen); // Adjust the map bounds based on repairmen
     },
+
     clearMarkers() {
       this.repairmenMarkers.forEach((marker) => marker.setMap(null));
       this.repairmenMarkers = [];
@@ -141,7 +157,11 @@ export default {
           };
           this.map.setCenter(this.selectedLocation); // Move map to selected location
           this.map.setZoom(15); // Zoom into the selected location
+          this.updateSearchCircle(); // Create or update the search circle
           this.filterRepairersByLocation(); // Filter repairers based on the selected location
+        } else {
+          // Reset to show all repairmen if the input is cleared or no location is selected
+          this.placeRepairmenOnMap(this.allRepairmen);
         }
       });
     },
@@ -158,16 +178,19 @@ export default {
             this.map.setCenter(this.userLocation); // Center map on user's location
             this.map.setZoom(14); // Adjust zoom level for user location
             this.placeUserLocationMarker(); // Place a marker for the user’s location
-            // Only filter if user wants proximity search, else show all
-            // Uncomment the line below if proximity filtering is needed.
-            // this.filterRepairersByLocation(); 
+            this.placeRepairmenOnMap(this.allRepairmen); // Show all repairmen by default
+            this.updateSearchCircle(); // Create or update the search circle for the user's location
           },
           (error) => {
             console.error("Error fetching user location:", error.message);
+            // If geolocation fails, show all repairmen by default
+            this.placeRepairmenOnMap(this.allRepairmen);
           }
         );
       } else {
         console.error("Geolocation is not supported by this browser.");
+        // If geolocation is not supported, show all repairmen by default
+        this.placeRepairmenOnMap(this.allRepairmen);
       }
     },
 
@@ -185,40 +208,59 @@ export default {
       }
     },
 
-    // Filter repairers based on the selected location proximity (within 10km)
-    async filterRepairersByLocation() {
+    // Filter repairers based on the selected location proximity (within the specified radius)
+    filterRepairersByLocation() {
+      const location = this.selectedLocation || this.userLocation;
+      if (!location) {
+        // If no location is selected, show all repairmen
+        this.placeRepairmenOnMap(this.allRepairmen);
+        return;
+      }
+
+      const filteredRepairmen = this.allRepairmen.filter((repairman) => {
+        const distance = google.maps.geometry.spherical.computeDistanceBetween(
+          new google.maps.LatLng(location.lat, location.lng),
+          new google.maps.LatLng(repairman.lat, repairman.lng)
+        );
+        return distance <= this.searchRadius * 1000; // Filter by the radius in meters
+      });
+
+      this.placeRepairmenOnMap(filteredRepairmen); // Show filtered repairmen
+    },
+
+    // Create or update the search circle to represent the search radius
+    // Create or update the search circle to represent the search radius
+    updateSearchCircle() {
       const location = this.selectedLocation || this.userLocation;
       if (!location) return;
 
-      const repairmen = await this.fetchRepairers();
-      const filteredRepairmen = repairmen.filter((repairman) => {
-        const distance = this.getDistanceFromLatLonInKm(
-          location.lat,
-          location.lng,
-          repairman.lat,
-          repairman.lng
-        );
-        return distance <= 10; // Only show repairers within 10km of the location
+      if (this.searchCircle) {
+        this.searchCircle.setMap(null); // Remove the previous circle
+      }
+
+      this.searchCircle = new google.maps.Circle({
+        center: location,
+        radius: this.searchRadius * 1000, // Radius in meters
+        map: this.map,
+        fillColor: "#ADD8E6",
+        fillOpacity: 0.10, // Reduce fill opacity to make it less intrusive
+        strokeColor: "#FF0000", // Set the stroke color to match the fill
+        strokeOpacity: 0.5, // Set the stroke opacity to make it stand out but not block the map
+        strokeWeight: 2, // Thin stroke for better visibility
       });
 
-      this.placeRepairmenOnMap(filteredRepairmen);
-    },
+      this.map.fitBounds(this.searchCircle.getBounds()); // Adjust map bounds to fit the circle
+    }
 
-    // Haversine formula to calculate distance between two lat/lng points
-    getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-      const R = 6371; // Radius of the earth in km
-      const dLat = this.deg2rad(lat2 - lat1);
-      const dLon = this.deg2rad(lon2 - lon1);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c; // Distance in km
-    },
+    ,
 
-    deg2rad(deg) {
-      return deg * (Math.PI / 180);
+    // Adjust map bounds to fit all repairmen markers
+    adjustMapBounds(repairmen) {
+      const bounds = new google.maps.LatLngBounds();
+      repairmen.forEach((repairman) => {
+        bounds.extend({ lat: repairman.lat, lng: repairman.lng });
+      });
+      this.map.fitBounds(bounds); // Fit the map to the bounds of the repairmen markers
     },
   },
 };
@@ -227,7 +269,7 @@ export default {
 <style>
 .map-container {
   width: 100%;
-  aspect-ratio: 2 / 1; 
+  aspect-ratio: 2 / 1;
   height: 400px; /* Adjust as needed */
   display: flex;
   margin: auto;
