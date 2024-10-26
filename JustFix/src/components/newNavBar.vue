@@ -107,6 +107,7 @@ export default {
         return {
             username: '', // Add username data property
             profilePic: defaultProfile, // Update with the actual default profile image path
+            profileImage: '', // Add profileImage data property
             scrolledNav: null,
             mobile: null,
             mobileNav: null,
@@ -119,6 +120,20 @@ export default {
         // Retrieve username from cookies and assign it to the username data property
         this.username = Cookies.get('username') || sessionStorage.getItem('username'); // Assign cookie value or empty string if not found
     },
+    mounted() {
+    window.addEventListener("scroll", this.updateScroll);
+
+    // Listen for the 'profileUpdated' event
+    window.addEventListener('profileUpdated', (event) => {
+        this.username = event.detail.username; // Update username in navbar
+        if (event.detail.profileImage) {
+            this.profileImage = event.detail.profileImage; // Update profile image in navbar if available
+        } else {
+            this.profileImage = this.profilePic; // Fallback to default if no new image
+        }
+    });
+}
+    ,
     methods: {
         toggleMobileNav() {
             this.mobileNav = !this.mobileNav;
@@ -164,9 +179,6 @@ export default {
                 });
         }
     },
-    mounted() {
-        window.addEventListener("scroll", this.updateScroll);
-    }
 }
 </script>
 <style lang="scss" scoped>
