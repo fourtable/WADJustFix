@@ -77,9 +77,36 @@ watch(searchRadius, () => {
 // Lifecycle hooks
 onMounted(() => {
   getUserLocation();
+  initializeAutocomplete();
 });
 
 // Methods
+function initializeAutocomplete() {
+  const locationInput = document.getElementById('locationInput');
+  
+  // Create the autocomplete object and restrict to Singapore
+  const autocomplete = new google.maps.places.Autocomplete(locationInput, {
+    componentRestrictions: { country: 'SG' }, // Restrict to Singapore (country code 'SG')
+  });
+
+  // Add an event listener for when the user selects a location
+  autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace();
+    if (!place.geometry || !place.geometry.location) {
+      console.error('No details available for the input.');
+      return;
+    }
+
+    // Update userLocation with the selected place's coordinates
+    userLocation.value = {
+      lat: place.geometry.location.lat(),
+      lng: place.geometry.location.lng(),
+    };
+
+    // Re-initialize the map and fetch repairers based on new location
+    initializeMapAndFetchRepairers();
+  });
+}
 async function getUserLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
