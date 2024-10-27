@@ -30,7 +30,7 @@ const truncateDescription = (description, maxLength = 100) => {
             <div class="col-lg-3 col-md-4 col-sm-6 mb-4 custom-col" v-for="repairman in repairmen" :key="repairman.id">
                 <a href="" class="card-link" style="text-decoration: none;">
                     <div class="card text-center shadow-sm clickable-card" style="padding:0; border-radius: 20px;">
-                        <img :src="repairman.profilePic || defaultProfilePic" class="card-img-top" alt="Profile Picture"
+                        <img :src="repairman.imageUrl || defaultProfilePic" class="card-img-top" alt="Profile Picture"
                             height="200px" style="object-fit: cover; border-radius: 20px;">
                         <div class="card-body text-start position-relative">
                             <div class="d-flex justify-content-between">
