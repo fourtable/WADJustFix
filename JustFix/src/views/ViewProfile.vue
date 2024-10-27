@@ -42,7 +42,7 @@
         <p class="profile-description">User</p>
 
         <!-- Joined Date Section -->
-        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }}</p>
+        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }} ago</p>
 
         <!-- Show Description if Available -->
         <div v-if="userData.description">
