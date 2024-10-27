@@ -1,10 +1,29 @@
 <script setup>
 import defaultProfilePic from '../assets/profile.jpg';
+import { defineProps } from 'vue';
+
+const props = defineProps({
+    repairmen: {
+        type: Array,
+        required: true
+    }
+});
+
+// Define your methods here
+const topSkills = (expertise) => {
+    return expertise.slice(0, 3); // Return top 3 skills or adjust logic as needed
+};
+
+const truncateDescription = (description, maxLength = 100) => {
+    if (!description) return '';
+    if (description.length <= maxLength) return description;
+    return description.slice(0, maxLength) + '...'; // Append ellipsis
+};
 </script>
 
 <template>
     <div class="container repairmen-container mt-4">
-        <p href="#repairers" style="font-weight:bolder; font-size:x-large; padding-top:35px; padding-bottom:10px;">
+        <p style="font-weight:bolder; font-size:x-large; padding-top:35px; padding-bottom:10px;">
             Browse Our Most Trusted Repairers
         </p>
         <div class="row justify-content-center gx-4">
@@ -23,6 +42,11 @@ import defaultProfilePic from '../assets/profile.jpg';
                                     5.0 (123)
                                 </p>
                             </div>
+
+                            <p class="card-description text-muted" style="font-size: 0.9rem;">
+                                {{ truncateDescription(repairman.description) }}
+                            </p>
+
                             <ul class="list-unstyled">
                                 <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index"
                                     class="skill-pill">
@@ -30,7 +54,6 @@ import defaultProfilePic from '../assets/profile.jpg';
                                 </li>
                             </ul>
                             <button class="button mt-3">Request a Quote</button>
-
                         </div>
                     </div>
                 </a>
@@ -38,24 +61,6 @@ import defaultProfilePic from '../assets/profile.jpg';
         </div>
     </div>
 </template>
-
-
-<script>
-export default {
-    props: {
-        repairmen: {
-            type: Array,
-            required: true
-        }
-    },
-    methods: {
-        topSkills(expertise) {
-            // Assuming expertise is an array; modify as needed
-            return expertise.slice(0, 3); // Return top 3 skills or adjust logic as needed
-        }
-    }
-}
-</script>
 
 <style scoped>
 /* Add any styles specific to this component here */
@@ -82,6 +87,26 @@ export default {
     /* Light border */
 }
 
+.card-body {
+    display: flex;
+    /* Enable flexbox */
+    flex-direction: column;
+    /* Arrange children in a column */
+    justify-content: flex-start;
+    /* Align children to the start (top) */
+    height: 270px;
+    /* Fixed height for the card body */
+    overflow: hidden;
+    /* Prevent overflow */
+}
+
+ul.list-unstyled {
+    padding-left: 0;
+    /* Remove default padding */
+    margin-bottom: auto;
+    /* Push the button to the bottom */
+}
+
 .skill-pill {
     display: inline-block;
     padding: 4px 8px;
@@ -91,10 +116,13 @@ export default {
     color: #085C44;
     border-radius: 15px;
     margin-right: 5px;
+    /* Space between pills */
     margin-bottom: 5px;
+    /* Space below each pill */
     background-color: #ffffff;
     /* Light blue background, adjust as needed */
     white-space: nowrap;
+    /* Prevent wrapping */
 }
 
 .star-icon {
