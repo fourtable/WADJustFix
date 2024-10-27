@@ -96,6 +96,8 @@
 import Cookies from 'js-cookie'
 import defaultProfile from '../assets/person.svg'
 import { getAuth, signOut } from "firebase/auth";
+import { db } from '../main';
+import { doc, getDoc } from 'firebase/firestore';
 export default {
     props: {
         profileImage: {
@@ -115,26 +117,44 @@ export default {
         }
     },
     created() {
+        this.fetchUserData();
         window.addEventListener('resize', this.checkScreen);
         this.checkScreen();
         // Retrieve username from cookies and assign it to the username data property
         this.username = Cookies.get('username') || sessionStorage.getItem('username'); // Assign cookie value or empty string if not found
     },
     mounted() {
-    window.addEventListener("scroll", this.updateScroll);
+        window.addEventListener("scroll", this.updateScroll);
 
-    // Listen for the 'profileUpdated' event
-    window.addEventListener('profileUpdated', (event) => {
-        this.username = event.detail.username; // Update username in navbar
-        if (event.detail.profileImage) {
-            this.profileImage = event.detail.profileImage; // Update profile image in navbar if available
-        } else {
-            this.profileImage = this.profilePic; // Fallback to default if no new image
-        }
-    });
-}
+        // Listen for the 'profileUpdated' event
+        window.addEventListener('profileUpdated', (event) => {
+            this.username = event.detail.username; // Update username in navbar
+            if (event.detail.profileImage) {
+                console.log('test');
+                this.profileImage = event.detail.profileImage; // Update profile image in navbar if available
+            } else {
+                console.log('test2');
+                this.profileImage = this.profilePic; // Fallback to default if no new image
+            }
+        });
+    }
     ,
     methods: {
+        async fetchUserData() {
+            try {
+                const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+                if (uid) {
+                    const userRef = await getDoc(doc(db, 'users', uid));
+                    if (userRef.exists()) {
+                        // If imageUrl is available, set it; otherwise, keep the default image
+                        this.profileImage = userRef.data().imageUrl || this.profilePic;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching user document:', error);
+                this.profileImage = this.profilePic; // Fallback in case of an error
+            }
+        },
         toggleMobileNav() {
             this.mobileNav = !this.mobileNav;
         },
@@ -199,7 +219,7 @@ header {
         transition: .5s ease all;
         width: 100%;
         margin: 0 auto;
-        
+
 
 
         ul,
