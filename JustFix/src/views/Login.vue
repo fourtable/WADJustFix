@@ -122,9 +122,10 @@ export default {
                     const userName = data.name; // Adjust to your actual field name
                     if (this.rememberMe){
                         Cookies.set('username', userName, { expires: 7 }); // Set the username in a cookie
+                        Cookies.set('profilePic', data.imageUrl, { expires: 7 })
                     }
                     sessionStorage.setItem('username', userName);
-                    console.log(Cookies.get('username'));
+                    sessionStorage.setItem('profilePic', data.imageUrl);
                     // store.dispatch('updateUserName', userName); // Update the Vuex store with the username
                 });
             } catch (error) {
