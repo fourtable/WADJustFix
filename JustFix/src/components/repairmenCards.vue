@@ -56,4 +56,9 @@ export default {
 
 <style scoped>
 /* Add any styles specific to this component here */
+.card:hover {
+    transform: translateY(-5px);
+    background-color: #f7f7f7;
+    /* Light gray on hover */
+}
 </style>
