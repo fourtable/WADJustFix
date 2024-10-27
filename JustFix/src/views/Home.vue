@@ -1,4 +1,5 @@
 <template>
+
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">
@@ -24,260 +25,126 @@
             <a :href="eventLink" class="button">Learn More &rarr;</a>
           </div>
         </div>
+
         <!-- Map Section -->
         <div class="row mt-5">
           <div class="col-12 mb-3">
             <!-- Search bar for location -->
-            <input type="text" class="form-control" id="locationInput" placeholder="Enter location..." ref="locationInput" />
+            <input type="text" class="form-control" id="locationInput" placeholder="Enter location..."
+              ref="locationInput" />
             <!-- Search radius slider -->
             <label for="radiusSlider" class="mt-3">Search Radius (km): {{ searchRadius }} km</label>
             <input type="range" id="radiusSlider" v-model="searchRadius" min="1" max="50" class="form-range" />
             <div id="map" class="map-container mt-3"></div>
           </div>
         </div>
+
+        <!-- repairmenListings -->
+        <RepairmenCards :repairmen="repairmen" />
       </div>
     </div>
+
+
+
+
   </section>
 </template>
 
-<script>
-import { db } from "../main";
-import { query, collection, where, getDocs } from "firebase/firestore"; // Import Firestore methods
+<script setup>
 
-export default {
-  data() {
-    return {
-      searchQuery: '', // Holds location search query
-      repairLink: '#', // Define your links
-      registerLink: '#',
-      eventLink: '#',
-      searchRadius: 10, // Default search radius in km
-      allRepairmen: [], // Store all repairers
-      repairmenMarkers: [], // For storing markers on the map
-      map: null, // Reference to the map instance
-      locationInput: null, // Reference to location input field
-      selectedLocation: null, // Stores the selected location lat/lng
-      userLocation: null, // Stores the user's current geolocation
-      searchCircle: null, // Circle on the map to represent search radius
-    };
-  },
-  mounted() {
-    this.initMap();
-    this.initializeAutocomplete(); // Initialize Google Places Autocomplete on mount
-    this.getUserLocation(); // Get the user's geolocation on mount
-  },
-  watch: {
-    // Watch for changes in radius and trigger a map update
-    searchRadius() {
-      this.updateSearchCircle(); // Update the circle radius in real-time
-      this.filterRepairersByLocation(); // Refilter repairers based on updated radius
-    },
-  },
-  methods: {
-    async fetchRepairers() {
-      const q = query(collection(db, 'users'), where('userType', '==', 'repairer'));
-      const querySnapshot = await getDocs(q);
-      const repairmen = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.businessLocation && data.businessLocation.lat && data.businessLocation.lng) {
-          repairmen.push({
-            name: data.name,
-            lat: data.businessLocation.lat,
-            lng: data.businessLocation.lng,
-          });
-        }
-      });
-      this.allRepairmen = repairmen; // Save all repairers for future filtering
-      return repairmen;
-    },
-    async initMap() {
-      const { Map } = await google.maps.importLibrary("maps");
+import { ref, computed, onMounted, watch } from 'vue';
+import { initializeMap, fetchRepairers, placeRepairmenOnMap, updateSearchCircle as updateMapSearchCircle } from '../plugins/googleMaps';
+import store from "../store/store.js";
+// import NavBar from "../components/newNavBar";
+import RepairmenCards from "../components/repairmenCards.vue";
 
-      // Define bounds for Singapore
-      const singaporeBounds = {
-        north: 1.477,
-        south: 1.130,
-        west: 103.609,
-        east: 104.028,
-      };
+// Reactive properties
+const searchQuery = ref('');
+const searchRadius = ref(10); // Default search radius in km
+const userLocation = ref(null); // Stores the user's current geolocation
+const allRepairmen = ref([]); // Store all repairers
 
-      this.map = new Map(document.getElementById('map'), {
-        center: { lat: 1.3521, lng: 103.8198 }, // Singapore center
-        zoom: 12,
-        restriction: {
-          latLngBounds: singaporeBounds, // Restrict to Singapore bounds
-          strictBounds: false, // Set to true if you want to disallow any panning outside the bounds
-        },
-        mapId: 'your-map-id', // Replace with your map ID if you have one
-      });
+// Computed properties
+const username = computed(() => store.getters.getUserName);
+const repairmen = computed(() => store.getters.getRepairmen);
 
-      google.maps.event.trigger(this.map, "resize");
+// Watchers
+watch(searchRadius, () => {
+  updateSearchCircle();
+  filterRepairersByLocation();
+});
 
-      const repairmen = await this.fetchRepairers();
-      this.placeRepairmenOnMap(repairmen); // Show all repairers by default
-    },
+// Lifecycle hooks
+onMounted(() => {
+  getUserLocation();
+});
 
-    placeRepairmenOnMap(repairmen) {
-      this.clearMarkers(); // Clear any existing markers before adding new ones
-      repairmen.forEach((repairman) => {
-        const marker = new google.maps.Marker({
-          position: { lat: repairman.lat, lng: repairman.lng },
-          map: this.map,
-          title: repairman.name, // Display repairman's name when hovering over marker
-        });
-        this.repairmenMarkers.push(marker); // Store the marker
-      });
-
-      this.adjustMapBounds(repairmen); // Adjust the map bounds based on repairmen
-    },
-
-    clearMarkers() {
-      this.repairmenMarkers.forEach((marker) => marker.setMap(null));
-      this.repairmenMarkers = [];
-    },
-
-    // Initialize Google Places Autocomplete
-    initializeAutocomplete() {
-      const { Autocomplete } = google.maps.places;
-      const input = this.$refs.locationInput;
-      const autocomplete = new Autocomplete(input);
-
-      // Set bounds for Singapore to narrow down location searches
-      autocomplete.setComponentRestrictions({
-        country: ["sg"],
-      });
-
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-        if (place.geometry) {
-          this.selectedLocation = {
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-          };
-          this.map.setCenter(this.selectedLocation); // Move map to selected location
-          this.map.setZoom(15); // Zoom into the selected location
-          this.updateSearchCircle(); // Create or update the search circle
-          this.filterRepairersByLocation(); // Filter repairers based on the selected location
-        } else {
-          // Reset to show all repairmen if the input is cleared or no location is selected
-          this.placeRepairmenOnMap(this.allRepairmen);
-        }
-      });
-    },
-
-    // Geolocation: Get user's current location
-    getUserLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            this.userLocation = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            };
-            this.map.setCenter(this.userLocation); // Center map on user's location
-            this.map.setZoom(14); // Adjust zoom level for user location
-            this.placeUserLocationMarker(); // Place a marker for the user’s location
-            this.placeRepairmenOnMap(this.allRepairmen); // Show all repairmen by default
-            this.updateSearchCircle(); // Create or update the search circle for the user's location
-          },
-          (error) => {
-            console.error("Error fetching user location:", error.message);
-            // If geolocation fails, show all repairmen by default
-            this.placeRepairmenOnMap(this.allRepairmen);
-          }
-        );
-      } else {
-        console.error("Geolocation is not supported by this browser.");
-        // If geolocation is not supported, show all repairmen by default
-        this.placeRepairmenOnMap(this.allRepairmen);
+// Methods
+async function getUserLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        userLocation.value = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        initializeMapAndFetchRepairers();
+      },
+      (error) => {
+        console.error("Error fetching user location:", error.message);
+        initializeMapAndFetchRepairers(); // Proceed without user location
       }
-    },
+    );
+  } else {
+    console.error("Geolocation is not supported by this browser.");
+    initializeMapAndFetchRepairers(); // Proceed without user location
+  }
+}
 
-    // Place marker on user's current location
-    placeUserLocationMarker() {
-      if (this.userLocation) {
-        new google.maps.Marker({
-          position: this.userLocation,
-          map: this.map,
-          title: "You are here!",
-          icon: {
-            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png", // Blue marker to represent user
-          },
-        });
-      }
-    },
 
-    // Filter repairers based on the selected location proximity (within the specified radius)
-    filterRepairersByLocation() {
-      const location = this.selectedLocation || this.userLocation;
-      if (!location) {
-        // If no location is selected, show all repairmen
-        this.placeRepairmenOnMap(this.allRepairmen);
-        return;
-      }
+async function initializeMapAndFetchRepairers() {
+  await initializeMap('map', userLocation.value);
+  await store.dispatch('fetchRepairmen');
+  allRepairmen.value = await fetchRepairers();
+  placeRepairmenOnMap(allRepairmen.value);
+  updateMapSearchCircle(userLocation.value, searchRadius.value); // Use the imported function for updating the search circle
+  console.log(userLocation.value);
+}
 
-      const filteredRepairmen = this.allRepairmen.filter((repairman) => {
-        const distance = google.maps.geometry.spherical.computeDistanceBetween(
-          new google.maps.LatLng(location.lat, location.lng),
-          new google.maps.LatLng(repairman.lat, repairman.lng)
-        );
-        return distance <= this.searchRadius * 1000; // Filter by the radius in meters
-      });
+function updateSearchCircle() {
+  const location = userLocation.value;
+  if (location) {
+    updateMapSearchCircle(location, searchRadius.value); // Call the update function
+  }
+}
 
-      this.placeRepairmenOnMap(filteredRepairmen); // Show filtered repairmen
-    },
+function filterRepairersByLocation() {
+  const location = userLocation.value;
+  // Implement your filtering logic based on user location and search radius here
+}
 
-    // Create or update the search circle to represent the search radius
-    // Create or update the search circle to represent the search radius
-    updateSearchCircle() {
-      const location = this.selectedLocation || this.userLocation;
-      if (!location) return;
-
-      if (this.searchCircle) {
-        this.searchCircle.setMap(null); // Remove the previous circle
-      }
-
-      this.searchCircle = new google.maps.Circle({
-        center: location,
-        radius: this.searchRadius * 1000, // Radius in meters
-        map: this.map,
-        fillColor: "#ADD8E6",
-        fillOpacity: 0.10, // Reduce fill opacity to make it less intrusive
-        strokeColor: "#FF0000", // Set the stroke color to match the fill
-        strokeOpacity: 0.5, // Set the stroke opacity to make it stand out but not block the map
-        strokeWeight: 2, // Thin stroke for better visibility
-      });
-
-      this.map.fitBounds(this.searchCircle.getBounds()); // Adjust map bounds to fit the circle
-    }
-
-    ,
-
-    // Adjust map bounds to fit all repairmen markers
-    adjustMapBounds(repairmen) {
-      const bounds = new google.maps.LatLngBounds();
-      repairmen.forEach((repairman) => {
-        bounds.extend({ lat: repairman.lat, lng: repairman.lng });
-      });
-      this.map.fitBounds(bounds); // Fit the map to the bounds of the repairmen markers
-    },
-  },
-};
+// Top skills method
+function topSkills(expertise) {
+  return expertise ? expertise.slice(0, 3) : [];
+}
 </script>
+
 
 <style>
 .map-container {
   width: 100%;
   aspect-ratio: 2 / 1;
-  height: 400px; /* Adjust as needed */
+  height: 400px;
+  /* Adjust as needed */
   display: flex;
   margin: auto;
   margin-bottom: 10%;
 }
 
 #map {
-  flex: 1; /* Ensure #map fills the .map-container */
-  height: 90%; /* Full height of .map-container */
+  flex: 1;
+  /* Ensure #map fills the .map-container */
+  height: 60%;
+  /* Full height of .map-container */
 }
 </style>
