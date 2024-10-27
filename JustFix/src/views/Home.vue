@@ -27,8 +27,12 @@
         </div>
 
         <!-- Map Section -->
+
         <div class="row mt-5">
-          <div class="col-12 mb-3">
+          <div class="col-12">
+            <p href="#repairers" style="font-weight:bolder; font-size:x-large; padding-top:10px;">
+              Find A Repairer Near You
+            </p>
             <!-- Search bar for location -->
             <input type="text" class="form-control" id="locationInput" placeholder="Enter location..."
               ref="locationInput" />
@@ -43,10 +47,6 @@
         <RepairmenCards :repairmen="repairmen" />
       </div>
     </div>
-
-
-
-
   </section>
 </template>
 
@@ -134,17 +134,16 @@ function topSkills(expertise) {
 .map-container {
   width: 100%;
   aspect-ratio: 2 / 1;
-  height: 400px;
+  height: 20px;
   /* Adjust as needed */
   display: flex;
   margin: auto;
-  margin-bottom: 10%;
 }
 
 #map {
   flex: 1;
   /* Ensure #map fills the .map-container */
-  height: 60%;
+  /* height: 60%; */
   /* Full height of .map-container */
 }
 </style>
