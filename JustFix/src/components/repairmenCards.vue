@@ -4,7 +4,7 @@ import defaultProfilePic from '../assets/profile.jpg';
 
 <template>
     <div class="container repairmen-container mt-4">
-        <p href="#repairers" style="font-weight:bold; font-size:larger; padding-top:35px; padding-bottom:10px;">
+        <p href="#repairers" style="font-weight:bolder; font-size:x-large; padding-top:35px; padding-bottom:10px;">
             Browse Our Most Trusted Repairers
         </p>
         <div class="row justify-content-center gx-4">
