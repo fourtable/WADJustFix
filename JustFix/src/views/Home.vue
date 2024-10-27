@@ -130,11 +130,11 @@ function topSkills(expertise) {
 </script>
 
 
-<style>
+<style scoped>
 .map-container {
   width: 100%;
   aspect-ratio: 2 / 1;
-  height: 20px;
+  height: 470px;
   /* Adjust as needed */
   display: flex;
   margin: auto;
@@ -145,5 +145,30 @@ function topSkills(expertise) {
   /* Ensure #map fills the .map-container */
   /* height: 60%; */
   /* Full height of .map-container */
+}
+
+
+/* Base styling for hero and map */
+.hero {
+  margin-top: 20px;
+  /* Default spacing */
+}
+
+.map-container {
+  margin-bottom: 40px;
+  /* Default bottom spacing */
+}
+
+/* Adjustments for screens 991px and below */
+@media (max-width: 991px) {
+  .hero {
+    margin-top: 50px;
+    /* Increase top margin for smaller screens */
+  }
+
+  .map-container {
+    margin-bottom: 10px;
+    /* Decrease bottom margin for smaller screens */
+  }
 }
 </style>
