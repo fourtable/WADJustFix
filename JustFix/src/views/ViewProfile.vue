@@ -1,193 +1,213 @@
 <template>
-    <div class="profile-container" v-if="userData">
-      <div class="profile-info">
-        <div class="profile-pic">
-          <!-- Profile Picture with Fallback -->
-          <img v-if="this.userData.imageUrl" :src="imagePath" alt="Profile Picture" />
-          <img v-else :src="imagePath" alt="Default Profile Picture" />
-        </div>
-  
-        <!-- For Repairers: Show Full Details -->
-        <div class="profile-details" v-if="this.userData.userType === 'repairer'">
-          <h2 class="profile-name">{{ userData.name }}</h2>
-          <p class="skill-level">Skill Level: {{ calculateSkillLevel(userData.experience) }}</p>
-  
-          <!-- Expertise Section -->
+  <div class="profile-container" v-if="userData">
+    <div class="profile-info">
+      <div class="profile-pic">
+        <!-- Profile Picture with Fallback -->
+        <img v-if="this.userData.imageUrl" :src="imagePath" alt="Profile Picture" />
+        <img v-else :src="imagePath" alt="Default Profile Picture" />
+      </div>
+
+      <!-- For Repairers: Show Full Details -->
+      <div class="profile-details" v-if="this.userData.userType === 'repairer'">
+        <h2 class="profile-name">{{ userData.name }}</h2>
+        <p class="skill-level">Skill Level: {{ calculateSkillLevel(userData.experience) }}</p>
+
         <!-- Expertise Section -->
         <h4 class="profile-description" v-if="userData.expertise && userData.expertise.length">Areas of Expertise:</h4>
         <div v-if="userData.expertise && userData.expertise.length">
-        <span
+          <span
             v-for="expertise in userData.expertise"
             :key="expertise"
             class="expertise-badge"
-        >{{ expertise }}</span>
-        </div>
-        <div v-else>
-        <p class="profile-description">No areas of expertise provided.</p>
+          >{{ expertise }}</span>
         </div>
 
-  
-          <!-- If no expertise, display message -->
-          <div v-else>
-            <p class="profile-description">No areas of expertise provided.</p>
-          </div>
-  
-          <!-- Description Section -->
-          <div v-if="userData.description">
-            <h4 class="profile-description">About Me:</h4>
-            <p>{{ userData.description }}</p>
-          </div>
+        <div v-else>
+          <p class="profile-description">No areas of expertise provided.</p>
         </div>
-  
-        <!-- For Non-Repairers: Show Only Name -->
-        <div class="profile-details" v-else>
-          <h2 class="profile-name">{{ userData.name }}</h2>
-          <p class="profile-description">User</p>
-  
-          <!-- Show Description if Available -->
-          <div v-if="userData.description">
-            <h4 class="profile-description">About Me:</h4>
-            <p>{{ userData.description }}</p>
-          </div>
+
+        <!-- Joined Date Section (Always shown) -->
+        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }} ago</p>
+
+        <!-- Description Section -->
+        <div v-if="userData.description">
+          <h4 class="profile-description">About Me:</h4>
+          <p>{{ userData.description }}</p>
         </div>
       </div>
-  
-      <!-- Edit Profile Button -->
-      <div class="edit-profile-btn">
-        <router-link :to="{ name: 'editProfile' }" class="btn btn-primary">Edit Profile</router-link>
-      </div>
-  
-      <!-- Conditional Tabs Rendering -->
-      <div class="tabs" v-if="userData.userType === 'repairer'">
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'reviews' }"
-          @click="switchTab('reviews')"
-        >
-          Reviews
-        </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'upcoming-events' }"
-          @click="switchTab('upcoming-events')"
-        >
-          Upcoming Events
-        </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'past-events' }"
-          @click="switchTab('past-events')"
-        >
-          Past Events
-        </button>
-      </div>
-  
-      <div class="tab-content" v-if="userData.userType === 'repairer'">
-        <!-- Reviews Tab -->
-        <div id="reviews" class="tab" v-show="activeTab === 'reviews'">
-          <h3>Ratings: ⭐ {{ userData.rating || 'N/A' }} / 5</h3>
-          <div v-for="review in userData.reviews" :key="review.id" class="review">
-            <p>{{ review.text }}</p>
-            <p>- {{ review.customer }}</p>
-          </div>
-        </div>
-  
-        <!-- Upcoming Events Tab -->
-        <div id="upcoming-events" class="tab" v-show="activeTab === 'upcoming-events'">
-          <h3>Upcoming Repair Events</h3>
-          <div v-for="event in upcomingEvents" :key="event.id" class="event">
-            <h4>{{ event.title }}</h4>
-            <p>{{ event.date }}</p>
-            <p>{{ event.description }}</p>
-          </div>
-        </div>
-  
-        <!-- Past Events Tab -->
-        <div id="past-events" class="tab" v-show="activeTab === 'past-events'">
-          <h3>Past Repair Events</h3>
-          <div v-for="event in pastEvents" :key="event.id" class="event">
-            <h4>{{ event.title }}</h4>
-            <p>{{ event.date }}</p>
-            <p>{{ event.description }}</p>
-          </div>
+
+      <!-- For Non-Repairers: Show Only Name -->
+      <div class="profile-details" v-else>
+        <h2 class="profile-name">{{ userData.name }}</h2>
+        <p class="profile-description">User</p>
+
+        <!-- Joined Date Section -->
+        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }}</p>
+
+        <!-- Show Description if Available -->
+        <div v-if="userData.description">
+          <h4 class="profile-description">About Me:</h4>
+          <p>{{ userData.description }}</p>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script>
-  import { db, auth } from "../main"; // Import Firebase setup
-  import { onAuthStateChanged } from "firebase/auth";
-  import { doc, getDoc } from "firebase/firestore";
-  
-  export default {
-    data() {
-      return {
-        userData: {
-          imageUrl: '',
-          userType: '',
-          experience: '',
-          expertise: [],
-          description: '',
-          rating: null,
-          reviews: []
-        },
-        activeTab: 'reviews', // Default active tab
-        expertiseList: [], // Expertise list for repairers
-        upcomingEvents: [], // Placeholder for events
-        pastEvents: [], // Placeholder for past events
-      };
+
+    <!-- Edit Profile Button -->
+    <div class="edit-profile-btn">
+      <router-link :to="{ name: 'editProfile' }" class="btn btn-primary">Edit Profile</router-link>
+    </div>
+
+    <!-- Conditional Tabs Rendering -->
+    <div class="tabs" v-if="userData.userType === 'repairer'">
+      <button
+        class="tab-button"
+        :class="{ active: activeTab === 'reviews' }"
+        @click="switchTab('reviews')"
+      >
+        Reviews
+      </button>
+      <button
+        class="tab-button"
+        :class="{ active: activeTab === 'upcoming-events' }"
+        @click="switchTab('upcoming-events')"
+      >
+        Upcoming Events
+      </button>
+      <button
+        class="tab-button"
+        :class="{ active: activeTab === 'past-events' }"
+        @click="switchTab('past-events')"
+      >
+        Past Events
+      </button>
+    </div>
+
+    <div class="tab-content" v-if="userData.userType === 'repairer'">
+      <!-- Reviews Tab -->
+      <div id="reviews" class="tab" v-show="activeTab === 'reviews'">
+        <h3>Ratings: ⭐ {{ userData.rating || 'N/A' }} / 5</h3>
+        <div v-for="review in userData.reviews" :key="review.id" class="review">
+          <p>{{ review.text }}</p>
+          <p>- {{ review.customer }}</p>
+        </div>
+      </div>
+
+      <!-- Upcoming Events Tab -->
+      <div id="upcoming-events" class="tab" v-show="activeTab === 'upcoming-events'">
+        <h3>Upcoming Repair Events</h3>
+        <div v-for="event in upcomingEvents" :key="event.id" class="event">
+          <h4>{{ event.title }}</h4>
+          <p>{{ event.date }}</p>
+          <p>{{ event.description }}</p>
+        </div>
+      </div>
+
+      <!-- Past Events Tab -->
+      <div id="past-events" class="tab" v-show="activeTab === 'past-events'">
+        <h3>Past Repair Events</h3>
+        <div v-for="event in pastEvents" :key="event.id" class="event">
+          <h4>{{ event.title }}</h4>
+          <p>{{ event.date }}</p>
+          <p>{{ event.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { db, auth } from "../main"; // Import Firebase setup
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+
+export default {
+data() {
+  return {
+    userData: {
+      imageUrl: '',
+      userType: '',
+      experience: '',
+      expertise: [],
+      description: '',
+      rating: null,
+      reviews: []
     },
-    methods: {
-      async fetchUserData(uid) {
-        const userDoc = await getDoc(doc(db, 'users', uid));
-        if (userDoc.exists()) {
-          this.userData = userDoc.data();
-          this.expertiseList = this.userData.expertise || []; // Set expertise list
-        } else {
-          console.error("No user data found!");
-        }
-      },
-      calculateSkillLevel(experience) {
-        if (experience < 1) {
-          return 'Beginner';
-        } else if (experience <= 3) {
-          return 'Intermediate';
-        } else if (experience <= 5) {
-          return 'Advanced';
-        } else {
-          return 'Expert';
-        }
-      },
-      switchTab(tabName) {
-        this.activeTab = tabName;
-      }
-    },
-    mounted() {
-      // Check authentication state and fetch user data
-      onAuthStateChanged(auth, (user) => {
-        console.log(user);
-        if (user) {
-          this.fetchUserData(user.uid);
-        } else {
-          console.log(user);  
-          console.log(this.userData);
-          this.userData = null;
-          console.error("User is not logged in");
-          window.location.href = "./login";  // Redirect to login if not authenticated
-        }
-      });
-    },
-    computed: {
-      imagePath() {
-        if (this.userData.imageUrl && this.userData.imageUrl !== '') {
-          return this.userData.imageUrl; // Return user's profile image URL
-        }
-        return "../assets/person.svg"; // Fallback if no image
-      }
-    }
+    activeTab: 'reviews', // Default active tab
+    expertiseList: [], // Expertise list for repairers
+    upcomingEvents: [], // Placeholder for events
+    pastEvents: [], // Placeholder for past events
   };
-  </script>
+},
+methods: {
+  async fetchUserData(uid) {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (userDoc.exists()) {
+      this.userData = userDoc.data();
+      this.expertiseList = this.userData.expertise || []; // Set expertise list
+    } else {
+      console.error("No user data found!");
+    }
+  },
+  calculateSkillLevel(experience) {
+    if (experience < 1) {
+      return 'Beginner';
+    } else if (experience <= 3) {
+      return 'Intermediate';
+    } else if (experience <= 5) {
+      return 'Advanced';
+    } else {
+      return 'Expert';
+    }
+  },
+  switchTab(tabName) {
+    this.activeTab = tabName;
+  },
+  calculateJoinedDate(createdAt) {
+  if (!createdAt) return '';
+
+  const createdDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+  const currentDate = new Date();
+
+  const diffTime = Math.abs(currentDate - createdDate); // Difference in milliseconds
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert to days
+
+  let years = Math.floor(diffDays / 365); // Convert days to years
+  let remainingDays = diffDays % 365; // Remaining days after years
+  let months = Math.floor(remainingDays / 30); // Approximate months
+  let days = remainingDays % 30; // Remaining days after months
+
+  if (years > 0) {
+    return `${years}y ${months}m ${days}d`;
+  } else if (months > 0) {
+    return `${months}m ${days}d`;
+  } else {
+    return `${days}d`;
+  }
+}
+
+},
+mounted() {
+  // Check authentication state and fetch user data
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      this.fetchUserData(user.uid);
+    } else {
+      this.userData = null;
+      console.error("User is not logged in");
+      window.location.href = "./login";  // Redirect to login if not authenticated
+    }
+  });
+},
+computed: {
+  imagePath() {
+    if (this.userData.imageUrl && this.userData.imageUrl !== '') {
+      return this.userData.imageUrl; // Return user's profile image URL
+    }
+    return "../assets/person.svg"; // Fallback if no image
+  }
+}
+};
+</script>
   
   <style scoped>
   .profile-container {
