@@ -4,6 +4,8 @@ import './styles.scss';
 import App from './App.vue';
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'; // No need to import 'bootstrap' if you're only using CSS
+import store from './store/store'; // Import Vuex store
+
 
 // Firebase imports
 import { initializeApp } from "firebase/app";
@@ -151,6 +153,6 @@ export function useChat() {
 }
 
 
-createApp(App).use(router).mount('#app');
+createApp(App).use(store).use(router).mount('#app');
 // Export Firebase services
 export { firebaseApp, storage, auth, provider, db, signInWithPopup };
