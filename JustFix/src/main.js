@@ -10,6 +10,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "firebase/firestore"; // Import Firestore
 import { getStorage } from 'firebase/storage';
+import store from './store/store';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -32,12 +33,6 @@ const db = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
 const messagesCollection = collection(db, 'messages')
 const messagesQuery = query(messagesCollection, orderBy('createdAt', 'desc'), limit(100));
-const store = createStore({
-    modules: {
-        notification: notificationStore, // Register your notification store
-    },
-});
-// const filter = new filter();
 
 // Function to fetch repairers from Firestore
 async function fetchRepairmen() {

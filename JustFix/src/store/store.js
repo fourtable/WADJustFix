@@ -8,6 +8,7 @@ const store = createStore({
     return {
       userName: "",
       repairmen: [],
+      notifications: [],
     };
   },
   mutations: {
@@ -16,6 +17,12 @@ const store = createStore({
     },
     setRepairmen(state, repairmen) {
       state.repairmen = repairmen;
+    },
+    ADD_NOTIFICATION(state, notification) {
+      state.notifications.push(notification);
+    },
+    REMOVE_NOTIFICATION(state, index) {
+      state.notifications.splice(index, 1);
     },
   },
   actions: {
@@ -35,6 +42,12 @@ const store = createStore({
       console.log('Fetched Repairmen:', repairmen); // Log fetched data
 
       commit("setRepairmen", repairmen);
+    },
+    addNotification({ commit }, notification) {
+      commit('ADD_NOTIFICATION', notification);
+    },
+    removeNotification({ commit }, index) {
+      commit('REMOVE_NOTIFICATION', index);
     },
   },
   getters: {
