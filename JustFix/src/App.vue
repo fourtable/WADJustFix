@@ -5,8 +5,8 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from './main'; // Your Firebase setup
 import { doc, getDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie'
-import notification from './components/notification.vue';
-import notificationStore from './store/notificationStore';
+// import notification from './components/notification.vue';
+// import notificationStore from './store/notificationStore';
 </script>
 
 <template>
