@@ -56,7 +56,7 @@ export const placeRepairmenOnMap = (repairmen) => {
   clearMarkers(); // Clear previous markers before placing new ones
 
   repairmen.forEach((repairman) => {
-    const marker = new google.maps.Marker({
+    const marker = new google.maps.marker.AdvancedMarkerElement({
       position: { lat: repairman.lat, lng: repairman.lng },
       map: map,
       title: repairman.name,
