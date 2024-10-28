@@ -5,6 +5,8 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from './main'; // Your Firebase setup
 import { doc, getDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie'
+import notification from './components/notification.vue';
+import notificationStore from './store/notificationStore';
 </script>
 
 <template>
@@ -14,6 +16,7 @@ import Cookies from 'js-cookie'
   </div>
   <main class="content">
     <router-view/>
+    <notification />
   </main>
 </template>
 
@@ -59,6 +62,28 @@ export default {
       }
     },
   },
+  setup() {
+        const store = inject(notificationStore);
+        const uid = uid;
+        console.log('uid)')
+        
+        onMounted(() => {
+            const notificationsRef = collection(db, 'notifications');
+            const notificationsQuery = query(notificationsRef, where('receiverId', '==', uid));
+
+            onSnapshot(notificationsQuery, (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === 'added') {
+                        const notificationData = change.doc.data();
+                        store.addNotification({
+                            message: notificationData.message,
+                            timestamp: notificationData.timestamp
+                        });
+                    }
+                });
+            });
+        });
+    },
 };
 </script>
 <style>
