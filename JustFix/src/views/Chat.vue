@@ -7,10 +7,10 @@
                         <input type="text" class="form-control mb-3" placeholder="Search...">
                         <ul class="list-unstyled chat-list">
                             <li v-if="contacts.length === 0" class="text-muted text-center">No recent chats</li>
-                            <li v-else v-for="contact in contacts" :key="contact.id" class="chat-item" @click="selectContact(contact)">
-                                <img :src="contact.imageUrl" class="rounded-circle me-2" width="40" height="40">
+                            <li v-else v-for="contact in contacts" :key="contact.otherUserId" class="chat-item" @click="selectContact(contact)">
+                                <img :src="contact.otherUserImageUrl" class="rounded-circle me-2" width="40" height="40">
                                 <div class="chat-info">
-                                    <strong>{{ contact.name }}</strong>
+                                    <strong>{{ contact.otherUserName }}</strong>
                                     <small class="d-block text-muted">{{ contact.status }}</small>
                                 </div>
                             </li>
@@ -19,13 +19,9 @@
                 </div>
 
                 <div class="col-12 col-lg-7 col-xl-9 chat-container">
-                    <div class="chat-header" v-if="selectedContact && !isRepairerStatus">
-                        <img :src="repairerPic" class="rounded-circle me-2" width="40" height="40">
-                        <strong>{{ repairerName }}</strong>
-                    </div>
-                    <div class="chat-header" v-else>
-                        <img :src="nonRepairerPic" class="rounded-circle me-2" width="40" height="40">
-                        <strong>{{ nonRepairerName }}</strong>
+                    <div class="chat-header" v-if="selectedContact">
+                        <img :src="contactPic" class="rounded-circle me-2" width="40" height="40">
+                        <strong>{{ contactName }}</strong>
                     </div>
 
                     <div class="chat-messages">
@@ -72,14 +68,13 @@ const selectedContact = ref(null);
 const isRepairerStatus = ref(false); // New reactive variable to store isRepairer result
 
 // Populating receiver details from route
-const repairerId = ref(route.query.repairerId); // Make it reactive
-const repairerName = ref(route.query.repairName); // Make it reactive
-const repairerPic = ref(route.query.repairerPic); // Make it reactive
+const contactId = ref(route.query.repairerId); // Make it reactive
+const contactName = ref(route.query.repairName); // Make it reactive
+const contactPic = ref(route.query.repairerPic); // Make it reactive
 const senderPic = sessionStorage.getItem('profilePic') || Cookies.get('profilePic');
 const username = Cookies.get('username') || sessionStorage.getItem('username');
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
-const nonRepairerName = ref(null);
-const nonRepairerPic = ref(null);
+
 
 // Check authentication and fetch user data
 onAuthStateChanged(auth, async (currentUser) => {
@@ -88,8 +83,8 @@ onAuthStateChanged(auth, async (currentUser) => {
         isRepairerStatus.value = await isRepairer(user.value.uid);
         loadContacts();
         // Load chat with repairer if provided
-        if (repairerId.value) {
-            selectContact({ repairerId: repairerId.value });
+        if (contactId.value) {
+            selectContact({ contactId: contactId.value });
         }
     } else {
         window.location.href = './login';
@@ -116,11 +111,45 @@ const isRepairer = async (userId) => {
 const loadContacts = () => {
     const contactsQuery = query(
         collection(db, 'contacts'), 
-        where(isRepairerStatus.value ? 'repairerId' : 'userId', '==', user.value.uid), 
+        where('userIds', 'array-contains', user.value.uid), // Check if user ID is in the userIds array
         orderBy('lastMessageTime', 'desc')
     );
-    onSnapshot(contactsQuery, (snapshot) => {
-        contacts.value = snapshot.empty ? [] : snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    onSnapshot(contactsQuery, async (snapshot) => {
+        contacts.value = snapshot.empty 
+            ? [] 
+            : await Promise.all(snapshot.docs.map(async docs => {
+                const data = docs.data();
+                const otherUserId = data.userIds.find(id => id !== user.value.uid); // Get the other user ID
+
+                // Retrieve the imageUrl for the other user
+                const userDocRef = doc(db, 'users', otherUserId);
+                try {
+                    const userDoc = await getDoc(userDocRef);
+                    const otherUserName = userDoc.exists() ? userDoc.data().name : null;
+                    const otherUserImageUrl = userDoc.exists() ? userDoc.data().imageUrl : null; // Get imageUrl
+                    contactId.value = otherUserId;
+                    contactName.value = otherUserName;
+                    contactPic.value = otherUserImageUrl;
+
+                    return {
+                        id: doc.id,
+                        ...data,
+                        otherUserName,
+                        otherUserId, // Add other user ID to the contact object
+                        otherUserImageUrl // Add imageUrl to the contact object
+                    };
+                } catch (error) {
+                    console.error("Error retrieving user document:", error);
+                    return {
+                        id: doc.id,
+                        ...data,
+                        otherUserId,
+                        otherUserName,
+                        otherUserImageUrl: null // Fallback if user document can't be retrieved
+                    };
+                }
+            }));
     });
 };
 
@@ -136,7 +165,7 @@ const loadChatHistory = async (contactId) => {
         // Load all users that this repairer has chatted with
         chatQuery = query(
             collection(db, 'chats'), 
-            where('participants', 'array-contains', user.value.uid), // Check if the repairer is one of the participants
+            where('participants', 'array-contains', uid), // Check if the repairer is one of the participants
             orderBy('timestamp')
         );
     } else {
@@ -186,35 +215,48 @@ const loadParticipantsProfiles = async (chatDocs) => {
 // Select a contact to chat with
 const selectContact = async (contact) => {
     selectedContact.value = contact;
+    console.log(contact);
 
-    // If selected contact has repairerId, fetch repairer details
-    if (contact.repairerId && !isRepairerStatus) {
-        const repairerDocRef = doc(db, 'users', contact.repairerId);
-        const repairerDoc = await getDoc(repairerDocRef);
-        console.log(contact.userId);
-        if (repairerDoc.exists()) {
-            const repairerData = repairerDoc.data();
-            repairerName.value = repairerData.name; // Assuming the field is 'name'
-            repairerPic.value = repairerData.imageUrl; // Assuming the field is 'photoURL'
+    try {
+        // Query to find the contact document that includes the current user ID
+        const contactsQuery = query(
+            collection(db, 'contacts'),
+            where('userIds', 'array-contains', uid) // Check if uid is in the userIds array
+        );
+
+        const querySnapshot = await getDocs(contactsQuery);
+        let receiverId = null;
+
+        // Loop through the matching documents
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.userIds.includes(contact)) {
+                // Get the other user ID in the array that is not the current user ID
+                receiverId = data.userIds.find(id => id !== uid);
+            }
+        });
+
+        if (contactId) {
+            // If receiverId is found, load the repairer data
+            const contactDocRef = doc(db, 'users', contactId.value);
+            const contactDoc = await getDoc(contactDocRef);
+
+            if (contactDoc.exists()) {
+                const contactData = contactDoc.data();
+                contactName.value = contactData.name; // Assuming the field is 'name'
+                contactPic.value = contactData.imageUrl; // Assuming the field is 'photoURL'
+                loadChatHistory(contactId.value); // Load chat history for the receiver
+            } else {
+                console.log('No such document for repairer!');
+            }
         } else {
-            console.log('No such document for repairer!');
+            console.log('No matching contact found.');
         }
-        loadChatHistory(contact.repairerId);
-    } else {
-        // Load chat history based on contact ID
-        const nonRepairerDocRef = doc(db, 'users', contact.userId);
-        const nonRepairerDoc = await getDoc(nonRepairerDocRef);
-        console.log(contact.userId);
-        if (nonRepairerDoc.exists()) {
-            const nonRepairerData = nonRepairerDoc.data();
-            nonRepairerName.value = nonRepairerData.name; // Assuming the field is 'name'
-            nonRepairerPic.value = nonRepairerData.imageUrl; // Assuming the field is 'photoURL'
-        } else {
-            console.log('No such document for repairer!');
-        }
-        loadChatHistory(contact.userId);
+    } catch (error) {
+        console.error("Error selecting contact:", error);
     }
 };
+
 
 // Format timestamp for display
 const formatTimestamp = (timestamp) => {
@@ -227,36 +269,44 @@ const sendMessage = async () => {
         try {
             const chatDocRef = await addDoc(collection(db, 'chats'), {
                 text: newMessage.value,
-                senderId: user.value.uid,
-                receiverId: selectedContact.value.id,
+                senderId: uid,
+                receiverId: contactId.value,
                 timestamp: serverTimestamp(),
-                participants: [user.value.uid, selectedContact.value.id],
+                participants: [uid, contactId.value],
+                photoURL: senderPic,
+            });
+
+            // Update local chatHistory to include the new message immediately
+            chatHistory.value.push({
+                id: chatDocRef.id,
+                text: newMessage.value,
+                senderId: uid,
+                receiverId: contactId.value,
+                timestamp: { seconds: Math.floor(Date.now() / 1000) }, // Use current time
                 photoURL: senderPic,
             });
 
             // Check if the contact is already in the user’s recent chats
             const contactsQuery = query(
                 collection(db, 'contacts'), 
-                where('userId', '==', user.value.uid), 
-                where('repairerId', '==', repairerId.value)
+                where('userIds', 'array-contains', uid), 
             );
             const querySnapshot = await getDocs(contactsQuery);
             
             if (querySnapshot.empty) {
+                // If no existing contact, add new with userIds as an array
                 await addDoc(collection(db, 'contacts'), {
-                    userId: user.value.uid,
-                    repairerId: repairerId.value,
+                    userIds: [uid, contactId.value],
                     lastMessageTime: serverTimestamp(),
-                    name: repairerName.value,
-                    imageUrl: repairerPic.value,
                 });
             } else {
+                // Update the lastMessageTime for the existing contact
                 await updateDoc(querySnapshot.docs[0].ref, { lastMessageTime: serverTimestamp() });
             }
 
             // Create a notification for the receiver
             await addDoc(collection(db, 'notifications'), {
-                receiverId: selectedContact.value.id,
+                receiverId: contactId.value,
                 message: `You have a new message from ${username}`,
                 timestamp: serverTimestamp(),
                 chatId: chatDocRef.id,
@@ -268,6 +318,7 @@ const sendMessage = async () => {
         }
     }
 };
+
 </script>
 <style lang="scss" scoped>
 .container {
@@ -353,16 +404,23 @@ const sendMessage = async () => {
 }
 
 .chat-message-left {
+    padding-left: 10px;
+    padding-top: 10px;
     margin-right: auto;
+    .message-content {
+        background-color: #B3C7FA;
+    }
 }
 
 .chat-message-right {
     flex-direction: row-reverse;
     margin-left: auto;
+    .message-content {
+        background-color: #cdf696;
+    }
 }
 
 .message-content {
-    background-color: #f8f9fa;
     padding: 10px;
     border-radius: 10px;
     margin-left: 10px;
