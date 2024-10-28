@@ -38,8 +38,8 @@
                         height="30" />
                 </button>
                 <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="dropdownMenuButton">
-                    <li v-if="uid">
-                        <router-link class="dropdown-item" :to="{ name: 'profile', params: { id: uid } }">Profile</router-link>
+                    <li>
+                        <router-link class="dropdown-item" :to="{ name: 'profile' }">Profile</router-link>
                     </li>
                     <li>
                         <a class="dropdown-item btn" @click="logout">Logout</a>
@@ -61,8 +61,8 @@
                     <li>
                         <router-link class="link" :to="{ name: 'repair' }">Repairers</router-link>
                     </li>
-                    <li v-if="uid">
-                        <router-link class="link" :to="{ name: 'profile', params: { id: uid } }">Profile</router-link>
+                    <li>
+                        <router-link class="link" :to="{ name: 'profile' }">Profile</router-link>
                     </li>
                     <li>
                         <a class="link" @click="logout">Logout</a>
@@ -110,21 +110,13 @@ export default {
             username: '', // Add username data property
             profilePic: defaultProfile, // Update with the actual default profile image path
             profileImage: '', // Add profileImage data property
-            uid: '', // Add uid property
             scrolledNav: null,
             mobile: null,
             mobileNav: null,
             windowWidth: null,
-            repairLink: '/repair',
-            registerLink: '/register',
-            eventLink: '/event',
         }
     },
     created() {
-        const storedUid = Cookies.get('uid') || sessionStorage.getItem('uid');
-        if (storedUid) {
-            this.uid = storedUid; // Assign to the uid data property
-        }
         this.fetchUserData();
         window.addEventListener('resize', this.checkScreen);
         this.checkScreen();
