@@ -1,29 +1,29 @@
 <template>
-    <div v-if="notifications.length > 0" class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div
-            class="toast"
-            v-for="(notification, index) in notifications"
-            :key="index"
-            @animationend="removeNotification(index)"
-        >
-            <div class="toast-header">
-                <strong class="me-auto">New Message</strong>
-                <button type="button" class="btn-close" aria-label="Close" @click="removeNotification(index)"></button>
-            </div>
-            <div class="toast-body">{{ notification.message }}</div>
-        </div>
+    <div>
+      <!-- Correct Comment -->
+      <b-toast
+        v-for="(notification, index) in notifications"
+        :key="index"
+        title="New Message"
+        variant="info"
+        auto-hide-delay="5000"
+        @dismissed="removeNotification(index)"
+      >
+        {{ notification.message }}
+      </b-toast>
     </div>
-</template>
+  </template>
 
 <script>
 import { computed } from 'vue';
-import { useStore } from 'vuex';
-// import { state } from '../store/notificationStore.js';
+import store from '../store/store';
 
 export default {
     setup() {
-        const store = useStore();
-        const notifications = computed(() => store.state.notifications);
+        const notifications = computed(() => {
+            console.log("Current notifications:", store.state.notifications); // Log current notifications
+            return store.state.notifications;
+        });
 
         const removeNotification = (index) => {
             store.dispatch('removeNotification', index);
@@ -33,3 +33,5 @@ export default {
     },
 };
 </script>
+
+<style></style>

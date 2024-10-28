@@ -78,13 +78,13 @@ const contactPic = ref(route.query.repairerPic); // Make it reactive
 const senderPic = sessionStorage.getItem('profilePic') || Cookies.get('profilePic');
 const username = Cookies.get('username') || sessionStorage.getItem('username');
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
-
+console.log(contactId.value);
 
 // Check authentication and fetch user data
 onAuthStateChanged(auth, async (currentUser) => {
     if (currentUser) {
         user.value = currentUser;
-        isRepairerStatus.value = await isRepairer(user.value.uid);
+        isRepairerStatus.value = await isRepairer(uid);
         loadContacts();
         // Load chat with repairer if provided
         if (contactId.value) {
@@ -142,9 +142,6 @@ const loadContacts = () => {
                     const userDoc = await getDoc(userDocRef);
                     const otherUserName = userDoc.exists() ? userDoc.data().name : null;
                     const otherUserImageUrl = userDoc.exists() ? userDoc.data().imageUrl : null; // Get imageUrl
-                    contactId.value = otherUserId;
-                    contactName.value = otherUserName;
-                    contactPic.value = otherUserImageUrl;
 
                     return {
                         id: doc.id,
@@ -170,9 +167,6 @@ const loadContacts = () => {
 // Load chat history with a selected contact
 const loadChatHistory = async (contactId, uid) => {
     // Log the contactId to see which contact is selected
-    console.log(contactId);
-    console.log(uid);
-
 
     // Load all contacts that include the current user (uid)
     const chatQuery = query(
@@ -182,44 +176,12 @@ const loadChatHistory = async (contactId, uid) => {
     );
 
     // Execute query
-    const contactsSnapshot = await getDocs(chatQuery);
-
-    // Filter to find those that also contain contactId
-    const filteredChats = contactsSnapshot.docs.filter(doc => {
-        // console.log("Checking userIds in doc:", doc.data().participants); // Log the userIds array
-        return doc.data().participants.includes(contactId);
+    // Use onSnapshot for real-time updates
+    onSnapshot(chatQuery, (snapshot) => {
+        chatHistory.value = snapshot.docs
+            .filter(doc => doc.data().participants.includes(contactId))
+            .map(doc => ({ id: doc.id, ...doc.data() }));
     });
-    console.log(filteredChats);
-
-    // Return the filtered chat history documents
-    chatHistory.value = filteredChats.map(doc => doc.data());
-};
-
-
-// Function to load profiles of all chat participants
-const loadParticipantsProfiles = async (chatDocs) => {
-    const userIds = new Set();
-
-    // Collect unique user IDs from the chat documents
-    chatDocs.forEach(doc => {
-        const data = doc.data();
-        if (data.participants) {
-            data.participants.forEach(uid => userIds.add(uid));
-        }
-    });
-
-    // Fetch user profiles from the database
-    const userProfiles = await Promise.all(Array.from(userIds).map(async (uid) => {
-        const userDocRef = doc(db, 'users', uid);
-        const userDoc = await getDoc(userDocRef);
-        return userDoc.exists() ? { id: userDoc.id, ...userDoc.data() } : null;
-    }));
-
-    // Filter out any null results
-    const validProfiles = userProfiles.filter(profile => profile);
-
-    // You can now store these profiles or update your UI accordingly
-    console.log('Loaded user profiles:', validProfiles);
 };
 
 // Select a contact to chat with
@@ -233,7 +195,6 @@ const selectContact = async (contact) => {
             collection(db, 'contacts'),
             where('userIds', 'array-contains', [uid, contact.otherUserId]) // Check if uid is in the userIds array
         );
-        console.log(contact.otherUserId);
         const querySnapshot = await getDocs(contactsQuery);
         let receiverId = null;
 
@@ -253,6 +214,7 @@ const selectContact = async (contact) => {
 
             if (contactDoc.exists()) {
                 const contactData = contactDoc.data();
+                contactId.value = contact.otherUserId;
                 contactName.value = contactData.name; // Assuming the field is 'name'
                 contactPic.value = contactData.imageUrl; // Assuming the field is 'photoURL'
                 loadChatHistory(contact.otherUserId, uid); // Load chat history for the receiver
@@ -285,7 +247,7 @@ const sendMessage = async () => {
                 participants: [uid, contactId.value],
                 photoURL: senderPic,
             });
-
+            console.log(contactId.value);
             // Update local chatHistory to include the new message immediately
             chatHistory.value.push({
                 id: chatDocRef.id,
@@ -313,6 +275,7 @@ const sendMessage = async () => {
                 // Update the lastMessageTime for the existing contact
                 await updateDoc(querySnapshot.docs[0].ref, { lastMessageTime: serverTimestamp() });
             }
+            // loadChatHistory(contact.otherUserId, uid);
 
             // Create a notification for the receiver
             store.dispatch('addNotification', {

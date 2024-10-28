@@ -4,6 +4,7 @@ import './styles.scss';
 import App from './App.vue';
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'; // No need to import 'bootstrap' if you're only using CSS
+import { BootstrapVue3 } from 'bootstrap-vue-3';
 
 // Firebase imports
 import { initializeApp } from "firebase/app";
@@ -33,6 +34,7 @@ const db = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
 const messagesCollection = collection(db, 'messages')
 const messagesQuery = query(messagesCollection, orderBy('createdAt', 'desc'), limit(100));
+// const filter = new filter();
 
 // Function to fetch repairers from Firestore
 async function fetchRepairmen() {
@@ -150,6 +152,6 @@ export function useChat() {
 
 }
 
-createApp(App).use(store).use(router).mount('#app');
+createApp(App).use(store).use(BootstrapVue3).use(router).mount('#app');
 // Export Firebase services
 export { firebaseApp, storage, auth, provider, db, signInWithPopup };

@@ -8,7 +8,7 @@ const store = createStore({
     return {
       userName: "",
       repairmen: [],
-      notifications: [],
+      notifications: [], // Array to hold notifications
     };
   },
   mutations: {
@@ -44,10 +44,29 @@ const store = createStore({
       commit("setRepairmen", repairmen);
     },
     addNotification({ commit }, notification) {
+      console.log("Adding notification:", notification); // Log added notification
       commit('ADD_NOTIFICATION', notification);
-    },
+  },
     removeNotification({ commit }, index) {
+      console.log("Remove notification:");
       commit('REMOVE_NOTIFICATION', index);
+    },
+    async listenForNotifications({ dispatch }, uid) {
+      const notificationsRef = collection(db, 'notifications');
+      const notificationsQuery = query(notificationsRef, where('receiverId', '==', uid));
+
+      // Listen for incoming notifications
+      onSnapshot(notificationsQuery, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === 'added') {
+            const notificationData = change.doc.data();
+            dispatch('addNotification', {
+              message: notificationData.message,
+              timestamp: notificationData.timestamp
+            });
+          }
+        });
+      });
     },
   },
   getters: {
@@ -56,6 +75,9 @@ const store = createStore({
     },
     getRepairmen(state) {
       return state.repairmen;
+    },
+    getNotifications(state) {
+      return state.notifications;
     },
   },
 });

@@ -37,7 +37,7 @@ const routes = [
         component: Register
     },
     {
-        path: '/profile/:id', // Dynamic route for profile with user ID
+        path: '/profile/', // Dynamic route for profile with user ID
         name: 'profile', // Use 'profile' as the name (dynamic route name)
         component: ViewProfile,
         props: true // Pass the route param as a prop to the component
