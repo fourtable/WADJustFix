@@ -11,7 +11,7 @@ export const initializeMap = async (mapElementId, userLocation) => {
 
   // Define bounds for Singapore
   const singaporeBounds = {
-    north: 1.517,
+    north: 1.617,
     south: 1.130,
     west: 103.609,
     east: 104.028,
