@@ -3,12 +3,12 @@
     <div class="profile-info">
       <div class="profile-pic">
         <!-- Profile Picture with Fallback -->
-        <img v-if="userData.imageUrl" :src="imagePath" alt="Profile Picture" />
-        <img v-else src="../assets/person.svg" alt="Default Profile Picture" />
+        <img v-if="this.userData.imageUrl" :src="imagePath" alt="Profile Picture" />
+        <img v-else :src="imagePath" alt="Default Profile Picture" />
       </div>
 
       <!-- For Repairers: Show Full Details -->
-      <div class="profile-details" v-if="userData.userType === 'repairer'">
+      <div class="profile-details" v-if="this.userData.userType === 'repairer'">
         <h2 class="profile-name">{{ userData.name }}</h2>
         <p class="skill-level">Skill Level: {{ calculateSkillLevel(userData.experience) }}</p>
 
@@ -53,71 +53,69 @@
     </div>
 
     <!-- Edit Profile Button -->
-    <div v-if="isOwnProfile" class="edit-profile-btn">
+    <div class="edit-profile-btn">
       <router-link :to="{ name: 'editProfile' }" class="btn btn-primary">Edit Profile</router-link>
     </div>
 
     <!-- Conditional Tabs Rendering -->
-    <transition name="fade" mode="out-in">
-      <div :key="activeTab" class="tab-content">
-        <div class="tabs">
-          <button
-            class="tab-button"
-            :class="{ active: activeTab === 'reviews' }"
-            @click="switchTab('reviews')"
-          >
-            Reviews
-          </button>
-          <button
-            v-if="userData.userType === 'repairer'"
-            class="tab-button"
-            :class="{ active: activeTab === 'upcoming-events' }"
-            @click="switchTab('upcoming-events')"
-          >
-            Upcoming Events
-          </button>
-          <button
-            v-if="userData.userType === 'repairer'"
-            class="tab-button"
-            :class="{ active: activeTab === 'past-events' }"
-            @click="switchTab('past-events')"
-          >
-            Past Events
-          </button>
-        </div>
+    <div class="tabs">
+      <button
+        class="tab-button"
+        :class="{ active: activeTab === 'reviews' }"
+        @click="switchTab('reviews')"
+      >
+        Reviews
+      </button>
+      <button
+        v-if="userData.userType === 'repairer'"
+        class="tab-button"
+        :class="{ active: activeTab === 'upcoming-events' }"
+        @click="switchTab('upcoming-events')"
+      >
+        Upcoming Events
+      </button>
+      <button
+        v-if="userData.userType === 'repairer'"
+        class="tab-button"
+        :class="{ active: activeTab === 'past-events' }"
+        @click="switchTab('past-events')"
+      >
+        Past Events
+      </button>
+    </div>
 
-        <!-- Reviews Tab: Show for All Users -->
-        <div id="reviews" class="tab" v-show="activeTab === 'reviews'">
-          <h3>Ratings: ⭐ {{ userData.rating || 'N/A' }} / 5</h3>
-          <div v-if="userData.reviews && userData.reviews.length">
-            <div v-for="review in userData.reviews" :key="review.id" class="review">
-              <p>{{ review.text }}</p>
-              <p>- {{ review.customer }}</p>
-            </div>
-          </div>
-        </div>
 
-        <!-- Upcoming Events Tab: Show only for Repairers -->
-        <div id="upcoming-events" class="tab" v-if="userData.userType === 'repairer'" v-show="activeTab === 'upcoming-events'">
-          <h3>Upcoming Repair Events</h3>
-          <div v-for="event in upcomingEvents" :key="event.id" class="event">
-            <h4>{{ event.title }}</h4>
-            <p>{{ event.date }}</p>
-            <p>{{ event.description }}</p>
-          </div>
-        </div>
-
-        <!-- Past Events Tab: Show only for Repairers -->
-        <div id="past-events" class="tab" v-if="userData.userType === 'repairer'" v-show="activeTab === 'past-events'">
-          <h3>Past Repair Events</h3>
-          <div v-for="event in pastEvents" :key="event.id" class="event">
-            <h4>{{ event.title }}</h4>
-            <p>{{ event.date }}</p>
-            <p>{{ event.description }}</p>
-          </div>
-        </div>
+    <div class="tab-content">
+    <!-- Reviews Tab: Show for All Users -->
+    <div id="reviews" class="tab" v-show="activeTab === 'reviews'">
+      <h3>Ratings: ⭐ {{ userData.rating || 'N/A' }} / 5</h3>
+      <div v-for="review in userData.reviews" :key="review.id" class="review">
+        <p>{{ review.text }}</p>
+        <p>- {{ review.customer }}</p>
       </div>
-    </transition>
+    </div>
+
+    <!-- Upcoming Events Tab: Show only for Repairers -->
+    <div id="upcoming-events" class="tab" v-if="userData.userType === 'repairer'" v-show="activeTab === 'upcoming-events'">
+      <h3>Upcoming Repair Events</h3>
+      <div v-for="event in upcomingEvents" :key="event.id" class="event">
+        <h4>{{ event.title }}</h4>
+        <p>{{ event.date }}</p>
+        <p>{{ event.description }}</p>
+      </div>
+    </div>
+
+    <!-- Past Events Tab: Show only for Repairers -->
+    <div id="past-events" class="tab" v-if="userData.userType === 'repairer'" v-show="activeTab === 'past-events'">
+      <h3>Past Repair Events</h3>
+      <div v-for="event in pastEvents" :key="event.id" class="event">
+        <h4>{{ event.title }}</h4>
+        <p>{{ event.date }}</p>
+        <p>{{ event.description }}</p>
+      </div>
+    </div>
+  </div>
+
   </div>
 </template>
 
@@ -125,93 +123,96 @@
 import { db, auth } from "../main"; // Import Firebase setup
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { mapGetters } from 'vuex'; // Import mapGetters from Vuex
 
 export default {
-  data() {
-    return {
-      userData: {
-        imageUrl: '',
-        userType: '',
-        experience: '',
-        expertise: [],
-        description: '',
-        rating: null,
-        reviews: []
-      },
-      activeTab: 'reviews', // Default active tab
-      expertiseList: [], // Expertise list for repairers
-      upcomingEvents: [], // Placeholder for events
-      pastEvents: [], // Placeholder for past events
-    };
-  },
-  computed: {
-    ...mapGetters(['getUserId']), // Use Vuex getter to get the current user's ID
-    isOwnProfile() {
-      return this.userData && this.userData.id === this.getUserId; // Compare profile user ID with current user ID
+data() {
+  return {
+    userData: {
+      imageUrl: '',
+      userType: '',
+      experience: '',
+      expertise: [],
+      description: '',
+      rating: null,
+      reviews: []
     },
-    imagePath() {
-      if (this.userData.imageUrl && this.userData.imageUrl !== '') {
-        return this.userData.imageUrl; // Return user's profile image URL
-      }
-      return "../assets/person.svg"; // Fallback if no image
+    activeTab: 'reviews', // Default active tab
+    expertiseList: [], // Expertise list for repairers
+    upcomingEvents: [], // Placeholder for events
+    pastEvents: [], // Placeholder for past events
+  };
+},
+methods: {
+  async fetchUserData(uid) {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (userDoc.exists()) {
+      this.userData = userDoc.data();
+      this.expertiseList = this.userData.expertise || []; // Set expertise list
+    } else {
+      console.error("No user data found!");
     }
   },
-  mounted() {
-    // Check if viewing own profile or another user's profile
-    const uid = this.$route.params.id ? this.$route.params.id : this.getUserId;
-
-    // Fetch the user data based on the user ID
-    this.fetchUserData(uid);
-  },
-
-  methods: {
-    async fetchUserData(uid) {
-      const userDoc = await getDoc(doc(db, 'users', uid));
-      if (userDoc.exists()) {
-        this.userData = userDoc.data();
-        this.expertiseList = this.userData.expertise || []; // Set expertise list
-      } else {
-        console.error("No user data found!");
-      }
-    },
-    calculateSkillLevel(experience) {
-      if (experience < 1) {
-        return 'Beginner';
-      } else if (experience <= 3) {
-        return 'Intermediate';
-      } else if (experience <= 5) {
-        return 'Advanced';
-      } else {
-        return 'Expert';
-      }
-    },
-    switchTab(tabName) {
-      this.activeTab = tabName;
-    },
-    calculateJoinedDate(createdAt) {
-      if (!createdAt) return '';
-
-      const createdDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
-      const currentDate = new Date();
-
-      const diffTime = Math.abs(currentDate - createdDate); // Difference in milliseconds
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert to days
-
-      let years = Math.floor(diffDays / 365); // Convert days to years
-      let remainingDays = diffDays % 365; // Remaining days after years
-      let months = Math.floor(remainingDays / 30); // Approximate months
-      let days = remainingDays % 30; // Remaining days after months
-
-      if (years > 0) {
-        return `${years}y ${months}m ${days}d`;
-      } else if (months > 0) {
-        return `${months}m ${days}d`;
-      } else {
-        return `${days}d`;
-      }
+  calculateSkillLevel(experience) {
+    if (experience < 1) {
+      return 'Beginner';
+    } else if (experience <= 3) {
+      return 'Intermediate';
+    } else if (experience <= 5) {
+      return 'Advanced';
+    } else {
+      return 'Expert';
     }
+  },
+  switchTab(tabName) {
+    this.activeTab = tabName;
+  },
+  calculateJoinedDate(createdAt) {
+  if (!createdAt) return '';
+
+  const createdDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+  const currentDate = new Date();
+
+  const diffTime = Math.abs(currentDate - createdDate); // Difference in milliseconds
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert to days
+
+  let years = Math.floor(diffDays / 365); // Convert days to years
+  let remainingDays = diffDays % 365; // Remaining days after years
+  let months = Math.floor(remainingDays / 30); // Approximate months
+  let days = remainingDays % 30; // Remaining days after months
+
+  if (years > 0) {
+    return `${years}y ${months}m ${days}d`;
+  } else if (months > 0) {
+    return `${months}m ${days}d`;
+  } else {
+    return `${days}d`;
   }
+}
+
+},
+mounted() {
+  // Check authentication state and fetch user data
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      this.fetchUserData(user.uid);
+    } else {
+      this.userData = null;
+      console.error("User is not logged in");
+      window.location.href = "./login";  // Redirect to login if not authenticated
+    }
+  });
+},
+computed: {
+  imagePath() {
+    if (this.userData.imageUrl && this.userData.imageUrl !== '') {
+      return this.userData.imageUrl; // Return user's profile image URL
+    }
+    return "../assets/person.svg"; // Fallback if no image
+  },
+  isOwnProfile() {
+    return this.userData && this.userData.id === store.getters.getUserId;
+  }
+}
 };
 </script>
   
@@ -319,12 +320,5 @@ export default {
   .review h4 {
     font-weight: bold;
   }
-
-  .fade-enter-active, .fade-leave-active {
-  transition: opacity 0.5s;
-}
-.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
-  opacity: 0;
-}
   </style>
   
