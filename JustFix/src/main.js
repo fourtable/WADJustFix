@@ -34,6 +34,11 @@ const db = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
 const messagesCollection = collection(db, 'messages')
 const messagesQuery = query(messagesCollection, orderBy('createdAt', 'desc'), limit(100));
+const store = createStore({
+    modules: {
+        notification: notificationStore, // Register your notification store
+    },
+});
 // const filter = new filter();
 
 // Function to fetch repairers from Firestore
@@ -151,7 +156,6 @@ export function useChat() {
     return {messages, sendMessage}
 
 }
-
 
 createApp(App).use(store).use(router).mount('#app');
 // Export Firebase services
