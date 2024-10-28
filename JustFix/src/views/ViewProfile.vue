@@ -58,7 +58,6 @@
     </div>
 
     <!-- Conditional Tabs Rendering -->
-    <!-- Conditional Tabs Rendering -->
     <div class="tabs">
       <button
         class="tab-button"
@@ -209,6 +208,9 @@ computed: {
       return this.userData.imageUrl; // Return user's profile image URL
     }
     return "../assets/person.svg"; // Fallback if no image
+  },
+  isOwnProfile() {
+    return this.userData && this.userData.id === store.getters.getUserId;
   }
 }
 };
