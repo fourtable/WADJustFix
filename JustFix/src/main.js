@@ -4,8 +4,6 @@ import './styles.scss';
 import App from './App.vue';
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'; // No need to import 'bootstrap' if you're only using CSS
-import store from './store/store'; // Import Vuex store
-
 
 // Firebase imports
 import { initializeApp } from "firebase/app";
