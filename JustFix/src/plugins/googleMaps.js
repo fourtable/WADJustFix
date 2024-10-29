@@ -27,6 +27,23 @@ export const initializeMap = async (mapElementId, userLocation) => {
   });
 
   google.maps.event.trigger(map, "resize");
+
+  // Get user's current location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      userLocation = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude   
+
+      };
+
+      // Update search circle and marker visibility
+      updateSearchCircle(userLocation, 10); // Adjust radius as needed
+    }, function(error) {
+      console.error("Error getting user location:", error);
+      // Handle error, e.g., show a message to the user
+    });
+  }
 };
 
 export const fetchRepairers = async () => {
@@ -58,7 +75,7 @@ export const placeRepairmenOnMap = (repairmen) => {
   repairmen.forEach((repairman) => {
     const marker = new google.maps.Marker({
       position: { lat: repairman.lat, lng: repairman.lng },
-      map: map,
+      map: null, // Initially set map to null
       title: repairman.name,
     });
 
@@ -69,7 +86,7 @@ export const placeRepairmenOnMap = (repairmen) => {
           <h4>${repairman.name}</h4>
           <p>Rating: ${repairman.rating}</p>
           <p>Expertise: ${repairman.expertise.length > 0 ? repairman.expertise.join(', ') : 'N/A'}</p>
-          <p>Description: ${repairman.description}</p> <!-- Dynamic description -->
+          <p>Description: ${repairman.description}</p>
           <button id="viewProfileBtn-${repairman.id}" style="cursor:pointer; background-color:#007BFF; color:white; border:none; padding:5px 10px; border-radius:4px;">View Profile</button>
         </div>
       `,
@@ -114,6 +131,13 @@ export const placeRepairmenOnMap = (repairmen) => {
       }
     });
 
+    // Check if the marker is within the search circle and set its map accordingly
+    if (searchCircle && google.maps.geometry.spherical.computeDistanceBetween(searchCircle.getCenter(), marker.getPosition()) <= searchCircle.getRadius()) {
+      marker.setMap(map);
+    } else {
+      marker.setMap(null); // Hide markers outside the circle
+    }
+
     // Push each marker to the repairmenMarkers array for future reference
     repairmenMarkers.push(marker);
   });
@@ -143,4 +167,13 @@ export const updateSearchCircle = (location, radius) => {
   });
 
   map.fitBounds(searchCircle.getBounds()); // Adjust map bounds to fit the circle
+
+  // Update marker visibility based on the new search circle
+  repairmenMarkers.forEach((marker) => {
+    if (searchCircle && google.maps.geometry.spherical.computeDistanceBetween(searchCircle.getCenter(), marker.getPosition()) <= searchCircle.getRadius()) {
+      marker.setMap(map);
+    } else {
+      marker.setMap(null); // Hide markers outside the circle
+    }
+  });
 };

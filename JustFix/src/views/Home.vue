@@ -39,12 +39,15 @@
             <!-- Search radius slider -->
             <label for="radiusSlider" class="mt-3">Search Radius (km): {{ searchRadius }} km</label>
             <input type="range" id="radiusSlider" v-model="searchRadius" min="1" max="50" class="form-range" />
+
             <div id="map" class="map-container mt-3"></div>
+
+            <!-- repairmenListings -->
+            <RepairmenCards :repairmen="repairmen" />
           </div>
         </div>
 
-        <!-- repairmenListings -->
-        <RepairmenCards :repairmen="repairmen" />
+
       </div>
     </div>
   </section>
@@ -83,7 +86,7 @@ onMounted(() => {
 // Methods
 function initializeAutocomplete() {
   const locationInput = document.getElementById('locationInput');
-  
+
   // Create the autocomplete object and restrict to Singapore
   const autocomplete = new google.maps.places.Autocomplete(locationInput, {
     componentRestrictions: { country: 'SG' }, // Restrict to Singapore (country code 'SG')
@@ -184,6 +187,12 @@ function topSkills(expertise) {
 .map-container {
   margin-bottom: 40px;
   /* Default bottom spacing */
+  width: 100%;
+  /* Default width for larger screens */
+  max-width: 1200px;
+  /* Set a max-width to prevent overflow */
+  height: 500px;
+  /* Default height for larger screens */
 }
 
 /* Adjustments for screens 991px and below */
@@ -194,8 +203,22 @@ function topSkills(expertise) {
   }
 
   .map-container {
-    margin-bottom: 10px;
-    /* Decrease bottom margin for smaller screens */
+    margin-bottom: 20px;
+    /* Increase bottom margin for better separation */
+    width: 100%;
+    /* Ensure full width on smaller screens */
+    height: 400px;
+    /* Adjust height for smaller screens */
+  }
+}
+
+/* Further adjustments for screens 576px and below */
+@media (max-width: 576px) {
+  .map-container {
+    margin-bottom: 30px;
+    /* Increase bottom margin to avoid overlap */
+    height: 300px;
+    /* Adjust height for very small screens */
   }
 }
 </style>
