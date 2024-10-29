@@ -205,6 +205,7 @@ export default {
 
                 // Save additional user data in Firestore
                 await setDoc(doc(db, "users", user.uid), {
+                    uid: user.uid,
                     name: this.formData.name,
                     email: this.formData.email,
                     userType: 'repairer',
@@ -236,6 +237,7 @@ export default {
 
                 // Save additional user data in Firestore
                 await setDoc(doc(db, "users", user.uid), {
+                    uid: user.uid,
                     name: this.formData.name,
                     email: this.formData.email,
                     userType: 'user',
