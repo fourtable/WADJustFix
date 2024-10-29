@@ -19,7 +19,7 @@
 
       <!-- Repairer-specific Fields -->
       <div v-if="profile.userType === 'repairer'">
-        <div class="mb-3">
+        <!-- <div class="mb-3">
           <label for="experience" class="form-label">Years of Experience</label>
           <select id="experience" v-model="profile.experience" class="form-control">
             <option value="" disabled>Select</option>
@@ -28,7 +28,7 @@
             <option value="2">3-5 years</option>
             <option value="4">More than 5 years</option>
           </select>
-        </div>
+        </div> -->
 
         <!-- Expertise Checkboxes -->
         <div class="mb-3">

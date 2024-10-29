@@ -4,12 +4,14 @@ import './styles.scss';
 import App from './App.vue';
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'; // No need to import 'bootstrap' if you're only using CSS
+import { BootstrapVue3 } from 'bootstrap-vue-3';
 
 // Firebase imports
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "firebase/firestore"; // Import Firestore
 import { getStorage } from 'firebase/storage';
+import store from './store/store';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -150,7 +152,6 @@ export function useChat() {
 
 }
 
-
-createApp(App).use(router).mount('#app');
+createApp(App).use(store).use(BootstrapVue3).use(router).mount('#app');
 // Export Firebase services
 export { firebaseApp, storage, auth, provider, db, signInWithPopup };

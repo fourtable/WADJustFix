@@ -2,13 +2,19 @@
 import { ref } from 'vue';
 import defaultProfilePic from '../assets/profile.jpg';
 import { defineProps } from 'vue';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
     repairmen: {
         type: Array,
         required: true
-    }
+    },
+    repairName: '',
+    repairerPic: ''
 });
+
+// Router instance
+const router = useRouter();
 
 const selectedRepairmen = ref([]);
 

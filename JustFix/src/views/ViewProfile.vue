@@ -42,7 +42,7 @@
         <p class="profile-description">User</p>
 
         <!-- Joined Date Section -->
-        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }}</p>
+        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }} ago</p>
 
         <!-- Show Description if Available -->
         <div v-if="userData.description">
@@ -58,7 +58,7 @@
     </div>
 
     <!-- Conditional Tabs Rendering -->
-    <div class="tabs" v-if="userData.userType === 'repairer'">
+    <div class="tabs">
       <button
         class="tab-button"
         :class="{ active: activeTab === 'reviews' }"
@@ -67,6 +67,7 @@
         Reviews
       </button>
       <button
+        v-if="userData.userType === 'repairer'"
         class="tab-button"
         :class="{ active: activeTab === 'upcoming-events' }"
         @click="switchTab('upcoming-events')"
@@ -74,6 +75,7 @@
         Upcoming Events
       </button>
       <button
+        v-if="userData.userType === 'repairer'"
         class="tab-button"
         :class="{ active: activeTab === 'past-events' }"
         @click="switchTab('past-events')"
@@ -82,36 +84,38 @@
       </button>
     </div>
 
-    <div class="tab-content" v-if="userData.userType === 'repairer'">
-      <!-- Reviews Tab -->
-      <div id="reviews" class="tab" v-show="activeTab === 'reviews'">
-        <h3>Ratings: ⭐ {{ userData.rating || 'N/A' }} / 5</h3>
-        <div v-for="review in userData.reviews" :key="review.id" class="review">
-          <p>{{ review.text }}</p>
-          <p>- {{ review.customer }}</p>
-        </div>
-      </div>
 
-      <!-- Upcoming Events Tab -->
-      <div id="upcoming-events" class="tab" v-show="activeTab === 'upcoming-events'">
-        <h3>Upcoming Repair Events</h3>
-        <div v-for="event in upcomingEvents" :key="event.id" class="event">
-          <h4>{{ event.title }}</h4>
-          <p>{{ event.date }}</p>
-          <p>{{ event.description }}</p>
-        </div>
-      </div>
-
-      <!-- Past Events Tab -->
-      <div id="past-events" class="tab" v-show="activeTab === 'past-events'">
-        <h3>Past Repair Events</h3>
-        <div v-for="event in pastEvents" :key="event.id" class="event">
-          <h4>{{ event.title }}</h4>
-          <p>{{ event.date }}</p>
-          <p>{{ event.description }}</p>
-        </div>
+    <div class="tab-content">
+    <!-- Reviews Tab: Show for All Users -->
+    <div id="reviews" class="tab" v-show="activeTab === 'reviews'">
+      <h3>Ratings: ⭐ {{ userData.rating || 'N/A' }} / 5</h3>
+      <div v-for="review in userData.reviews" :key="review.id" class="review">
+        <p>{{ review.text }}</p>
+        <p>- {{ review.customer }}</p>
       </div>
     </div>
+
+    <!-- Upcoming Events Tab: Show only for Repairers -->
+    <div id="upcoming-events" class="tab" v-if="userData.userType === 'repairer'" v-show="activeTab === 'upcoming-events'">
+      <h3>Upcoming Repair Events</h3>
+      <div v-for="event in upcomingEvents" :key="event.id" class="event">
+        <h4>{{ event.title }}</h4>
+        <p>{{ event.date }}</p>
+        <p>{{ event.description }}</p>
+      </div>
+    </div>
+
+    <!-- Past Events Tab: Show only for Repairers -->
+    <div id="past-events" class="tab" v-if="userData.userType === 'repairer'" v-show="activeTab === 'past-events'">
+      <h3>Past Repair Events</h3>
+      <div v-for="event in pastEvents" :key="event.id" class="event">
+        <h4>{{ event.title }}</h4>
+        <p>{{ event.date }}</p>
+        <p>{{ event.description }}</p>
+      </div>
+    </div>
+  </div>
+
   </div>
 </template>
 
@@ -204,6 +208,9 @@ computed: {
       return this.userData.imageUrl; // Return user's profile image URL
     }
     return "../assets/person.svg"; // Fallback if no image
+  },
+  isOwnProfile() {
+    return this.userData && this.userData.id === store.getters.getUserId;
   }
 }
 };

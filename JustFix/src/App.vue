@@ -1,69 +1,87 @@
 <script setup>
-import Navbar from './components/navbar.vue'
 import newNavBar from './components/newNavBar.vue';
+import notification from './components/notification.vue';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from './main'; // Your Firebase setup
-import { doc, getDoc } from 'firebase/firestore';
-import Cookies from 'js-cookie'
+import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
+import Cookies from 'js-cookie';
+import { onMounted, ref } from 'vue';
+import store from './store/store'; // Make sure to import your Vuex store
+
+// Function to set up notifications listener
+const setupNotificationsListener = (uid) => {
+  const notificationsRef = collection(db, 'notifications');
+  const notificationsQuery = query(notificationsRef, where('receiverId', '==', uid));
+
+  onSnapshot(notificationsQuery, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === 'added') {
+        const notificationData = change.doc.data();
+        console.log('New Notification:', notificationData); // Log the notification
+        store.dispatch('addNotification', {
+          message: notificationData.message,
+          timestamp: notificationData.timestamp
+        });
+      }
+    });
+  });
+};
+
+// Handle user authentication and notifications
+const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+if (uid) {
+  setupNotificationsListener(uid); // Set up listener for notifications
+}
+
+onMounted(() => {
+  if (uid) {
+    fetchUserData(uid); // Fetch user data if logged in
+  }
+  const testNotification = {
+    message: "Test notification!",
+    timestamp: new Date().toISOString(),
+  };
+  store.dispatch('addNotification', testNotification); // Test dispatch
+});
+
+// Function to fetch user data
+async function fetchUserData(uid) {
+  const userDoc = await getDoc(doc(db, 'users', uid));
+  if (userDoc.exists()) {
+    userData.value = userDoc.data(); // Update userData if it exists
+  }
+}
+
+// Listen for auth state changes
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    fetchUserData(user.uid);
+  } else {
+    signOut(auth);
+  }
+});
+
+// Reactive user data
+const userData = ref({
+  imageUrl: '',
+});
+
 </script>
 
 <template>
   <div>
-    <!-- <Navbar :profileImage="userData.imageUrl"></Navbar> -->
-    <newNavBar :profileImage="userData.imageUrl"/>
+    <newNavBar :profileImage="userData.imageUrl" />
   </div>
   <main class="content">
-    <router-view/>
+    <router-view />
+    <notification />
   </main>
 </template>
 
-<script>
-export default {
-  components: {
-    Navbar,
-    newNavBar,
-  },
-  data() {
-    return {
-      userData: {
-        imageUrl: '',
-      },
-      isAuthenticated: false, // Set to false by default (logged out)
-    };
-  },
-  mounted() {
-    const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
-    if (uid) {
-      this.isAuthenticated = true; // Set as logged in if uid exists
-      this.fetchUserData(uid);
-      
-      // Listen for auth state changes in case user logs out
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          this.fetchUserData(user.uid);
-        } else {
-          this.isAuthenticated = false; // Reset to logged out
-          this.userData = { imageUrl: '' }; // Clear user data
-        }
-      });
-    }
-    else{
-      signOut(auth);
-    }
-  },
-  methods: {
-    async fetchUserData(uid) {
-      const userDoc = await getDoc(doc(db, 'users', uid));
-      if (userDoc.exists()) {
-        this.userData = userDoc.data();
-      }
-    },
-  },
-};
-</script>
 <style>
 .content {
-  padding-top: 3%; /* Adjust this based on your navbar height */
+  padding-top: 3%;
+  /* Adjust this based on your navbar height */
   margin-bottom: 5%;
 }
 </style>
