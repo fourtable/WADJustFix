@@ -283,7 +283,7 @@ const sendMessage = async () => {
 
             const text = newMessage.value;
             newMessage.value = ''; // Clear the input after sending
-            await sendNotification(contactId.value, text);
+            await sendNotification(contactId.value, text, username);
 
         } catch (error) {
             console.error("Error sending message:", error);
@@ -293,10 +293,10 @@ const sendMessage = async () => {
 };
 
 // Create a notification for the receiver
-const sendNotification = async (receiverId, message, username) => {
+const sendNotification = async (receiverId, message, name) => {
     const notificationRef = dbRef(realtimeDb, `notifications/${receiverId}`);
     await push(notificationRef, {
-        senderName: username,
+        senderName: name,
         message: message,
         timestamp: new Date().toISOString(),
     });
