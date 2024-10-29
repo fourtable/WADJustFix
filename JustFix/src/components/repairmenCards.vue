@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import defaultProfilePic from '../assets/profile.jpg';
 import { defineProps } from 'vue';
 import { useRouter } from 'vue-router';
@@ -16,9 +16,8 @@ const props = defineProps({
 // Router instance
 const router = useRouter();
 
-const selectedRepairmen = ref([]);
-
 // Toggle the selected repairman
+const selectedRepairmen = ref([]);
 const toggleSelection = (repairmanId) => {
     if (selectedRepairmen.value.includes(repairmanId)) {
         selectedRepairmen.value = selectedRepairmen.value.filter(id => id !== repairmanId);
@@ -27,6 +26,12 @@ const toggleSelection = (repairmanId) => {
     }
     console.log("Selected repairmen:", selectedRepairmen.value);
 };
+
+const clearSelected = () => {
+    selectedRepairmen.value = []; // Clear the selected repairmen
+    console.log("Cleared selected repairmen");
+};
+
 
 const topSkills = (expertise) => expertise.slice(0, 3);
 
@@ -42,69 +47,119 @@ const requestQuote = () => {
 // Helper method to check if a repairman is selected
 const isSelected = (repairmanId) => selectedRepairmen.value.includes(repairmanId);
 
-</script>
 
+
+//select and filter Exepertise logic
+const selectedExpertise = ref([]);
+
+// Available expertise options
+const expertiseOptions = ref([
+    "Home Appliances",
+    "Electrical Fixtures",
+    "Plumbing",
+    "Air Conditioners",
+    "Electronics Repair",
+    "Furniture Assembly and Repair",
+    "Windows and Doors",
+    "Automotive Repairs",
+    "Miscellaneous Repairs"
+]);
+
+// Computed property to filter repairmen based on selected expertise
+const filteredRepairmen = computed(() => {
+    if (selectedExpertise.value.length === 0 || selectedExpertise.value.includes("All")) {
+        return props.repairmen;
+    }
+    return props.repairmen.filter(repairman => {
+        return repairman.expertise.some(skill => selectedExpertise.value.includes(skill));
+    });
+});
+
+// Toggle expertise selection
+const toggleExpertise = (expertise) => {
+    if (expertise === "All") {
+        selectedExpertise.value = selectedExpertise.value.includes("All") ? [] : ["All"];
+    } else {
+        if (selectedExpertise.value.includes(expertise)) {
+            selectedExpertise.value = selectedExpertise.value.filter(item => item !== expertise);
+        } else {
+            selectedExpertise.value.push(expertise);
+        }
+    }
+};
+
+// Clear all selections
+const clearSelections = () => {
+    selectedExpertise.value = [];
+};
+</script>
 <template>
 
-
-    <div class="container repairmen-container mt-4 d-flex justify-content-between align-items-center">
+    <div class="container repairmen-container">
         <p class="section-title">Browse Our Most Trusted Handymen</p>
-        <button @click="requestQuote" class="hero-button">Request a Quote</button>
+
+        <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
+            <button @click="requestQuote" class="hero-button">Request a Quote</button>
+            <span @click="clearSelected" class="clear-link"
+                style="text-decoration: underline; cursor: pointer; margin-top: 8px; padding-right: 14px;">
+                Clear Selected Repairmen
+            </span>
+        </div>
+    </div>
+    <!-- Expertise Pills -->
+    <div class="expertise-pills py-4">
+        <button v-for="expertise in expertiseOptions" :key="expertise"
+            :class="['expertise-pill', { selected: selectedExpertise.includes(expertise) }]"
+            @click="toggleExpertise(expertise)">
+            {{ expertise }}
+        </button>
+        <button class="clear-button" @click="clearSelections">Clear</button>
     </div>
 
 
-
     <div class="row justify-content-center gx-4">
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4 custom-col" v-for="repairman in repairmen" :key="repairman.id">
-            <div class="card text-center shadow-sm clickable-card" :class="{ 'selected': isSelected(repairman.id) }"
-                @click="toggleSelection(repairman.id)" style="padding:0; border-radius: 20px; cursor: pointer;">
+        <div class="col-lg-3 col-md-4 col-sm-6 custom-col" v-for="repairman in filteredRepairmen" :key="repairman.id">
 
+            <div class="card text-center shadow-sm clickable-card" style="padding:0; border-radius: 20px;"
+                @click="toggleSelection(repairman.id)" :class="{ selected: selectedRepairmen.includes(repairman.id) }">
 
                 <img :src="repairman.profilePic || defaultProfilePic" class="card-img-top" alt="Profile Picture"
                     height="200px" style="object-fit: cover; border-radius: 20px;">
 
-                <!-- Custom Checkbox for Multi-Selection -->
-                <div class="checkbox-container" @click.stop>
-                    <input type="checkbox" class="custom-checkbox" @change="toggleSelection(repairman.id)"
-                        :checked="isSelected(repairman.id)">
+                <div class="checkbox-container">
+                    <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
+                        :checked="isSelected(repairman.id)" />
                 </div>
 
-                <div class="card-body">
-                    <h5 class="card-title mb-1" style="font-weight:bold;">
-                        {{ repairman.username || repairman.name }}
-                    </h5>
-                    <p class="text-muted mb-1">
-                        <span class="star-icon">★</span>
-                        5.0 (123)
-                    </p>
-                    <p class="card-description text-muted">
+                <div class="card-body text-start position-relative">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title mb-1 text-center pb-2" style="font-weight:bold;">
+                            {{ repairman.username || repairman.name }}
+                        </h5>
+                        <p class="text-muted mb-1">
+                            <span class="star-icon">★</span>
+                            5.0 (123)
+                        </p>
+                    </div>
+
+                    <p class="card-description text-muted" style="font-size: 0.9rem;">
                         {{ truncateDescription(repairman.description) }}
                     </p>
+
                     <ul class="list-unstyled">
                         <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill">
                             {{ skill }}
                         </li>
                     </ul>
-
                 </div>
-
-
             </div>
         </div>
     </div>
-
-
 </template>
 
 
-<style scoped>
-.section-title {
-    font-weight: bold;
-    font-size: x-large;
-    padding-top: 35px;
-    padding-bottom: 10px;
-}
 
+<style scoped>
 /* Hero-style button */
 .hero-button {
     padding: 12px 24px;
@@ -143,7 +198,6 @@ const isSelected = (repairmanId) => selectedRepairmen.value.includes(repairmanId
     border-radius: 5px;
 }
 
-/* Card base styles */
 .card {
     background: #ffffff;
     padding: 20px;
@@ -157,32 +211,21 @@ const isSelected = (repairmanId) => selectedRepairmen.value.includes(repairmanId
     cursor: pointer;
 }
 
-
-
-
-/* Hover effect */
 .card:hover {
     transform: translateY(-5px);
     background-color: #f0f0f0;
-    /* Hover color */
 }
 
-/* Selected effect (higher priority than hover) */
 .selected {
-    background-color: #e8e8e8;
-    /* Slightly darker grey for selected */
+    background-color: #f0f0f0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    /* Slightly deeper shadow on selection */
     transform: translateY(-5px);
-    /* Maintain the lifted effect */
 }
 
-/* Style for selected hover - no change to transform */
 .selected:hover {
-    background-color: #e8e8e8;
-    /* Maintain selected color */
+    background-color: #f0f0f0;
+    /* Maintain selected color on hover */
 }
-
 
 .card-body {
     display: flex;
@@ -233,16 +276,40 @@ ul.list-unstyled {
     color: #085C44;
 }
 
-/* Base styles for the container */
 .repairmen-container {
-    padding-top: 80px;
-    /* Increased base padding for more space */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
+
+.section-title {
+    font-weight: bold;
+    font-size: x-large;
+    margin: 0;
+}
+
+.hero-button {
+    padding: 12px 24px;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #085C44;
+    border: none;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.hero-button:hover {
+    background-color: #064830;
+}
+
 
 /* Media query for screens 867px and wider */
 @media (min-width: 867px) {
     .repairmen-container {
-        padding-top: 120px;
+        padding-top: 50px;
         /* Increased padding for wider screens */
     }
 }
@@ -250,15 +317,15 @@ ul.list-unstyled {
 /* Additional media queries for further increases */
 @media (min-width: 1000px) {
     .repairmen-container {
-        padding-top: 140px;
+        padding-top: 70px;
         /* Further increased padding */
     }
 }
 
 @media (min-width: 1200px) {
     .repairmen-container {
-        padding-top: 160px;
-        /* Even more padding for large screens */
+        padding-top: 70px;
+        /* Consistent padding for large screens */
     }
 }
 
@@ -303,5 +370,67 @@ ul.list-unstyled {
         max-width: 600px;
         /* Optional: set a max-width for cards */
     }
+}
+
+.expertise-pills {
+    display: flex;
+    overflow-x: auto;
+    /* Enable horizontal scrolling */
+    padding: 10px 0px;
+}
+
+.expertise-pills::-webkit-scrollbar {
+    display: none;
+}
+
+.expertise-pill {
+    padding: 6px 12px;
+    /* Reduced padding for smaller pills */
+    margin: 0 5px;
+    border: 1px solid #085C44;
+    border-radius: 15px;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 0.85rem;
+    /* Smaller text size */
+}
+
+.expertise-pill.selected {
+    background-color: #e0f7e0;
+    /* Light green for selected */
+}
+
+.clear-button {
+    padding: 6px 12px;
+    /* Reduced padding for smaller button */
+    margin-left: 10px;
+    border: none;
+    border-radius: 15px;
+    background-color: #ff4336;
+    /* Red for clear */
+    color: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    /* Smaller text size */
+}
+
+.clear-link {
+    display: inline-block;
+    margin-top: 10px;
+    /* Add some spacing above */
+    color: #085C44;
+    /* Use the same color as the buttons */
+    text-decoration: underline;
+    /* Underline the text */
+    cursor: pointer;
+    /* Show pointer on hover */
+    font-size: 0.9rem;
+    /* Adjust size if needed */
+}
+
+.clear-link:hover {
+    color: #064830;
+    /* Darker shade on hover for feedback */
 }
 </style>
