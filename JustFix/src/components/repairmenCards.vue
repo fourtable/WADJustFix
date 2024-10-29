@@ -117,20 +117,17 @@ const clearSelections = () => {
     </div>
 
 
-    <div class="row justify-content-center gx-4">
-        <div class="col-lg-3 col-md-4 col-sm-6 custom-col" v-for="repairman in filteredRepairmen" :key="repairman.id">
-
-            <div class="card text-center shadow-sm clickable-card" style="padding:0; border-radius: 20px;"
+    <div class="row justify-content-center gx-4" style="padding:0; margin:0;">
+        <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-0" v-for="repairman in filteredRepairmen"
+            :key="repairman.id">
+            <div class="card text-center shadow-sm clickable-card" style="padding: 0; border-radius: 20px;"
                 @click="toggleSelection(repairman.id)" :class="{ selected: selectedRepairmen.includes(repairman.id) }">
-
                 <img :src="repairman.profilePic || defaultProfilePic" class="card-img-top" alt="Profile Picture"
                     height="200px" style="object-fit: cover; border-radius: 20px;">
-
                 <div class="checkbox-container">
                     <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
                         :checked="isSelected(repairman.id)" />
                 </div>
-
                 <div class="card-body text-start position-relative">
                     <div class="d-flex justify-content-between">
                         <h5 class="card-title mb-1 text-center pb-2" style="font-weight:bold;">
@@ -141,11 +138,9 @@ const clearSelections = () => {
                             5.0 (123)
                         </p>
                     </div>
-
                     <p class="card-description text-muted" style="font-size: 0.9rem;">
                         {{ truncateDescription(repairman.description) }}
                     </p>
-
                     <ul class="list-unstyled">
                         <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill">
                             {{ skill }}
@@ -154,6 +149,7 @@ const clearSelections = () => {
                 </div>
             </div>
         </div>
+
     </div>
 </template>
 
@@ -333,6 +329,7 @@ ul.list-unstyled {
 .card {
     /* Existing styles */
     width: auto;
+    height: 500px;
     /* Allow the card to fill the width */
 }
 
@@ -432,5 +429,34 @@ ul.list-unstyled {
 .clear-link:hover {
     color: #064830;
     /* Darker shade on hover for feedback */
+}
+
+@media (min-width: 992px) {
+
+    /* Adjust as necessary */
+    .row {
+        height: 80%;
+        /* This applies for larger screens */
+    }
+}
+
+/* For smaller screens */
+@media (max-width: 991px) {
+
+    /* Target smaller screens */
+    .row {
+        height: 90%;
+        /* Change to auto for smaller screens */
+    }
+}
+
+@media (max-width: 576px) {
+
+    /* Target very small screens (like phones) */
+    .row {
+        height: 99%;
+        /* Keep it auto */
+    }
+
 }
 </style>
