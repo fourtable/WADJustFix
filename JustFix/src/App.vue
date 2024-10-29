@@ -1,31 +1,37 @@
 <script setup>
 import newNavBar from './components/newNavBar.vue';
-import notification from './components/notification.vue';
+import toast from './components/toast.vue';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth, db } from './main'; // Your Firebase setup
+import { auth, db, realtimeDb } from './main'; // Your Firebase setup
 import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import { onMounted, ref } from 'vue';
-import store from './store/store'; // Make sure to import your Vuex store
+import { ref as dbRef, onValue } from 'firebase/database';
+
+// Function to set up notifications listener
+const notificationsList = ref([]);
 
 // Function to set up notifications listener
 const setupNotificationsListener = (uid) => {
-  const notificationsRef = collection(db, 'notifications');
-  const notificationsQuery = query(notificationsRef, where('receiverId', '==', uid));
+  const notificationsRef = dbRef(realtimeDb, `notifications/${uid}`);
 
-  onSnapshot(notificationsQuery, (snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-      if (change.type === 'added') {
-        const notificationData = change.doc.data();
-        console.log('New Notification:', notificationData); // Log the notification
-        store.dispatch('addNotification', {
+  onValue(notificationsRef, (snapshot) => {
+    const notifications = snapshot.val(); // Get all notifications
+    if (notifications) {
+      notificationsList.value = []; // Clear previous notifications
+      Object.entries(notifications).forEach(([id, notificationData]) => {
+        notificationsList.value.push({
+          id,
           message: notificationData.message,
-          timestamp: notificationData.timestamp
+          name: notificationData.senderName,
+          timestamp: notificationData.timestamp,
+          isVisible: true,
         });
-      }
-    });
+      });
+    }
   });
 };
+
 
 // Handle user authentication and notifications
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
@@ -37,11 +43,6 @@ onMounted(() => {
   if (uid) {
     fetchUserData(uid); // Fetch user data if logged in
   }
-  const testNotification = {
-    message: "Test notification!",
-    timestamp: new Date().toISOString(),
-  };
-  store.dispatch('addNotification', testNotification); // Test dispatch
 });
 
 // Function to fetch user data
@@ -74,7 +75,7 @@ const userData = ref({
   </div>
   <main class="content">
     <router-view />
-    <notification />
+    <toast />
   </main>
 </template>
 

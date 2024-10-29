@@ -57,10 +57,11 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
-import { db, auth } from "../main"; // Ensure your Firebase setup is correctly imported
+import { db, auth, realtimeDb } from "../main"; // Ensure your Firebase setup is correctly imported
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, collection, query, getDocs, where, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
+import { ref as dbRef, set, onValue, push } from 'firebase/database';
 
 const route = useRoute();
 const store = useStore();
@@ -278,16 +279,28 @@ const sendMessage = async () => {
             // loadChatHistory(contact.otherUserId, uid);
 
             // Create a notification for the receiver
-            store.dispatch('addNotification', {
-                message: `You have a new message from ${username}`,
-                timestamp: new Date(),
-            });
+            console.log(contactId.value);
 
+            const text = newMessage.value;
             newMessage.value = ''; // Clear the input after sending
+            await sendNotification(contactId.value, text);
+
         } catch (error) {
             console.error("Error sending message:", error);
         }
     }
+
+};
+
+// Create a notification for the receiver
+const sendNotification = async (receiverId, message, username) => {
+    const notificationRef = dbRef(realtimeDb, `notifications/${receiverId}`);
+    await push(notificationRef, {
+        senderName: username,
+        message: message,
+        timestamp: new Date().toISOString(),
+    });
+    console.log('Notification sent to:', receiverId);
 };
 
 </script>

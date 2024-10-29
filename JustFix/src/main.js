@@ -3,20 +3,23 @@ import router from './router';
 import './styles.scss';
 import App from './App.vue';
 import 'bootstrap'
-import 'bootstrap/dist/css/bootstrap.css'; // No need to import 'bootstrap' if you're only using CSS
-import { BootstrapVue3 } from 'bootstrap-vue-3';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-vue-3/dist/bootstrap-vue-3.css';
 
 // Firebase imports
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "firebase/firestore"; // Import Firestore
+import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 import store from './store/store';
+
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyDiBHdWrHj34O4hn0qP98qgThAAgDuL5JU",
     authDomain: "justfix-726f7.firebaseapp.com",
+    databaseURL: "https://justfix-726f7-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "justfix-726f7",
     storageBucket: "justfix-726f7.appspot.com",
     messagingSenderId: "297198741199",
@@ -31,6 +34,7 @@ const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const provider = new GoogleAuthProvider();
 const db = getFirestore(firebaseApp);
+const realtimeDb = getDatabase(firebaseApp);
 const storage = getStorage(firebaseApp);
 const messagesCollection = collection(db, 'messages')
 const messagesQuery = query(messagesCollection, orderBy('createdAt', 'desc'), limit(100));
@@ -152,6 +156,6 @@ export function useChat() {
 
 }
 
-createApp(App).use(store).use(BootstrapVue3).use(router).mount('#app');
+createApp(App).use(store).use(router).provide('realtimeDB', realtimeDb).mount('#app');
 // Export Firebase services
-export { firebaseApp, storage, auth, provider, db, signInWithPopup };
+export { firebaseApp, storage, auth, provider, db, signInWithPopup, realtimeDb };
