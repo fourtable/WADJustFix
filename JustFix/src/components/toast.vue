@@ -20,7 +20,7 @@
         </div>
         <div class="toast-body d-flex justify-content-between align-items-center">
           {{ notification.message }} <!-- Ensure message is displayed here -->
-          <small class="text-muted ms-auto">{{ notification.timestamp }}</small> <!-- Optionally display timestamp -->
+          <!-- <small class="text-muted ms-auto">{{ notification.timestamp }}</small> Optionally display timestamp -->
         </div>
       </div>
     </div>
@@ -32,10 +32,27 @@ import { ref, onMounted } from 'vue';
 import { ref as dbRef, onValue, push, remove } from 'firebase/database';
 import { realtimeDb } from '../main';
 import Cookies from 'js-cookie';
+import { useStore } from 'vuex';
+import { mapGetters } from 'vuex'; // Import mapGetters
 
 export default {
+  methods: {
+    showNotification(message, type) {
+      const notification = {
+        type: type,
+        message: message,
+        timestamp: new Date().toISOString(),
+        isVisible: true,
+      };
+      this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
+    },
+  },
+  computed: {
+    ...mapGetters(['notificationsList']), // Map the notifications list
+  },
   setup() {
-    const notificationsList = ref([]);
+    const store = useStore();
+    const notificationsList = ref(store.getters.notificationsList);
 
     const setupNotificationListener = (uid) => {
       const notificationsRef = dbRef(realtimeDb, `notifications/${uid}`);
@@ -52,13 +69,18 @@ export default {
               timestamp: formatTimestamp(notificationData.timestamp),
               isVisible: true,
             });
-            console.log(notificationData);
+            store.dispatch('addNotification', {
+              type: notificationData.type,
+              message: notificationData.message,
+              timestamp: notificationData.timestamp,
+              isVisible: true,
+            }); // Add to Vuex 
           });
         }
       });
     };
 
-    function formatTimestamp(timestamp) {
+    const formatTimestamp = (timestamp) => {
       const date = new Date(timestamp);
       let hours = date.getHours();
       const minutes = date.getMinutes().toString().padStart(2, '0'); // Ensure minutes are two digits
@@ -67,27 +89,20 @@ export default {
       hours = hours ? hours : 12; // The hour '0' should be '12'
 
       return `${hours}:${minutes} ${ampm}`; // Format as 'hh:mm AM/PM'
-    }
-
-    const sendNotification = async (receiverId, senderId) => {
-      const notificationRef = dbRef(realtimeDb, `notifications/${receiverId}`);
-      await push(notificationRef, {
-        message: `${senderId} sent you a message`,
-        timestamp: new Date().toISOString(),
-      });
     };
 
     const removeNotification = async (index) => {
-      const notificationId = notificationsList.value[index].id;
-      notificationsList.value.splice(index, 1); // Remove from the list
+      const notification = notificationsList.value[index]; // Get the notification to be removed
 
-      const notificationRef = dbRef(
-        realtimeDb,
-        `notifications/${Cookies.get('uid') || sessionStorage.getItem('uid')}/${notificationId}`
-      );
-      await remove(notificationRef)
-      // .then(() => console.log('Notification removed successfully.'))
-      // .catch((error) => console.error('Error removing notification:', error));
+      // Dispatch an action to remove the notification from Vuex
+      store.dispatch('removeNotification', notification.id); // Ensure you have a Vuex action to handle this
+
+      // Remove the notification from Firebase (if necessary)
+      const notificationRef = dbRef(realtimeDb, `notifications/${Cookies.get('uid') || sessionStorage.getItem('uid')}/${notification.id}`);
+      await remove(notificationRef); // Remove from Firebase
+
+      // Optionally, remove from local notifications list
+      notificationsList.value.splice(index, 1); // Remove the notification from the local list
     };
 
     onMounted(() => {
@@ -95,18 +110,10 @@ export default {
       if (uid) {
         setupNotificationListener(uid);
       }
-
-      // Test notification for debugging
-      // notificationsList.value.push({
-      //   id: 'test-notification',
-      //   message: 'This is a test notification',
-      //   isVisible: true, // Mark as visible
-      // });
     });
 
     return {
       notificationsList,
-      sendNotification,
       removeNotification,
     };
   },

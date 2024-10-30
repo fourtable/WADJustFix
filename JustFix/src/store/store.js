@@ -9,6 +9,7 @@ const store = createStore({
       userName: "",
       repairmen: [],
       currentProfileId: null, // Optional: track current profile ID
+      notificationsList: [],
     };
   },
   mutations: {
@@ -21,8 +22,23 @@ const store = createStore({
     setCurrentProfileId(state, id) {
       state.currentProfileId = id; // Store the currently viewed profile's id
     },
+    ADD_NOTIFICATION(state, notification) {
+      console.log('Current notifications:', state.notificationsList);
+      console.log('Adding notification:', notification);
+      state.notificationsList.push(notification);
+      console.log('Current notifications:', state.notificationsList);
+    },
+    REMOVE_NOTIFICATION(state, id) {
+      state.notificationsList = state.notificationsList.filter(
+        (notification) => notification.id !== id
+      );
+    },
   },
   actions: {
+    notificationsList: (state) => state.notificationsList,
+    addNotification({ commit }, notification) {
+      commit('ADD_NOTIFICATION', notification);
+    },
     updateUserName({ commit }, userName) {
       commit('setUserName', userName);
     },
@@ -57,6 +73,15 @@ const store = createStore({
     getCurrentProfileId(state) { // Optional: Get current profile id
       return state.currentProfileId;
     },
+    addNotification({ commit }, notification) {
+      commit('ADD_NOTIFICATION', notification);
+    },
+    removeNotification({ commit }, id) {
+      commit('REMOVE_NOTIFICATION', id);
+    },
+    notificationsList(state) {
+      return state.notificationsList;
+  }
   },
 });
 
