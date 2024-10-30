@@ -120,7 +120,7 @@ const store = createStore({
     },
     notificationsList(state) {
       return state.notificationsList;
-  },
+    },
     getUserQuotes(state) {
       return state.userQuotes; // Getter for user quotes
     },
