@@ -3,13 +3,25 @@
     <div v-for="(notification, index) in notificationsList" :key="notification.id" class="toast" role="alert"
       aria-live="assertive" aria-atomic="true" :class="{ show: notification.isVisible }"
       @transitionend="removeNotification(index)" style="margin-top: 10px;">
-      <div class="toast-header">
-        <strong class="me-auto">New Message from {{ notification.name }}</strong>
-        <button type="button" class="btn-close" @click="removeNotification(index)" aria-label="Close"></button>
+      <div v-if="notification.type == 'message'">
+        <div class="toast-header">
+          <strong class="me-auto">New Message from {{ notification.name }}</strong>
+          <button type="button" class="btn-close" @click="removeNotification(index)" aria-label="Close"></button>
+        </div>
+        <div class="toast-body d-flex justify-content-between align-items-center">
+          {{ notification.message }} <!-- Ensure message is displayed here -->
+          <small class="text-muted ms-auto">{{ notification.timestamp }}</small> <!-- Optionally display timestamp -->
+        </div>
       </div>
-      <div class="toast-body d-flex justify-content-between align-items-center">
-        {{ notification.message }} <!-- Ensure message is displayed here -->
-        <small class="text-muted ms-auto">{{ notification.timestamp }}</small> <!-- Optionally display timestamp -->
+      <div v-if="notification.type == 'alert'">
+        <div class="toast-header">
+          <strong class="me-auto">Alert</strong>
+          <button type="button" class="btn-close" @click="removeNotification(index)" aria-label="Close"></button>
+        </div>
+        <div class="toast-body d-flex justify-content-between align-items-center">
+          {{ notification.message }} <!-- Ensure message is displayed here -->
+          <small class="text-muted ms-auto">{{ notification.timestamp }}</small> <!-- Optionally display timestamp -->
+        </div>
       </div>
     </div>
   </div>
@@ -34,12 +46,13 @@ export default {
           Object.entries(notifications).forEach(([id, notificationData]) => {
             notificationsList.value.push({
               id,
+              type: notificationData.notificationType,
               name: notificationData.senderName,
               message: notificationData.message,
               timestamp: formatTimestamp(notificationData.timestamp),
               isVisible: true,
             });
-            // console.log('Notification added:', { id, notificationData }); // Log notification details
+            console.log(notificationData);
           });
         }
       });
