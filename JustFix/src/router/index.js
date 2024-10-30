@@ -9,6 +9,7 @@ import EditProfile from '../views/EditProfile.vue'; // Import EditProfile view
 import Chat from '../views/Chat.vue' //Import Chat view
 import { db, auth } from "../main"; // Import Firebase setup
 import MyQuotes from "../views/myQuotes.vue";
+import PointsDashboard from "../views/PointsDashboard.vue";
 
 
 const routes = [
@@ -57,8 +58,12 @@ const routes = [
         path: '/myQuotes',
         name: 'myQuotes',
         component: MyQuotes
-    }
-
+    },
+    {
+        path: '/points',
+        name: 'points',
+        component: PointsDashboard
+        },  
     
     
 ];
