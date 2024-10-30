@@ -30,16 +30,17 @@
                 </li>
             </ul>
             <div v-if="username && !mobile" class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
-                    data-bs-toggle="dropdown" aria-expanded="false">{{ username }}
-                    <img v-if="profileImage" :src="profileImage" alt="Profile" class="d-inline-block align-text-top"
-                        width="30" height="30" />
+                <button class="btn btn-secondary dropdown-toggle" type="button" @click="toggleDropdown">
+                    {{ username }}
+                    <img v-if="localProfileImage" :src="localProfileImage" alt="Profile"
+                        class="d-inline-block align-text-top" width="30" height="30" />
                     <img v-else :src="profilePic" alt="Profile" class="d-inline-block align-text-top" width="30"
                         height="30" />
                 </button>
-                <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="dropdownMenuButton">
-                    <li>
-                        <router-link class="dropdown-item" :to="{ name: 'profile' }">Profile</router-link>
+                <ul class="dropdown-menu" :class="{ show: dropdownVisible }" aria-labelledby="dropdownMenuButton">
+                    <li v-if="uid">
+                        <router-link class="dropdown-item"
+                            :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
                     </li>
                     <li>
                         <a class="dropdown-item btn" @click="logout">Logout</a>
@@ -59,10 +60,14 @@
                         <router-link class="link" :to="{ name: 'event' }">Event</router-link>
                     </li>
                     <li>
-                        <router-link class="link" :to="{ name: 'repair' }">Repairers</router-link>
+                        <router-link class="link" :to="{ name: 'repair' }">Fixer</router-link>
                     </li>
-                    <li>
-                        <router-link class="link" :to="{ name: 'profile' }">Profile</router-link>
+                    <li v-if="username">
+                        <router-link class="link" :to="{ name: 'chat' }">Chat</router-link>
+                    </li>
+                    <li v-if="uid">
+                        <router-link class="link"
+                            :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
                     </li>
                     <li>
                         <a class="link" @click="logout">Logout</a>
@@ -98,6 +103,7 @@ import defaultProfile from '../assets/person.svg'
 import { getAuth, signOut } from "firebase/auth";
 import { db } from '../main';
 import { doc, getDoc } from 'firebase/firestore';
+
 export default {
     props: {
         profileImage: {
@@ -107,38 +113,38 @@ export default {
     },
     data() {
         return {
-            username: '', // Add username data property
-            profilePic: defaultProfile, // Update with the actual default profile image path
-            profileImage: '', // Add profileImage data property
+            username: '', // Store username
+            profilePic: defaultProfile, // Default profile image
+            uid: '', // Store user ID
+            localProfileImage: '', // Profile image after fetching from database
             scrolledNav: null,
             mobile: null,
             mobileNav: null,
             windowWidth: null,
+            dropdownVisible: false,
         }
     },
     created() {
         this.fetchUserData();
         window.addEventListener('resize', this.checkScreen);
         this.checkScreen();
-        // Retrieve username from cookies and assign it to the username data property
-        this.username = Cookies.get('username') || sessionStorage.getItem('username'); // Assign cookie value or empty string if not found
+        // Retrieve username from cookies or sessionStorage
+        this.username = Cookies.get('username') || sessionStorage.getItem('username');
     },
     mounted() {
+        this.localProfileImage = this.profileImage; // Initialize localProfileImage
+        this.uid = Cookies.get('uid') || sessionStorage.getItem('uid'); // Fetch uid from cookies or sessionStorage
+        if (!this.uid) {
+            console.error("UID is not available");
+        }
         window.addEventListener("scroll", this.updateScroll);
 
-        // Listen for the 'profileUpdated' event
+        // Listen for 'profileUpdated' event
         window.addEventListener('profileUpdated', (event) => {
-            this.username = event.detail.username; // Update username in navbar
-            if (event.detail.profileImage) {
-                console.log('test');
-                this.profileImage = event.detail.profileImage; // Update profile image in navbar if available
-            } else {
-                console.log('test2');
-                this.profileImage = this.profilePic; // Fallback to default if no new image
-            }
+            this.username = event.detail.username;
+            this.localProfileImage = event.detail.profileImage || this.profilePic;
         });
-    }
-    ,
+    },
     methods: {
         async fetchUserData() {
             try {
@@ -146,52 +152,44 @@ export default {
                 if (uid) {
                     const userRef = await getDoc(doc(db, 'users', uid));
                     if (userRef.exists()) {
-                        // If imageUrl is available, set it; otherwise, keep the default image
-                        this.profileImage = userRef.data().imageUrl || this.profilePic;
+                        this.localProfileImage = userRef.data().imageUrl || this.profilePic;
                     }
+                } else {
+                    console.error("No UID available");
                 }
             } catch (error) {
                 console.error('Error fetching user document:', error);
-                this.profileImage = this.profilePic; // Fallback in case of an error
+                this.localProfileImage = this.profilePic; // Fallback in case of an error
             }
+        },
+        toggleDropdown() {
+            this.dropdownVisible = !this.dropdownVisible;
         },
         toggleMobileNav() {
             this.mobileNav = !this.mobileNav;
         },
         updateScroll() {
-            const scrollPosition = window.scrollY;
-            if (scrollPosition > 50) {
-                this.scrolledNav = true;
-                return
-            }
-            this.scrolledNav = false;
-            return;
+            this.scrolledNav = window.scrollY > 50;
         },
-
         checkScreen() {
             this.windowWidth = window.innerWidth;
             if (this.windowWidth <= 767) {
                 this.mobile = true;
-                return;
+            } else {
+                this.mobile = false;
+                this.mobileNav = false;
             }
-            this.mobile = false;
-            this.mobileNav = false;
-            return;
         },
-        // Define methods for interactivity, e.g., logout function
         logout() {
             const auth = getAuth();
-
             signOut(auth)
                 .then(() => {
-                    // Clear the cookies after signing out
-                    console.log('user signed out');
+                    // Clear cookies after signout
                     Cookies.remove('username');
                     Cookies.remove('uid');
                     sessionStorage.removeItem('username');
                     sessionStorage.removeItem('uid');
-
-                    // Redirect to login or homepage
+                    // Redirect to login page
                     window.location.href = '/login';
                 })
                 .catch((error) => {
@@ -201,6 +199,8 @@ export default {
     },
 }
 </script>
+
+
 <style lang="scss" scoped>
 header {
     background-color: #ffffff;

@@ -77,20 +77,33 @@ export default {
         };
     },
     methods: {
+
         async login() {
             this.errorMessage = ''; // Clear previous error messages
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password);
-                // console.log(userCredential);
                 await this.retrieveUsername(this.email);
-                if (this.rememberMe){
-                    Cookies.set('uid',userCredential.user.uid);
+                if (this.rememberMe) {
+                    Cookies.set('uid', userCredential.user.uid);
                 }
                 sessionStorage.setItem('uid', userCredential.user.uid);
-                window.location.href = '/'
+                window.location.href = '/';
             } catch (error) {
-                this.errorMessage = error.message || 'Invalid login credentials';
+                // this.errorMessage = error.message || 'Invalid login credentials';
+                // Call the method to show the toast notification
+                this.showNotification("Invalid Login Credentials", 'alert');
             }
+        },
+        showNotification(message, type) {
+            const notification = {
+                type: type,
+                message: message,
+                timestamp: new Date().toISOString(),
+                isVisible: true,
+            };
+            console.log('Dispatching notification:', notification);
+            this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
+
         },
         async forgotPassword() {
             if (!this.email) {
@@ -120,7 +133,7 @@ export default {
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const userName = data.name; // Adjust to your actual field name
-                    if (this.rememberMe){
+                    if (this.rememberMe) {
                         Cookies.set('username', userName, { expires: 7 }); // Set the username in a cookie
                         Cookies.set('profilePic', data.imageUrl, { expires: 7 })
                     }

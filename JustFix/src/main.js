@@ -2,21 +2,23 @@ import { createApp, onUnmounted, ref, computed } from 'vue';
 import router from './router';
 import './styles.scss';
 import App from './App.vue';
-import 'bootstrap'
-import 'bootstrap/dist/css/bootstrap.css'; // No need to import 'bootstrap' if you're only using CSS
-import { BootstrapVue3 } from 'bootstrap-vue-3';
+import 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-vue-3/dist/bootstrap-vue-3.css';
 
 // Firebase imports
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "firebase/firestore"; // Import Firestore
+import { getFirestore, collection, query, orderBy, limit, onSnapshot, getDocs, where, FieldValue } from "firebase/firestore";
+import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 import store from './store/store';
 
-// Your web app's Firebase configuration
+// Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyDiBHdWrHj34O4hn0qP98qgThAAgDuL5JU",
     authDomain: "justfix-726f7.firebaseapp.com",
+    databaseURL: "https://justfix-726f7-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "justfix-726f7",
     storageBucket: "justfix-726f7.appspot.com",
     messagingSenderId: "297198741199",
@@ -31,27 +33,30 @@ const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const provider = new GoogleAuthProvider();
 const db = getFirestore(firebaseApp);
+const realtimeDb = getDatabase(firebaseApp);
 const storage = getStorage(firebaseApp);
-const messagesCollection = collection(db, 'messages')
-const messagesQuery = query(messagesCollection, orderBy('createdAt', 'desc'), limit(100));
-// const filter = new filter();
 
 // Function to fetch repairers from Firestore
 async function fetchRepairmen() {
-    const q = query(collection(db, 'users'), where('userType', '==', 'repairer'));
-    const querySnapshot = await getDocs(q);
-    const repairmen = [];
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.businessLocation && data.businessLocation.lat && data.businessLocation.lng) {
-            repairmen.push({
-                name: data.name,
-                lat: data.businessLocation.lat,
-                lng: data.businessLocation.lng
-            });
-        }
-    });
-    return repairmen;
+    try {
+        const repairmenQuery = query(collection(db, 'users'), where('userType', '==', 'repairer'));
+        const querySnapshot = await getDocs(repairmenQuery);
+        const repairmen = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.businessLocation && data.businessLocation.lat && data.businessLocation.lng) {
+                repairmen.push({
+                    id: doc.id, // Ensure you store the document ID or uid here
+                    name: data.name,
+                    lat: data.businessLocation.lat,
+                    lng: data.businessLocation.lng
+                });
+            }
+        });
+        return repairmen;
+    } catch (error) {
+        console.error("Error fetching repairmen:", error);
+    }
 }
 
 // Google Maps initialization function
@@ -77,11 +82,16 @@ async function initMap() {
         img.style.height = '100px';
         customContent.appendChild(img);
 
-        new AdvancedMarkerElement({
+        const marker = new AdvancedMarkerElement({
             position: { lat: repairman.lat, lng: repairman.lng },
             map: map,
             title: repairman.name,
             content: customContent
+        });
+    
+        // Add click event to marker to navigate to the repairer's profile
+        google.maps.event.addDomListener(customContent, 'click', () => {
+            router.push({ name: 'viewProfile', params: { id: repairman.id } });
         });
     });
 }
@@ -111,47 +121,49 @@ window.initMap = initMap;
     v: "weekly",
 });
 
-// Check if User has log in
+// Authentication and User Management
 export function useAuth() {
-    const user = ref(null)
-    const unsubscribe = auth.onAuthStateChanged(_user => (user.value = _user))
-    onUnmounted(unsubscribe)
-    const isLogin = computed(() => user.value !== null)
+    const user = ref(null);
+    const unsubscribe = auth.onAuthStateChanged(_user => (user.value = _user));
+    onUnmounted(unsubscribe);
+    const isLogin = computed(() => user.value !== null);
   
     const signIn = async () => {
-      const googleProvider = new firebase.auth.GoogleAuthProvider()
-      await auth.signInWithPopup(googleProvider)
-    }
-    const signOut = () => auth.signOut()
-  
-    return { user, isLogin, signIn, signOut }
-  }
+        const googleProvider = new GoogleAuthProvider();
+        await auth.signInWithPopup(googleProvider);
+    };
 
-// Message Function
+    const signOut = () => auth.signOut();
+  
+    return { user, isLogin, signIn, signOut };
+}
+
+// Message Handling
 export function useChat() {
-    const messages = ref([])
+    const messages = ref([]);
     const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
         messages.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     });
-    onUnmounted(unsubscribe)
+    onUnmounted(unsubscribe);
 
-    const { user, isLogin } = useAuth()
+    const { user, isLogin } = useAuth();
     const sendMessage = text => {
-        if (!isLogin.value) return
-        const {photoURL, uid, displayName } = user.value;
+        if (!isLogin.value) return;
+        const { photoURL, uid, displayName } = user.value;
         messagesCollection.add({
             userName: displayName,
             userId: uid,
             userPhotoURL: photoURL,
             text: text,
-            createdAt: firebaseApp.db.FieldValue.serverTimeStamp(),
-        })
-    }
+            createdAt: FieldValue.serverTimestamp(),
+        });
+    };
 
-    return {messages, sendMessage}
-
+    return { messages, sendMessage };
 }
 
-createApp(App).use(store).use(BootstrapVue3).use(router).mount('#app');
+// Vue App Initialization
+createApp(App).use(store).use(router).provide('realtimeDB', realtimeDb).mount('#app');
+
 // Export Firebase services
-export { firebaseApp, storage, auth, provider, db, signInWithPopup };
+export { firebaseApp, storage, auth, provider, db, signInWithPopup, realtimeDb };

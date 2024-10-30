@@ -7,8 +7,9 @@ const store = createStore({
     return {
       userName: "",
       repairmen: [],
-      notifications: [], // Array to hold notifications
-      userQuotes: [] // Array to hold user's quotes
+      currentProfileId: null,
+      notificationsList: [], // Array to hold notifications
+      userQuotes: []
     };
   },
   mutations: {
@@ -18,33 +19,48 @@ const store = createStore({
     setRepairmen(state, repairmen) {
       state.repairmen = repairmen;
     },
+    setCurrentProfileId(state, id) {
+      state.currentProfileId = id; // Store the currently viewed profile's id
+    },
     setUserQuotes(state, quotes) {
       state.userQuotes = quotes; // Mutation to set user quotes
     },
     ADD_NOTIFICATION(state, notification) {
-      state.notifications.push(notification);
+      console.log('Current notifications:', state.notificationsList);
+      console.log('Adding notification:', notification);
+      state.notificationsList.push(notification);
+      console.log('Current notifications:', state.notificationsList);
     },
-    REMOVE_NOTIFICATION(state, index) {
-      state.notifications.splice(index, 1);
+    REMOVE_NOTIFICATION(state, id) {
+      state.notificationsList = state.notificationsList.filter(
+        (notification) => notification.id !== id
+      );
     },
   },
   actions: {
+    notificationsList: (state) => state.notificationsList,
+    addNotification({ commit }, notification) {
+      commit('ADD_NOTIFICATION', notification);
+    },
     updateUserName({ commit }, userName) {
       commit('setUserName', userName);
     },
     async fetchRepairmen({ commit }) {
-      const repairmenQuery = query(collection(db, "users"), where("userType", "==", "repairer"));
-      const querySnapshot = await getDocs(repairmenQuery);
-      let repairmen = [];
-      querySnapshot.forEach((doc) => {
-        repairmen.push({
-          id: doc.id,
-          ...doc.data(),
+      try {
+        const repairmenQuery = query(collection(db, "users"), where("userType", "==", "repairer"));
+        const querySnapshot = await getDocs(repairmenQuery);
+        let repairmen = [];
+        querySnapshot.forEach((doc) => {
+          repairmen.push({
+            id: doc.id,
+            ...doc.data(),
+          });
         });
-      });
-      console.log('Fetched Repairmen:', repairmen); // Log fetched data
-
-      commit("setRepairmen", repairmen);
+        console.log('Fetched Repairmen:', repairmen); // Log fetched data
+        commit("setRepairmen", repairmen);
+      } catch (error) {
+        console.error("Error fetching repairmen:", error); // Error handling
+      }
     },
     async fetchUserQuotes({ commit }, uid) { // Add this action
       try {
@@ -57,10 +73,13 @@ const store = createStore({
         console.error("Error fetching user quotes:", error);
       }
     },
+    updateCurrentProfileId({ commit }, id) {
+      commit('setCurrentProfileId', id);
+    },
     addNotification({ commit }, notification) {
       console.log("Adding notification:", notification); // Log added notification
       commit('ADD_NOTIFICATION', notification);
-    },
+  },
     removeNotification({ commit }, index) {
       console.log("Remove notification:");
       commit('REMOVE_NOTIFICATION', index);
@@ -90,11 +109,20 @@ const store = createStore({
     getRepairmen(state) {
       return state.repairmen;
     },
+    getCurrentProfileId(state) { // Optional: Get current profile id
+      return state.currentProfileId;
+    },
+    addNotification({ commit }, notification) {
+      commit('ADD_NOTIFICATION', notification);
+    },
+    removeNotification({ commit }, id) {
+      commit('REMOVE_NOTIFICATION', id);
+    },
+    notificationsList(state) {
+      return state.notificationsList;
+  },
     getUserQuotes(state) {
       return state.userQuotes; // Getter for user quotes
-    },
-    getNotifications(state) {
-      return state.notifications;
     },
   },
 });

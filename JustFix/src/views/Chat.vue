@@ -26,7 +26,7 @@
                         <strong>{{ contactName }}</strong>
                     </div>
 
-                    <div class="chat-messages">
+                    <div class="chat-messages" ref="messagesContainer">
                         <div v-if="chatHistory.length === 0" class="text-center mt-3">
                             <em>No messages yet. Start the conversation!</em>
                         </div>
@@ -44,7 +44,7 @@
                 </div>
             </div>
             <div class="input-group">
-                <input v-model="newMessage" type="text" class="form-control" placeholder="Enter text here..." />
+                <input v-model="newMessage" type="text" class="form-control" placeholder="Click here to type" @keyup.enter="sendMessage"/>
                 <button @click="sendMessage" class="btn btn-success">
                     <i class="fa fa-paper-plane"></i>
                 </button>
@@ -54,13 +54,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
-import { db, auth } from "../main"; // Ensure your Firebase setup is correctly imported
+import { db, auth, realtimeDb } from "../main"; // Ensure your Firebase setup is correctly imported
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, collection, query, getDocs, where, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
+import { ref as dbRef, set, onValue, push } from 'firebase/database';
 
 const route = useRoute();
 const store = useStore();
@@ -70,6 +71,7 @@ const chatHistory = ref([]);
 const newMessage = ref('');
 const selectedContact = ref(null);
 const isRepairerStatus = ref(false); // New reactive variable to store isRepairer result
+const messagesContainer = ref(null);
 
 // Populating receiver details from route
 const contactId = ref(route.query.repairerId); // Make it reactive
@@ -278,16 +280,41 @@ const sendMessage = async () => {
             // loadChatHistory(contact.otherUserId, uid);
 
             // Create a notification for the receiver
-            store.dispatch('addNotification', {
-                message: `You have a new message from ${username}`,
-                timestamp: new Date(),
-            });
+            console.log(contactId.value);
 
+            const text = newMessage.value;
             newMessage.value = ''; // Clear the input after sending
+            await sendNotification(contactId.value, text, username);
+
         } catch (error) {
             console.error("Error sending message:", error);
         }
     }
+
+};
+
+const scrollToBottom = () => {
+    if (messagesContainer.value) {
+        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+    }
+};
+
+// Watch for changes in chatHistory to scroll down on new messages
+watch(chatHistory, async () => {
+    await nextTick(); // Ensure DOM updates before scrolling
+    scrollToBottom();
+});
+
+// Create a notification for the receiver
+const sendNotification = async (receiverId, message, name) => {
+    const notificationRef = dbRef(realtimeDb, `notifications/${receiverId}`);
+    await push(notificationRef, {
+        notificationType: 'message',
+        senderName: name,
+        message: message,
+        timestamp: new Date().toISOString(),
+    });
+    console.log('Notification sent to:', receiverId);
 };
 
 </script>
