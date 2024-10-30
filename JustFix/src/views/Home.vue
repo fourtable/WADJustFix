@@ -8,8 +8,8 @@
         <div class="col-lg-6 col-md-6 col-sm-12 my-3">
           <div class="hero-box light-blue">
             <h1>Need Something Fixed?</h1>
-            <p>Chat with a repairer and get a quick quote for your repair!</p>
-            <a :href="repairLink" class="button">Browse Trusted Repairers &rarr;</a>
+            <p>Send your request now to your favorite repairer and watch the magic happen! </p>
+            <a :href="repairLink" class="button">Create Request &rarr;</a>
           </div>
         </div>
         <!-- Second and Third Hero Boxes -->
