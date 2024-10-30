@@ -1,14 +1,13 @@
-import { createRouter, createWebHistory} from "vue-router";
-import Home from '../views/Home.vue'
+import { createRouter, createWebHistory } from "vue-router";
+import Home from '../views/Home.vue';
 import Event from '../views/Event.vue'; // Import Event view
 import Repair from '../views/Repair.vue'; // Import Repair view
 import Login from '../views/Login.vue'; // Import Login view
 import Register from '../views/Register.vue'; // Import Register view
-import ViewProfile from '../views/ViewProfile.vue';
+import ViewProfile from '../views/ViewProfile.vue'; // Import ViewProfile view
 import EditProfile from '../views/EditProfile.vue'; // Import EditProfile view
-import Chat from '../views/Chat.vue' //Import Chat view
-import { db, auth } from "../main"; // Import Firebase setup
-
+import Chat from '../views/Chat.vue'; // Import Chat view
+import { auth } from "../main"; // Import Firebase authentication setup
 
 const routes = [
     {
@@ -37,10 +36,10 @@ const routes = [
         component: Register
     },
     {
-        path: '/profile/', // Dynamic route for profile with user ID
-        name: 'profile', // Use 'profile' as the name (dynamic route name)
+        path: '/profile/:id', // Dynamic route for profile with user ID
+        name: 'viewProfile', // Name of the route
         component: ViewProfile,
-        props: true // Pass the route param as a prop to the component
+        props: route => ({ id: route.params.id }) // Pass the route param as a prop
     },
     {
         path: '/editProfile',
@@ -51,10 +50,7 @@ const routes = [
         path: '/chat',
         name: 'chat',
         component: Chat
-    },
-
-    
-    
+    }
 ];
 
 const router = createRouter({
@@ -62,11 +58,12 @@ const router = createRouter({
     routes
 });
 
+// Route guard to protect profile editing and other authenticated routes
 router.beforeEach((to, from, next) => {
     const isAuthenticated = !!auth.currentUser; // Check if the user is logged in
 
+    // Redirect to login page if trying to access editProfile without authentication
     if (to.name === 'editProfile' && !isAuthenticated) {
-        // Redirect to login page if the user is not authenticated
         next({ name: 'login' });
     } else {
         next(); // Allow route navigation if authenticated or no guard is needed

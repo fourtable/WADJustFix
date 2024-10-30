@@ -119,17 +119,17 @@ export const placeRepairmenOnMap = (repairmen) => {
 
     // Add an event listener for the button in the info window to navigate to the profile
     google.maps.event.addListener(infoWindow, 'domready', () => {
-      const button = document.getElementById(`viewProfileBtn-${repairman.id}`);
+      const button = document.getElementById(`viewProfileBtn-${repairman.id}`); // Use id instead of uid
       if (button) {
         button.addEventListener('click', () => {
-          console.log('Navigating to profile:', repairman.id); // Debug log
+          console.log('Navigating to profile:', repairman.id); // Use id instead of uid
           // Navigate to the repairer's profile by passing the repairman's ID
-          router.push({ name: 'viewProfile', params: { id: repairman.id } });
+          router.push({ name: 'viewProfile', params: { id: repairman.id } }); // Use id instead of uid
         });
       } else {
         console.error(`Button for View Profile not found for repairman ID ${repairman.id}`);
       }
-    });
+    });    
 
     // Check if the marker is within the search circle and set its map accordingly
     if (searchCircle && google.maps.geometry.spherical.computeDistanceBetween(searchCircle.getCenter(), marker.getPosition()) <= searchCircle.getRadius()) {

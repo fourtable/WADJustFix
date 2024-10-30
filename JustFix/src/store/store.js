@@ -8,6 +8,7 @@ const store = createStore({
     return {
       userName: "",
       repairmen: [],
+      currentProfileId: null, // Optional: track current profile ID
     };
   },
   mutations: {
@@ -17,24 +18,33 @@ const store = createStore({
     setRepairmen(state, repairmen) {
       state.repairmen = repairmen;
     },
+    setCurrentProfileId(state, id) {
+      state.currentProfileId = id; // Store the currently viewed profile's id
+    },
   },
   actions: {
     updateUserName({ commit }, userName) {
       commit('setUserName', userName);
     },
     async fetchRepairmen({ commit }) {
-      const repairmenQuery = query(collection(db, "users"), where("userType", "==", "repairer"));
-      const querySnapshot = await getDocs(repairmenQuery);
-      let repairmen = [];
-      querySnapshot.forEach((doc) => {
-        repairmen.push({
-          id: doc.id,
-          ...doc.data(),
+      try {
+        const repairmenQuery = query(collection(db, "users"), where("userType", "==", "repairer"));
+        const querySnapshot = await getDocs(repairmenQuery);
+        let repairmen = [];
+        querySnapshot.forEach((doc) => {
+          repairmen.push({
+            id: doc.id,
+            ...doc.data(),
+          });
         });
-      });
-      console.log('Fetched Repairmen:', repairmen); // Log fetched data
-
-      commit("setRepairmen", repairmen);
+        console.log('Fetched Repairmen:', repairmen); // Log fetched data
+        commit("setRepairmen", repairmen);
+      } catch (error) {
+        console.error("Error fetching repairmen:", error); // Error handling
+      }
+    },
+    updateCurrentProfileId({ commit }, id) {
+      commit('setCurrentProfileId', id); // Action to update profile id
     },
   },
   getters: {
@@ -43,6 +53,9 @@ const store = createStore({
     },
     getRepairmen(state) {
       return state.repairmen;
+    },
+    getCurrentProfileId(state) { // Optional: Get current profile id
+      return state.currentProfileId;
     },
   },
 });
