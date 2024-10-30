@@ -8,7 +8,7 @@
 
             <!-- Right Section with the register form -->
             <div class="col-lg-6 col-md-6 register-section">
-                <div class="form-card" style="width: 100%; max-width: 400px;">
+                <div style="width: 100%; max-width: 400px;">
                     <!-- Show options to choose registration type -->
                     <div v-if="!selectedType">
                         <h2>Choose a Registration Type</h2>
@@ -21,7 +21,7 @@
                     </div>
 
                     <!-- Dynamic form content -->
-                    <div class="form-card" v-if="selectedType">
+                    <div  v-if="selectedType">
                         <h4 v-if="selectedType === 'repairer'">Register as a Repairer</h4>
                         <h4 v-if="selectedType === 'user'">Register as a User</h4>
 
@@ -33,17 +33,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="email">Email</label>
-                                <input type="text" id="email" v-model="formData.email" placeholder="Enter your Email" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="experience">Years of Experience</label>
-                                <select id="experience" v-model="formData.experience" class="form-control">
-                                    <option value="" disabled>Select</option>
-                                    <option value="0">Less than 1 year</option>
-                                    <option value="1">1-3 years</option>
-                                    <option value="2">3-5 years</option>
-                                    <option value="4">More than 5 years</option>
-                                </select>
+                                <input type="email" id="email" v-model="formData.email" placeholder="Enter your Email" class="form-control" required>
                             </div>
                             <div class="mb-3">
                                 <label>Area of Expertise</label>
@@ -119,7 +109,7 @@ export default {
                 email: '',
                 password: '',
                 cfmPassword: '',
-                experience: '',
+                registrationDate: new Date().toISOString(),
                 expertise: [],
                 otherChecked: false,
                 otherExpertise: '',
@@ -130,12 +120,14 @@ export default {
                 }
             },
             expertiseList: [
-                "Home Appliances (e.g, Microwaves, Ovens, etc.)",
-                "Devices (e.g, Phones, Computers, etc.)",
-                "Networking Devices (e.g, Routers, Modems, etc.)",
-                "Photography Equipment (e.g, Cameras, Drones, etc.)",
-                "Audio/Visual Equipment (e.g, Speakers, Projectors, etc.)",
-                "Printers and Scanners (e.g, Inkjet, Printer, etc.)"
+                "Home Appliances (e.g Microwaves, Washing Machines, etc.)",
+                "Electrical Systems and Fixtures (e.g Lighting, Wiring, etc.)",
+                "Electronics Repair (e.g Devices, TVs, etc.)",
+                "Plumbing (e.g Toilets, Heaters, etc.)",
+                "Air Conditioners (e.g Repairing, Maintaining, etc.)",
+                "Furnitures (e.g Shelves, Tables, etc.)",
+                "Windows and Doors (e.g Locks, Window Frames, etc.)",
+                "Automative Repairs (e.g Tires, Brakes, etc.)"
             ]
         };
     },
@@ -197,8 +189,12 @@ export default {
                 const userCredential = await createUserWithEmailAndPassword(auth, this.formData.email, this.formData.password);
                 const user = userCredential.user;
 
-                // Prepare selected expertise data
-                const selectedExpertise = [...this.formData.expertise];
+                // Prepare selected expertise data and remove text within parentheses
+                let selectedExpertise = this.formData.expertise.map(expertise => {
+                    return expertise.replace(/\s*\(.*?\)/, '').trim(); // Removes text in parentheses
+                });
+
+                // Add the "other" expertise if specified
                 if (this.formData.otherChecked && this.formData.otherExpertise) {
                     selectedExpertise.push(this.formData.otherExpertise);
                 }
@@ -209,7 +205,6 @@ export default {
                     name: this.formData.name,
                     email: this.formData.email,
                     userType: 'repairer',
-                    experience: this.formData.experience,
                     expertise: selectedExpertise,
                     businessLocation: this.formData.businessLocation,
                     createdAt: new Date(),
@@ -301,19 +296,21 @@ export default {
 .choice-card {
     margin: 10px 0;
     padding: 10px;
-    border: 1px solid #007bff;
     border-radius: 5px;
     text-align: center;
     cursor: pointer;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
 }
 
 .choice-card:hover {
-    background-color: #007bff;
-    color: #fff;
+    transform: scale(1.05);
 }
-
+.form-control{
+    border-radius: 20px;
+    padding: 10px;
+}
 .btn {
-    background-color: #007bff;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -321,7 +318,4 @@ export default {
     cursor: pointer;
 }
 
-.btn:hover {
-    background-color: #0056b3;
-}
 </style>
