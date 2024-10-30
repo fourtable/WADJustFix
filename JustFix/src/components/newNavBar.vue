@@ -13,7 +13,7 @@
                     <router-link class="link" :to="{ name: 'event' }">Event</router-link>
                 </li>
                 <li>
-                    <router-link class="link" :to="{ name: 'repair' }">Repairers</router-link>
+                    <router-link class="link" :to="{ name: 'repair' }">Fixers</router-link>
                 </li>
                 <li v-if="username">
                     <router-link class="link" :to="{ name: 'chat' }">Chat</router-link>
@@ -46,6 +46,10 @@
                         <a class="dropdown-item btn" @click="logout">Logout</a>
                     </li>
                 </ul>
+            </div>
+            <div class="fixer-container animate__animated animate__fadeIn animate__delay-1s">
+                <i class="fas fa-wrench fixer-icon"></i> <!-- Wrench icon -->
+                <div class="fixer-text">Fixer</div>
             </div>
             <div class="icon">
                 <i @click="toggleMobileNav" v-show="mobile" class="fa fa-bars"
@@ -219,7 +223,7 @@ header {
         transition: .5s ease all;
         width: 100%;
         margin: 0 auto;
-
+        align-items: center;
 
 
         ul,
@@ -260,6 +264,13 @@ header {
             align-items: end;
             flex: 0;
             justify-content: end;
+        }
+
+        .fixer-container {
+            display: flex; // Ensure it's displayed as flex
+            align-items: center; // Center items vertically
+            margin-left: 10px; // Add a small margin to space it from the dropdown
+            // Adjust any other styles as needed
         }
 
         .auth-buttons {
@@ -318,6 +329,18 @@ header {
 
         .icon-active {
             transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            min-width: 0;
+            /* Allow the dropdown to shrink */
+            width: auto;
+            /* Let the dropdown adjust its width based on the content */
+        }
+
+        .dropdown {
+            display: inline-block;
+            /* Ensure the dropdown aligns properly */
         }
 
         .dropdown-nav {
