@@ -47,9 +47,14 @@
                     </li>
                 </ul>
             </div>
-            <div class="fixer-container animate__animated animate__fadeIn animate__delay-1s">
-                <i class="fas fa-wrench fixer-icon"></i> <!-- Wrench icon -->
+            <div v-if="type == 'repairer' && !mobile"
+                class="fixer-container animate__animated animate__fadeIn animate__delay-1s">
                 <div class="fixer-text">Fixer</div>
+                <i class="fas fa-wrench fixer-icon"></i>
+            </div>
+            <div v-if="type == 'user' && !mobile" class="customer-icon-container">
+                <p class="customer-text animate__animated animate__fadeInUp">Customer</p>
+                <i class="fa fa-user customer-icon animate__animated animate__bounce"></i>
             </div>
             <div class="icon">
                 <i @click="toggleMobileNav" v-show="mobile" class="fa fa-bars"
@@ -120,6 +125,7 @@ export default {
             username: '', // Store username
             profilePic: defaultProfile, // Default profile image
             uid: '', // Store user ID
+            type: '',
             localProfileImage: '', // Profile image after fetching from database
             scrolledNav: null,
             mobile: null,
@@ -157,6 +163,7 @@ export default {
                     const userRef = await getDoc(doc(db, 'users', uid));
                     if (userRef.exists()) {
                         this.localProfileImage = userRef.data().imageUrl || this.profilePic;
+                        this.type = userRef.data().userType;
                     }
                 } else {
                     console.error("No UID available");
@@ -264,13 +271,118 @@ header {
             align-items: end;
             flex: 0;
             justify-content: end;
+            padding-left: 1px;
         }
 
         .fixer-container {
             display: flex; // Ensure it's displayed as flex
             align-items: center; // Center items vertically
-            margin-left: 10px; // Add a small margin to space it from the dropdown
+            margin-left: 1%; // Add a small margin to space it from the dropdown
+            margin-right: 1%;
             // Adjust any other styles as needed
+        }
+
+        .fixer-icon {
+            font-size: 4rem;
+            /* Adjust icon size */
+            color: #085C44;
+            /* Bootstrap primary color */
+            margin-right: 10px;
+            /* Spacing between icon and text */
+            transition: transform 0.3s ease;
+            /* Smooth transition for icon hover */
+        }
+
+        .fixer-text {
+            font-size: 3rem;
+            color: #cdf696;
+            /* Bootstrap primary color */
+            transition: transform 0.3s ease, color 0.3s ease;
+            /* Smooth transition for text hover */
+        }
+
+        .fixer-container:hover .fixer-icon {
+            transform: rotate(15deg);
+            /* Rotate icon on hover */
+        }
+
+        .fixer-container:hover .fixer-text {
+            transform: scale(1.1);
+            /* Scale up text on hover */
+            color: #085C44;
+            /* Darker shade on hover */
+            animation: shake 0.5s;
+            /* Shake effect on hover */
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            50% {
+                transform: translateX(5px);
+            }
+
+            75% {
+                transform: translateX(-5px);
+            }
+        }
+
+        .customer-icon-container {
+            display: flex;
+            align-items: center;
+            margin: 0 3% 0 1%;
+            /* Adjust the gap between icon and text */
+            cursor: pointer;
+            /* Make it look clickable */
+            transition: transform 0.3s ease;
+            /* Smooth transition for hover effect */
+        }
+
+        .customer-icon {
+            font-size: 24px;
+            /* Adjust size as needed */
+            color: #2f855a;
+            /* Customize color */
+            transition: color 0.3s ease, transform 0.3s ease;
+            /* Smooth transition for color and scale on hover */
+        }
+
+        .customer-text {
+            font-size: 18px;
+            /* Customize as desired */
+            font-weight: bold;
+            color: #2f855a;
+            margin: 0;
+            transition: color 0.3s ease, transform 0.3s ease;
+            /* Smooth transition for color and scale on hover */
+        }
+
+        /* Infinite pulse animation on icon */
+        .animate__pulse.animate__infinite {
+            animation-iteration-count: infinite;
+        }
+
+        /* Hover effects */
+        .customer-icon-container:hover .customer-icon {
+            color: #38a169;
+            /* Change color on hover */
+            transform: scale(1.2);
+            /* Slightly enlarge the icon */
+        }
+
+        .customer-icon-container:hover .customer-text {
+            color: #38a169;
+            /* Change color on hover */
+            transform: scale(1.1);
+            /* Slightly enlarge the text */
         }
 
         .auth-buttons {
@@ -334,13 +446,28 @@ header {
         .dropdown-menu {
             min-width: 0;
             /* Allow the dropdown to shrink */
-            width: auto;
+            width: 100%;
             /* Let the dropdown adjust its width based on the content */
+        }
+
+        .dropdown-toggle {
+            display: flex;
+            /* Use flexbox for layout */
+            justify-content:space-evenly;
+            /* Space items evenly */
+            align-items: center;
+            /* Center items vertically */
+            width: 100%;
+            /* Ensure the button takes full width */
+            padding: 0.5rem 1rem;
+            /* Add padding for better appearance */
         }
 
         .dropdown {
             display: inline-block;
             /* Ensure the dropdown aligns properly */
+            margin: 0;
+            width: 10%;
         }
 
         .dropdown-nav {
