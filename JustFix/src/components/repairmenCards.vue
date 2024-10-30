@@ -41,8 +41,19 @@ const truncateDescription = (description, maxLength = 100) => {
 };
 
 const requestQuote = () => {
+    if (selectedRepairmen.value.length === 0) {
+        console.log("No repairmen selected. Please select at least one repairman to request a quote.");
+        return; // Prevent navigation if no repairmen are selected
+    }
+
     console.log("Requesting quote for:", selectedRepairmen.value);
+
+    router.push({
+        name: 'myQuotes',
+        state: { selectedRepairmen: selectedRepairmen.value }
+    });
 };
+
 
 // Helper method to check if a repairman is selected
 const isSelected = (repairmanId) => selectedRepairmen.value.includes(repairmanId);
@@ -99,7 +110,7 @@ const clearSelections = () => {
         <p class="section-title">Browse Our Most Trusted Handymen</p>
 
         <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
-            <button @click="requestQuote" class="hero-button">Request a Quote</button>
+            <button @click="requestQuote" :disabled="selectedRepairmen.length === 0" class="hero-button">Request a Quote</button>
             <span @click="clearSelected" class="clear-link"
                 style="text-decoration: underline; cursor: pointer; margin-top: 8px; padding-right: 14px;">
                 Clear Selected Repairmen
