@@ -57,14 +57,17 @@
 
     <!-- Conditional Tabs Rendering -->
     <div class="tabs">
-      <button class="tab-button" :class="{ active: activeTab === 'reviews' }" @click="switchTab('reviews')">Reviews</button>
-      <button v-if="userData.userType === 'repairer'" class="tab-button" :class="{ active: activeTab === 'upcoming-events' }" @click="switchTab('upcoming-events')">
-        Upcoming Events
-      </button>
-      <button v-if="userData.userType === 'repairer'" class="tab-button" :class="{ active: activeTab === 'past-events' }" @click="switchTab('past-events')">
-        Past Events
-      </button>
-    </div>
+  <button class="tab-button" :class="{ active: activeTab === 'reviews' }" @click="switchTab('reviews')">Reviews</button>
+  
+  <!-- Show Upcoming Events only if it's the logged-in user's profile -->
+  <button v-if="userData.userType === 'repairer' && isOwnProfile" class="tab-button" :class="{ active: activeTab === 'upcoming-events' }" @click="switchTab('upcoming-events')">
+    Upcoming Events
+  </button>
+  
+  <button class="tab-button" :class="{ active: activeTab === 'past-events' }" @click="switchTab('past-events')">
+    Past Events
+  </button>
+</div>
 
     <div class="tab-content">
       <!-- Reviews Tab: Show for All Users -->
@@ -77,7 +80,8 @@
       </div>
 
       <!-- Upcoming Events Tab: Show only for Repairers -->
-      <div id="upcoming-events" class="tab" v-if="userData.userType === 'repairer'" v-show="activeTab === 'upcoming-events'">
+      <!-- Upcoming Events Tab: Show only for the profile owner (repairers) -->
+      <div id="upcoming-events" class="tab" v-if="userData.userType === 'repairer' && isOwnProfile" v-show="activeTab === 'upcoming-events'">
         <h3>Upcoming Repair Events</h3>
         <div v-for="event in upcomingEvents" :key="event.id" class="event">
           <h4>{{ event.title }}</h4>
@@ -296,5 +300,13 @@ export default {
   .review h4 {
     font-weight: bold;
   }
+
+  .profile-details p {
+  margin-top: 20px; /* Adds spacing between the expertise section and the "Joined" text */
+}
+
+.skill-level, .profile-description {
+  margin-bottom: 15px; /* Adds space between elements before "Joined" */
+}
   </style>
   
