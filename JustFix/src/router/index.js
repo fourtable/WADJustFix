@@ -6,8 +6,10 @@ import Login from '../views/Login.vue'; // Import Login view
 import Register from '../views/Register.vue'; // Import Register view
 import ViewProfile from '../views/ViewProfile.vue'; // Import ViewProfile view
 import EditProfile from '../views/EditProfile.vue'; // Import EditProfile view
-import Chat from '../views/Chat.vue'; // Import Chat view
-import { auth } from "../main"; // Import Firebase authentication setup
+import Chat from '../views/Chat.vue' //Import Chat view
+import { db, auth } from "../main"; // Import Firebase setup
+import MyQuotes from "../views/myQuotes.vue";
+
 
 const routes = [
     {
@@ -50,7 +52,15 @@ const routes = [
         path: '/chat',
         name: 'chat',
         component: Chat
+    },
+    {
+        path: '/myQuotes',
+        name: 'myQuotes',
+        component: MyQuotes
     }
+
+    
+    
 ];
 
 const router = createRouter({

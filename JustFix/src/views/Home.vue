@@ -58,7 +58,6 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { initializeMap, fetchRepairers, placeRepairmenOnMap, updateSearchCircle as updateMapSearchCircle } from '../plugins/googleMaps';
 import store from "../store/store.js";
-// import NavBar from "../components/newNavBar";
 import RepairmenCards from "../components/repairmenCards.vue";
 
 // Reactive properties
