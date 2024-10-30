@@ -7,6 +7,7 @@ import Register from '../views/Register.vue'; // Import Register view
 import Profile from '../views/ViewProfile.vue'; // Import Profile view
 import EditProfile from '../views/EditProfile.vue'; // Import EditProfile view
 import Chat from '../views/Chat.vue' //Import Chat view
+import PointsDashboard from "../views/PointsDashboard.vue";
 
 const routes = [
     {
@@ -49,6 +50,11 @@ const routes = [
         name: 'chat',
         component: Chat
     },
+    {
+        path: '/points',
+        name: 'points',
+        component: PointsDashboard
+      },  
     
 ];
 
