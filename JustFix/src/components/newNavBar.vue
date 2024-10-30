@@ -60,7 +60,10 @@
                         <router-link class="link" :to="{ name: 'event' }">Event</router-link>
                     </li>
                     <li>
-                        <router-link class="link" :to="{ name: 'repair' }">Repairers</router-link>
+                        <router-link class="link" :to="{ name: 'repair' }">Fixer</router-link>
+                    </li>
+                    <li v-if="username">
+                        <router-link class="link" :to="{ name: 'chat' }">Chat</router-link>
                     </li>
                     <li v-if="uid">
                         <router-link class="link"
