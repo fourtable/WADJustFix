@@ -1,4 +1,3 @@
-// store.js
 import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js";
 import { db } from '../plugins/firebaseManager'; // Import db from firebaseManager
 import { createStore } from 'vuex';
@@ -9,6 +8,7 @@ const store = createStore({
       userName: "",
       repairmen: [],
       notifications: [], // Array to hold notifications
+      userQuotes: [] // Array to hold user's quotes
     };
   },
   mutations: {
@@ -17,6 +17,9 @@ const store = createStore({
     },
     setRepairmen(state, repairmen) {
       state.repairmen = repairmen;
+    },
+    setUserQuotes(state, quotes) {
+      state.userQuotes = quotes; // Mutation to set user quotes
     },
     ADD_NOTIFICATION(state, notification) {
       state.notifications.push(notification);
@@ -43,10 +46,21 @@ const store = createStore({
 
       commit("setRepairmen", repairmen);
     },
+    async fetchUserQuotes({ commit }, uid) { // Add this action
+      try {
+        const quotesQuery = query(collection(db, 'quotes'), where('uid', '==', uid)); // Query for user's quotes
+        const querySnapshot = await getDocs(quotesQuery);
+        const quotes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        commit('setUserQuotes', quotes); // Commit user quotes to state
+      } catch (error) {
+        console.error("Error fetching user quotes:", error);
+      }
+    },
     addNotification({ commit }, notification) {
       console.log("Adding notification:", notification); // Log added notification
       commit('ADD_NOTIFICATION', notification);
-  },
+    },
     removeNotification({ commit }, index) {
       console.log("Remove notification:");
       commit('REMOVE_NOTIFICATION', index);
@@ -75,6 +89,9 @@ const store = createStore({
     },
     getRepairmen(state) {
       return state.repairmen;
+    },
+    getUserQuotes(state) {
+      return state.userQuotes; // Getter for user quotes
     },
     getNotifications(state) {
       return state.notifications;
