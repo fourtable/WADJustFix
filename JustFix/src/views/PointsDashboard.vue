@@ -29,33 +29,17 @@ import { auth, db } from '../main';
 import { collection, query, getDocs, doc, where, getDoc, orderBy } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import LineChart from "../components/linechart.vue";
-import  NavBar from "../components/newNavbar.vue";
 
 
 export default {
-  components: { LineChart },
   setup() {
-    // const totalPoints = ref(0);
-    // const pointsData = ref([]);
-    // const username = ref("");
-    // const logo = "../assets/images/newlogo.png";
-    // const person = "../assets/images/person.svg";
-    // const chartLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"];
+
     const totalPoints = ref(0);
     const pointsData = ref(Array(12).fill(0)); // Initialize with 12 months of 0 points
     const username = ref("");
     const logo = "../assets/images/newlogo.png";
     const person = "../assets/images/person.svg";
     const chartLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-    // const links = {
-    //   Home: "/",
-    //   Events: "/events",
-    //   Repair: "/repair",
-    //   Login: "/login",
-    //   Register: "/register",
-    //   Points: "/points",
-    // };
   
     const parseTimestamp = (timestamp) => {
     // Handle different timestamp formats
@@ -71,58 +55,6 @@ export default {
     return new Date(); // fallback to current date
   };
 
-// fetchUserPoints normal code
-
-  // const fetchUserPoints = async (userId) => {
-  //   try {
-  //     console.log("Fetching points for user:", userId);
-      
-  //     const pointsRef = collection(db, "points");
-  //     const q = query(
-  //       pointsRef,
-  //       where("UID", "==", userId),
-  //       orderBy("timestamp", "asc")
-  //     );
-      
-  //     const querySnapshot = await getDocs(q);
-      
-  //     // Initialize monthly points array
-  //     const monthlyPoints = Array(12).fill(0);
-  //     let total = 0;
-
-  //     // Debug: Log the number of documents
-  //     console.log("Number of points documents:", querySnapshot.size);
-
-  //     querySnapshot.forEach((doc) => {
-  //       const data = doc.data();
-  //       console.log("Raw document data:", data); // Debug log
-
-  //       try {
-  //         const date = parseTimestamp(data.timestamp);
-  //         console.log("Parsed date:", date); // Debug log
-
-  //         const monthIndex = date.getMonth();
-  //         const pointsValue = Number(data.points) || 0;
-
-  //         monthlyPoints[monthIndex] += pointsValue;
-  //         total += pointsValue;
-
-  //         console.log(`Added ${pointsValue} points to month ${monthIndex}`); // Debug log
-  //       } catch (err) {
-  //         console.error("Error processing document:", doc.id, err);
-  //       }
-  //     });
-
-  //     // Update reactive references
-  //     pointsData.value = [...monthlyPoints]; // Create new array to trigger reactivity
-  //     totalPoints.value = total;
-
-  //     console.log("Final monthly points distribution:", monthlyPoints);
-  //     console.log("Final total points:", total);
-  //   } catch (error) {
-  //     console.error("Error fetching points:", error);
-  //   }
-  // };
 
   const fetchUserPoints = async (userId) => {
   try {
@@ -136,7 +68,6 @@ export default {
     const querySnapshot = await getDocs(q);
     
     // Debug: Log the number of documents
-    console.log("Total number of documents in points collection:", querySnapshot.size);
 
     // Step 2: Check if uid fields match
     querySnapshot.forEach((doc) => {
@@ -189,9 +120,8 @@ export default {
         console.log("User authenticated:", user.uid);
         try {
           const userDoc = await getDoc(doc(db, "users", user.uid));
+          console.log(user.uid);
           if (userDoc.exists()) {
-            username.value = userDoc.data().username;
-            console.log("Username:", username.value);
             await fetchUserPoints(user.uid);
           } else {
             console.log("User document does not exist");

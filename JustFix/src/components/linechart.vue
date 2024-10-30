@@ -7,20 +7,27 @@
 
 <script>
 import { onMounted, ref } from "vue";
+import { Chart, registerables } from 'chart.js';
 
+Chart.register(...registerables);
 
 export default {
   props: {
-    labels: Array,
-    data: Array
+    labels: {
+      type: Array,
+      required: true
+    },
+    data: {
+      type: Array,
+      required: true
+    }
   },
   setup(props) {
     const pointsChart = ref(null);
 
-    console.log(labels);
-    console.log(data);
     onMounted(() => {
-      new Chart(pointsChart.value.getContext("2d"), {
+      const ctx = pointsChart.value.getContext("2d");
+      new Chart(ctx, {
         type: "line",
         data: {
           labels: props.labels,
@@ -35,7 +42,7 @@ export default {
         },
         options: {
           responsive: true,
-          maintainAspectRatio: true,
+          maintainAspectRatio: false, // Set to false for better responsiveness
           scales: {
             y: {
               beginAtZero: true,
@@ -53,3 +60,14 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.line-graph-container {
+  width: 100%;
+  height: 400px; /* Set a height for the chart container */
+}
+canvas {
+  width: 100% !important; /* Ensure canvas uses full width */
+  height: 100% !important; /* Ensure canvas uses full height */
+}
+</style>

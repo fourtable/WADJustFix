@@ -42,6 +42,10 @@
                         <router-link class="dropdown-item"
                             :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
                     </li>
+                    <li v-if="uid">
+                        <router-link class="dropdown-item"
+                            :to="{ name: 'points' }">My Points</router-link>
+                    </li>
                     <li>
                         <a class="dropdown-item btn" @click="logout">Logout</a>
                     </li>
