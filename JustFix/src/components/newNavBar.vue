@@ -30,17 +30,17 @@
                 </li>
             </ul>
             <div v-if="username && !mobile" class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
-                    data-bs-toggle="dropdown" aria-expanded="false">{{ username }}
-                    <img v-if="localProfileImage" :src="localProfileImage" alt="Profile" class="d-inline-block align-text-top"
-                        width="30" height="30" />
+                <button class="btn btn-secondary dropdown-toggle" type="button" @click="toggleDropdown">
+                    {{ username }}
+                    <img v-if="localProfileImage" :src="localProfileImage" alt="Profile"
+                        class="d-inline-block align-text-top" width="30" height="30" />
                     <img v-else :src="profilePic" alt="Profile" class="d-inline-block align-text-top" width="30"
                         height="30" />
                 </button>
-                <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="dropdownMenuButton">
-                    <!-- Check if `uid` is available before navigating -->
+                <ul class="dropdown-menu" :class="{ show: dropdownVisible }" aria-labelledby="dropdownMenuButton">
                     <li v-if="uid">
-                        <router-link class="dropdown-item" :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
+                        <router-link class="dropdown-item"
+                            :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
                     </li>
                     <li>
                         <a class="dropdown-item btn" @click="logout">Logout</a>
@@ -63,7 +63,8 @@
                         <router-link class="link" :to="{ name: 'repair' }">Repairers</router-link>
                     </li>
                     <li v-if="uid">
-                        <router-link class="link" :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
+                        <router-link class="link"
+                            :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
                     </li>
                     <li>
                         <a class="link" @click="logout">Logout</a>
@@ -117,6 +118,7 @@ export default {
             mobile: null,
             mobileNav: null,
             windowWidth: null,
+            dropdownVisible: false,
         }
     },
     created() {
@@ -156,6 +158,9 @@ export default {
                 console.error('Error fetching user document:', error);
                 this.localProfileImage = this.profilePic; // Fallback in case of an error
             }
+        },
+        toggleDropdown() {
+            this.dropdownVisible = !this.dropdownVisible;
         },
         toggleMobileNav() {
             this.mobileNav = !this.mobileNav;
