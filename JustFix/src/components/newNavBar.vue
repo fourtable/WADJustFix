@@ -42,6 +42,7 @@
                         <router-link class="dropdown-item"
                             :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
                     </li>
+                    <li class="dropdown-item" >My Quotes</li>
                     <li v-if="uid">
                         <router-link class="dropdown-item"
                             :to="{ name: 'points' }">My Points</router-link>
@@ -81,6 +82,14 @@
                     <li v-if="uid">
                         <router-link class="link"
                             :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
+                    </li>
+                    <li>
+                        <router-link class="link" 
+                        :to="{ name: 'myQuotes' }">My Quotes</router-link>
+                    </li>
+                    <li v-if="uid">
+                        <router-link class="link"
+                            :to="{ name: 'points' }">My Points</router-link>
                     </li>
                     <li>
                         <a class="link" @click="logout">Logout</a>

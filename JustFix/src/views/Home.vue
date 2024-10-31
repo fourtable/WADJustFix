@@ -41,7 +41,7 @@
             <input type="range" id="radiusSlider" v-model="searchRadius" min="1" max="50" class="form-range" />
 
             <div id="map" class="map-container mt-3"></div>
-
+            <QuotesPopup/>
             <!-- repairmenListings -->
             <RepairmenCards :repairmen="repairmen" />
           </div>
@@ -59,6 +59,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { initializeMap, fetchRepairers, placeRepairmenOnMap, updateSearchCircle as updateMapSearchCircle } from '../plugins/googleMaps';
 import store from "../store/store.js";
 import RepairmenCards from "../components/repairmenCards.vue";
+import QuotesPopup from '../components/createQuotesPopup.vue';
 
 // Reactive properties
 const searchQuery = ref('');

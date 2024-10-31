@@ -1,40 +1,65 @@
 <template>
-    <div class="my-quotes">
-        <h1>My Quotes</h1>
-        <div>
-            <button @click="showCreateQuoteModal = true" class="btn btn-primary">Create New Quote</button>
-            <div class="quote-list">
-                <h2>Your Quotes</h2>
-                <ul>
-                    <li v-for="quote in userQuotes" :key="quote.id">
-                        <input type="checkbox" :value="quote" v-model="selectedQuotes" />
-                        {{ quote.quoteDesc }} <!-- Updated to match the field name -->
-                        <button @click="deleteQuote(quote.id)">Delete</button>
-                    </li>
-                </ul>
+    <div class="container my-5">
+      <h2>My Quotes</h2>
+  
+      <!-- List Group to display each quote -->
+      <ul class="list-group mt-4">
+        <li 
+          v-for="quote in quotes" 
+          :key="quote.id" 
+          class="list-group-item list-group-item-action"
+          @click="showQuoteDetails(quote)"
+        >
+          <strong>{{ quote.item }}</strong> - {{ quote.category }}
+        </li>
+      </ul>
+  
+      <!-- Quote Details Modal -->
+      <div
+        class="modal fade"
+        :class="{ show: showModal }"
+        :style="{ display: showModal ? 'block' : 'none' }"
+        tabindex="-1"
+        aria-labelledby="quoteDetailsLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="quoteDetailsLabel">{{ selectedQuote.item }}</h5>
+              <button type="button" class="btn-close" @click="closeModal" aria-label="Close"></button>
             </div>
-            <button @click="sendQuotes" class="btn btn-success">Send Selected Quotes</button>
-
-            <!-- Create Quote Modal -->
-            <div v-if="showCreateQuoteModal" class="modal">
-                <div class="modal-content">
-                    <span @click="showCreateQuoteModal = false" class="close">&times;</span>
-                    <h2>Create New Quote</h2>
-                    <textarea v-model="newQuoteText" placeholder="Enter your quote here..."></textarea>
-                    <input type="number" v-model="newQuotePrice" placeholder="Enter price..." />
-                    <input type="text" v-model="newQuoteImg" placeholder="Enter image URL..." />
-                    <button @click="createQuote">Create Quote</button>
-                </div>
+            <div class="modal-body">
+              <p><strong>Category:</strong> {{ selectedQuote.category }}</p>
+              <p><strong>Description:</strong> {{ selectedQuote.description }}</p>
+              <div v-if="selectedQuote.picture">
+                <p><strong>Picture:</strong></p>
+                <img :src="selectedQuote.picture" alt="Quote Image" class="img-fluid" />
+              </div>
             </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="closeModal">Close</button>
+            </div>
+          </div>
         </div>
+      </div>
+  
+      <!-- Modal backdrop -->
+      <div
+        v-if="showModal"
+        class="modal-backdrop fade show"
+        @click="closeModal"
+      ></div>
     </div>
-</template>
+  </template>
 
-<script setup>
+<script>
 import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex'; // Import useStore from Vuex
-import { db } from '../plugins/firebaseManager';
-import { addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { db } from '../main'
+import { addDoc, deleteDoc, doc, collection, onSnapshot } from 'firebase/firestore';
+import createQuotesPopup from '../components/createQuotesPopup.vue';
+import Cookies from 'js-cookie';
 
 // State variables
 const store = useStore(); // Initialize the Vuex store
@@ -44,46 +69,74 @@ const newQuotePrice = ref(null); // Price for new quote
 const newQuoteImg = ref(''); // Image URL for new quote
 const showCreateQuoteModal = ref(false); // Toggle for modal display
 
-// Use computed to get user quotes from Vuex
-const userQuotes = computed(() => store.getters.getUserQuotes);
+// // Use computed to get user quotes from Vuex
+// const userQuotes = computed(() => store.getters.getUserQuotes);
 
-// Fetch quotes when the component is mounted
-const getUserQuotes = async () => {
-    const userId = 'your-user-id-here'; // Replace with actual user ID from auth
-    await store.dispatch('fetchUserQuotes', userId);
-};
+// // Fetch quotes when the component is mounted
+// const getUserQuotes = async () => {
+//     const userId = 'your-user-id-here'; // Replace with actual user ID from auth
+//     await store.dispatch('fetchUserQuotes', userId);
+// };
 
 // Create a new quote
-const createQuote = async () => {
-    if (!newQuoteText.value.trim()) return;
+// const createQuote = async () => {
+//     if (!newQuoteText.value.trim()) return;
 
-    await addDoc(collection(db, 'quotes'), {
-        quoteDesc: newQuoteText.value,
-        price: newQuotePrice.value,
-        quoteImg: newQuoteImg.value,
-        createdAt: new Date(), // Firestore timestamp
-        uid: 'your-user-id-here', // Replace with actual user ID
-    });
+//     await addDoc(collection(db, 'quotes'), {
+//         quoteDesc: newQuoteText.value,
+//         price: newQuotePrice.value,
+//         quoteImg: newQuoteImg.value,
+//         createdAt: new Date(), // Firestore timestamp
+//         uid: 'your-user-id-here', // Replace with actual user ID
+//     });
 
-    // Reset form fields
-    newQuoteText.value = '';
-    newQuotePrice.value = null;
-    newQuoteImg.value = '';
-    showCreateQuoteModal.value = false;
-    await getUserQuotes(); // Refresh user quotes
+//     // Reset form fields
+//     newQuoteText.value = '';
+//     newQuotePrice.value = null;
+//     newQuoteImg.value = '';
+//     showCreateQuoteModal.value = false;
+//     await getUserQuotes(); // Refresh user quotes
+// };
+
+export default {
+  data() {
+    return {
+      quotes: [],
+      showModal: false,
+      selectedQuote: {},
+    };
+  },
+  async created() {
+    this.fetchUserQuotes();
+  },
+  methods: {
+    fetchUserQuotes() {
+      const uid  = Cookies.get('uid') || sessionStorage.getItem('uid');
+      if (uid) {
+        const quotesCollection = collection(db, 'quotes');
+        // const userQuotesQuery = query(quotesCollection, where('userId', '==', user.uid));
+
+        onSnapshot(quotesCollection, (snapshot) => {
+          this.quotes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        });
+      } else {
+        console.log("User is not logged in");
+      }
+    },
+    showQuoteDetails(quote) {
+      this.selectedQuote = quote;
+      this.showModal = true;
+    },
+    closeModal() {
+      this.showModal = false;
+      this.selectedQuote = {};
+    },
+  },
 };
-
-// Delete a quote
-const deleteQuote = async (quoteId) => {
-    await deleteDoc(doc(db, 'quotes', quoteId));
-    await getUserQuotes(); // Refresh user quotes
-};
-
-// Send selected quotes
-const sendQuotes = () => {
-    console.log("Sending quotes:", selectedQuotes.value);
-};
-
-// Fetch user quotes on component mount
-onMounted(getUserQuotes);
 </script>
+<style>
+.my-quotes {
+    margin-top: 3%;
+}
+
+</style>
