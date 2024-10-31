@@ -7,9 +7,9 @@
 
 <script>
 import { onMounted, ref } from "vue";
-import { Chart, registerables } from 'chart.js';
+// import { Chart, registerables } from 'chart.js';
 
-Chart.register(...registerables);
+// Chart.register(...registerables);
 
 export default {
   props: {
