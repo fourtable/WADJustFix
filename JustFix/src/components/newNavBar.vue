@@ -144,6 +144,8 @@ export default {
         this.checkScreen();
         // Retrieve username from cookies or sessionStorage
         this.username = Cookies.get('username') || sessionStorage.getItem('username');
+        this.profilePic = Cookies.get('profilePic') || sessionStorage.getItem('profilePic');
+        this.userType = Cookies.get('userType') || sessionStorage.getItem('userType');
     },
     mounted() {
         this.localProfileImage = this.profileImage; // Initialize localProfileImage
