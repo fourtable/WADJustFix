@@ -482,7 +482,7 @@ header {
             display: inline-block;
             /* Ensure the dropdown aligns properly */
             margin: 0;
-            width: 10%;
+            max-width: fit-content;
         }
 
         .dropdown-nav {

@@ -77,7 +77,6 @@ export default {
         };
     },
     methods: {
-
         async login() {
             this.errorMessage = ''; // Clear previous error messages
             try {
@@ -134,10 +133,12 @@ export default {
                     const data = doc.data();
                     const userName = data.name; // Adjust to your actual field name
                     if (this.rememberMe) {
+                        Cookies.set('uid', data.id, { expires: 7 }); // Set the username in a cookie
                         Cookies.set('username', userName, { expires: 7 }); // Set the username in a cookie
                         Cookies.set('profilePic', data.imageUrl, { expires: 7 })
                         Cookies.set('userType', data.userType, { expires: 7 })
                     }
+                    sessionStorage.setItem('uid', data.id);
                     sessionStorage.setItem('username', userName);
                     sessionStorage.setItem('profilePic', data.imageUrl);
                     sessionStorage.setItem('userType', data.userType);

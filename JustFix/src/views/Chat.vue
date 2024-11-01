@@ -80,13 +80,11 @@ const contactPic = ref(route.query.repairerPic); // Make it reactive
 const senderPic = sessionStorage.getItem('profilePic') || Cookies.get('profilePic');
 const username = Cookies.get('username') || sessionStorage.getItem('username');
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
-console.log(contactId.value);
 
 // Check authentication and fetch user data
 onAuthStateChanged(auth, async (currentUser) => {
     if (currentUser) {
         user.value = currentUser;
-        isRepairerStatus.value = await isRepairer(uid);
         loadContacts();
         // Load chat with repairer if provided
         if (contactId.value) {
@@ -103,12 +101,14 @@ onMounted(() => {
     if (contactId.value != null) {
         loadChatHistory(contactId.value, uid);
     }
+    isRepairerStatus.value = isRepairer(uid);
 
 });
 
 const isRepairer = async (userId) => {
     try {
         // Reference to the specific user's document
+        console.log(userId);
         const userDocRef = doc(db, 'users', userId);
         const userDoc = await getDoc(userDocRef);
 
