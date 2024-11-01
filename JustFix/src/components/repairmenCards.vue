@@ -106,7 +106,7 @@ const clearSelections = () => {
 </script>
 <template>
 
-    <div class="container repairmen-container">
+    <div class="container repairmen-container" id="fixer">
         <p class="section-title">Browse Our Most Trusted Handymen</p>
 
         <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">

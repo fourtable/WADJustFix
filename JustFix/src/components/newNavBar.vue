@@ -13,7 +13,7 @@
                     <router-link class="link" :to="{ name: 'event' }">Event</router-link>
                 </li>
                 <li>
-                    <router-link class="link" :to="{ name: 'repair' }">Fixers</router-link>
+                    <a class="link" href="#fixer">Fixers</a>
                 </li>
                 <li v-if="username">
                     <router-link class="link" :to="{ name: 'chat' }">Chat</router-link>
@@ -42,7 +42,8 @@
                         <router-link class="dropdown-item"
                             :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
                     </li>
-                    <li class="dropdown-item" >My Quotes</li>
+                    <li ><router-link class="dropdown-item"
+                        :to="{ name: 'myQuotes' }">My Quotes</router-link></li>
                     <li v-if="uid">
                         <router-link class="dropdown-item"
                             :to="{ name: 'points' }">My Points</router-link>
@@ -74,7 +75,7 @@
                         <router-link class="link" :to="{ name: 'event' }">Event</router-link>
                     </li>
                     <li>
-                        <router-link class="link" :to="{ name: 'repair' }">Fixer</router-link>
+                        <a class="link" href="#fixer">Fixers</a>
                     </li>
                     <li v-if="username">
                         <router-link class="link" :to="{ name: 'chat' }">Chat</router-link>

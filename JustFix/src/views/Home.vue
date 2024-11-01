@@ -41,7 +41,6 @@
             <input type="range" id="radiusSlider" v-model="searchRadius" min="1" max="50" class="form-range" />
 
             <div id="map" class="map-container mt-3"></div>
-            <QuotesPopup/>
             <!-- repairmenListings -->
             <RepairmenCards :repairmen="repairmen" />
           </div>
@@ -54,12 +53,14 @@
 </template>
 
 <script setup>
-
+import { auth } from '../main.js';
 import { ref, computed, onMounted, watch } from 'vue';
 import { initializeMap, fetchRepairers, placeRepairmenOnMap, updateSearchCircle as updateMapSearchCircle } from '../plugins/googleMaps';
 import store from "../store/store.js";
 import RepairmenCards from "../components/repairmenCards.vue";
 import QuotesPopup from '../components/createQuotesPopup.vue';
+import { mapActions } from 'vuex';
+import Cookies from 'js-cookie';
 
 // Reactive properties
 const searchQuery = ref('');
@@ -70,6 +71,7 @@ const allRepairmen = ref([]); // Store all repairers
 // Computed properties
 const username = computed(() => store.getters.getUserName);
 const repairmen = computed(() => store.getters.getRepairmen);
+const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 
 // Watchers
 watch(searchRadius, () => {
@@ -78,10 +80,17 @@ watch(searchRadius, () => {
 });
 
 // Lifecycle hooks
-onMounted(() => {
-  getUserLocation();
-  initializeAutocomplete();
+onMounted(async () => {
+  if (uid) {
+    // Fetch user quotes only if the user is authenticated
+    await store.dispatch('fetchUserQuotes');
+    console.log("Quotes in Home.vue:", store.getters.getUserQuotes);
+  }
+  // Get user location and initialize map
+  await getUserLocation();
+  initializeMapAndFetchRepairers();
 });
+
 
 // Methods
 function initializeAutocomplete() {
