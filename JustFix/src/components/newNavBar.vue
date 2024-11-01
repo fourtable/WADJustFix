@@ -29,7 +29,7 @@
                         role="button">Register</router-link>
                 </li>
             </ul>
-            <div v-if="username && !mobile" class="dropdown">
+            <div v-if="username && !mobile" class="dropdown" ref="dropdownContainer">
                 <button class="btn btn-secondary dropdown-toggle" type="button" @click="toggleDropdown">
                     {{ username }}
                     <img v-if="localProfileImage" :src="localProfileImage" alt="Profile"
@@ -37,16 +37,14 @@
                     <img v-else :src="profilePic" alt="Profile" class="d-inline-block align-text-top" width="30"
                         height="30" />
                 </button>
-                <ul class="dropdown-menu" :class="{ show: dropdownVisible }" aria-labelledby="dropdownMenuButton">
+                <ul class="dropdown-menu" :class="{ show: dropdownVisible }" aria-labelledby="dropdownMenuButton" >
                     <li v-if="uid">
                         <router-link class="dropdown-item"
                             :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
                     </li>
-                    <li ><router-link class="dropdown-item"
-                        :to="{ name: 'myQuotes' }">My Quotes</router-link></li>
-                    <li v-if="uid">
-                        <router-link class="dropdown-item"
-                            :to="{ name: 'points' }">My Points</router-link>
+                    <li ><router-link class="dropdown-item" :to="{ name: 'myQuotes' }">My Quotes</router-link></li>
+                    <li>
+                        <router-link class="dropdown-item" :to="{ name: 'points' }">My Points</router-link>
                     </li>
                     <li>
                         <a class="dropdown-item btn" @click="logout">Logout</a>
@@ -85,12 +83,10 @@
                             :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
                     </li>
                     <li>
-                        <router-link class="link" 
-                        :to="{ name: 'myQuotes' }">My Quotes</router-link>
+                        <router-link class="link" :to="{ name: 'myQuotes' }">My Quotes</router-link>
                     </li>
                     <li v-if="uid">
-                        <router-link class="link"
-                            :to="{ name: 'points' }">My Points</router-link>
+                        <router-link class="link" :to="{ name: 'points' }">My Points</router-link>
                     </li>
                     <li>
                         <a class="link" @click="logout">Logout</a>
@@ -153,6 +149,7 @@ export default {
         window.addEventListener('resize', this.checkScreen);
         this.checkScreen();
         // Retrieve username from cookies or sessionStorage
+        this.uid = Cookies.get('uid') || sessionStorage.getItem('uid');
         this.username = Cookies.get('username') || sessionStorage.getItem('username');
         this.profilePic = Cookies.get('profilePic') || sessionStorage.getItem('profilePic');
         this.userType = Cookies.get('userType') || sessionStorage.getItem('userType');
@@ -192,6 +189,12 @@ export default {
         toggleDropdown() {
             this.dropdownVisible = !this.dropdownVisible;
         },
+        closeDropdown(event) {
+            // Check if the click happened outside the dropdown container
+            if (!this.$refs.dropdownContainer.contains(event.target)) {
+                this.dropdownVisible = false;
+            }
+        },
         toggleMobileNav() {
             this.mobileNav = !this.mobileNav;
         },
@@ -223,6 +226,12 @@ export default {
                     console.error('Error signing out:', error);
                 });
         }
+    },
+    mounted() {
+        document.addEventListener("click", this.closeDropdown);
+    },
+    beforeDestroy() {
+        document.removeEventListener("click", this.closeDropdown);
     },
 }
 </script>
@@ -469,7 +478,7 @@ header {
         .dropdown-toggle {
             display: flex;
             /* Use flexbox for layout */
-            justify-content:space-evenly;
+            justify-content: space-evenly;
             /* Space items evenly */
             align-items: center;
             /* Center items vertically */
