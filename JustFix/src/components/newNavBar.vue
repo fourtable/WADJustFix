@@ -13,7 +13,7 @@
                     <router-link class="link" :to="{ name: 'event' }">Event</router-link>
                 </li>
                 <li>
-                    <a class="link" href="#fixer">Fixers</a>
+                    <router-link class="link" :to="{ name: 'home', hash: '#fixer' }">Fixers</router-link>
                 </li>
                 <li v-if="username">
                     <router-link class="link" :to="{ name: 'chat' }">Chat</router-link>
@@ -75,7 +75,7 @@
                         <router-link class="link" :to="{ name: 'event' }">Event</router-link>
                     </li>
                     <li>
-                        <a class="link" href="#fixer">Fixers</a>
+                        <router-link class="link" :to="{ name: 'home', hash: '#fixer' }">Fixers</router-link>
                     </li>
                     <li v-if="username">
                         <router-link class="link" :to="{ name: 'chat' }">Chat</router-link>
@@ -106,7 +106,7 @@
                         <router-link class="link" :to="{ name: 'event' }">Event</router-link>
                     </li>
                     <li>
-                        <router-link class="link" :to="{ name: 'repair' }">Repairers</router-link>
+                        <router-link class="link" :to="{ name: 'home', hash: '#fixer' }">Fixers</router-link>
                     </li>
                     <li>
                         <router-link class="link" :to="{ name: 'login' }">Login</router-link>

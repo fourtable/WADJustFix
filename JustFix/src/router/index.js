@@ -63,14 +63,26 @@ const routes = [
         path: '/points',
         name: 'points',
         component: PointsDashboard
-        },  
-    
-    
+    },
+
+
 ];
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
+    routes,
+    scrollBehavior(to, from, savedPosition) {
+        if (to.hash) {
+            return {
+                el: to.hash,
+                behavior: 'smooth',  // Enable smooth scrolling
+            }
+        } else if (savedPosition) {
+            return savedPosition
+        } else {
+            return { top: 0 }
+        }
+    },
 });
 
 // Route guard to protect profile editing and other authenticated routes
