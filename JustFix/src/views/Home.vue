@@ -30,19 +30,26 @@
 
         <div class="row mt-5">
           <div class="col-12">
-            <p href="#repairers" style="font-weight:bolder; font-size:x-large; padding-top:10px;" class="animate__animated animate__pulse">
+            <p href="#repairers" style="font-weight:bolder; font-size:x-large; padding-top:10px;" data-aos="fade-up" data-aos-duration="800">
               Find A Repairer Near You
             </p>
-            <input type="text" class="form-control animate__animated animate__slideInUp animate__delay-1s" id="locationInput" placeholder="Enter location..." ref="locationInput" />
-              <label for="radiusSlider" class="mt-3 animate__animated animate__slideInUp animate__delay-2s">Search Radius (km): {{ searchRadius }} km</label>
-              <input type="range" id="radiusSlider" v-model="searchRadius" min="1" max="50" class="form-range animate__animated animate__slideInUp animate__delay-3s" />
-            <div id="map" class="map-container animate__animated animate__fadeIn mt-3"></div>
+            <input type="text" class="form-control" id="locationInput" placeholder="Enter location..." ref="locationInput" 
+                  data-aos="fade-up" data-aos-delay="200" data-aos-duration="800" />
+            <label for="radiusSlider" class="mt-3" data-aos="fade-up" data-aos-delay="300" data-aos-duration="800">
+              Search Radius (km): {{ searchRadius }} km
+            </label>
+            <input type="range" id="radiusSlider" v-model="searchRadius" min="1" max="50" class="form-range" 
+                  data-aos="fade-up" data-aos-delay="400" data-aos-duration="800" />
+            <div id="map" class="map-container" data-aos="fade-up" data-aos-duration="1000"></div>
             <!-- repairmenListings -->
-            <RepairmenCards :repairmen="repairmen" data-aos="fade-up" data-aos-delay="200" />
+            <RepairmenCards 
+              :repairmen="repairmen" 
+              data-aos="fade-up" 
+              data-aos-delay="500" 
+              data-aos-offset="300"
+            />
           </div>
         </div>
-
-
       </div>
     </div>
   </section>
@@ -79,8 +86,9 @@ watch(searchRadius, () => {
 // Lifecycle hooks
 onMounted(async () => {
   AOS.init({
-    duration: 1000, // Animation duration in milliseconds
-    once: true,     // Whether animation should happen only once - while scrolling down
+    duration: 1000,  // Animation duration in milliseconds
+    once: true,      // Whether animation should happen only once - while scrolling down
+    offset: 200      // Whether animation should happen only once - while scrolling down
   });
   if (uid) {
     // Fetch user quotes only if the user is authenticated

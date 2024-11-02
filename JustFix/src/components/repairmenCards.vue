@@ -129,7 +129,7 @@ const clearSelections = () => {
 
         <div class="row justify-content-center gx-4 mt-3 mb-3">
             <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-0" v-for="repairman in selectedRepairmenDetails"
-                :key="repairman.id">
+                :key="repairman.id" data-aos="fade-up" data-aos-delay="100">
                 <div class="card text-center shadow-sm" style="padding: 0; border-radius: 20px;">
                     <div class="card-header d-flex align-items-center"
                         style="background-color: transparent; border: none;">
@@ -138,14 +138,14 @@ const clearSelections = () => {
                     </div>
                     <img :src="repairman.profilePic || defaultProfilePic" class="card-img-top" alt="Profile Picture"
                         height="200px" style="object-fit: cover; border-radius: 20px;">
-                    <div class="card-body text-start">
+                    <div class="card-body text-start" data-aos="fade-up" data-aos-delay="200">
                         <h5 class="card-title" style="font-weight: bold;">{{ repairman.username || repairman.name }}
                         </h5>
                         <p class="text-muted mb-1"><span class="star-icon">★</span> 5.0 (123)</p>
                         <p class="card-description">{{ truncateDescription(repairman.description) }}</p>
                         <ul class="list-unstyled">
                             <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index"
-                                class="skill-pill">
+                                class="skill-pill" data-aos="flip-right" data-aos-delay="300">
                                 {{ skill }}
                             </li>
                         </ul>
@@ -157,11 +157,11 @@ const clearSelections = () => {
 
 
     <div class="container repairmen-container" id="fixer">
-        <p class="section-title">Browse Our Most Trusted Handymen</p>
+        <p class="section-title" data-aos="fade-up">Browse Our Most Trusted Handymen</p>
     </div>
 
     <!-- Expertise Pills -->
-    <div class="expertise-pills py-4">
+    <div class="expertise-pills py-4" data-aos="fade-up" data-aos-delay="100">
         <button v-for="expertise in expertiseOptions" :key="expertise"
             :class="['expertise-pill', { selected: selectedExpertise.includes(expertise) }]"
             @click="toggleExpertise(expertise)">
@@ -171,14 +171,14 @@ const clearSelections = () => {
     </div>
 
     <!-- Search Bar -->
-    <div class="mb-3">
+    <div class="mb-3" data-aos="fade-up" data-aos-delay="200">
         <input type="text" v-model="searchQuery" placeholder="Search Repairers" class="form-control" />
     </div>
 
     <!-- Original Repairmen Listing -->
     <div class="row justify-content-center gx-4" style="padding:0; margin:0;">
         <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-0" v-for="repairman in filteredRepairmen"
-            :key="repairman.id">
+            :key="repairman.id" data-aos="fade-up" data-aos-delay="100">
             <div class="card text-center shadow-sm clickable-card" style="padding: 0; border-radius: 20px;"
                 :class="{ selected: selectedRepairmen.includes(repairman.id) }">
                 <div class="card-header d-flex justify-content-end"
@@ -188,7 +188,7 @@ const clearSelections = () => {
                 </div>
                 <img :src="repairman.profilePic || defaultProfilePic" class="card-img-top" alt="Profile Picture"
                     height="200px" style="object-fit: cover; border-radius: 20px;">
-                <div class="card-body text-start position-relative" @click="navigateToProfile(repairman.id)">
+                <div class="card-body text-start position-relative" @click="navigateToProfile(repairman.id)" data-aos="fade-up" data-aos-delay="300">
                     <h5 class="card-title mb-1 text-start pb-2" style="font-weight:bold;">{{ repairman.username ||
                         repairman.name }}</h5>
                     <p class="text-muted mb-1"><span class="star-icon">★</span> 5.0 (123)</p>
