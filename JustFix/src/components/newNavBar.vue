@@ -145,18 +145,26 @@ export default {
         }
     },
     created() {
-        this.fetchUserData();
         window.addEventListener('resize', this.checkScreen);
         this.checkScreen();
         // Retrieve username from cookies or sessionStorage
         this.uid = Cookies.get('uid') || sessionStorage.getItem('uid');
         this.username = Cookies.get('username') || sessionStorage.getItem('username');
-        this.profilePic = Cookies.get('profilePic') || sessionStorage.getItem('profilePic');
-        this.userType = Cookies.get('userType') || sessionStorage.getItem('userType');
+        this.localProfileImage = Cookies.get('profilePic') || sessionStorage.getItem('profilePic');
+        this.type = Cookies.get('userType') || sessionStorage.getItem('userType');
+        console.log(this.uid);
+        this.fetchUserData(this.uid);
     },
     mounted() {
         this.localProfileImage = this.profileImage; // Initialize localProfileImage
         this.uid = Cookies.get('uid') || sessionStorage.getItem('uid'); // Fetch uid from cookies or sessionStorage
+        this.username = Cookies.get('username') || sessionStorage.getItem('username');
+        this.profilePic = Cookies.get('profilePic') || sessionStorage.getItem('profilePic');
+        this.type = Cookies.get('userType') || sessionStorage.getItem('userType');
+        console.log(this.uid);
+        console.log(this.username);
+        console.log(this.profilePic);
+        console.log(this.type);
         if (!this.uid) {
             console.error("UID is not available");
         }
@@ -169,9 +177,10 @@ export default {
         });
     },
     methods: {
-        async fetchUserData() {
+        async fetchUserData(uid) {
             try {
-                const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+                // const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+                console.log(uid);
                 if (uid) {
                     const userRef = await getDoc(doc(db, 'users', uid));
                     if (userRef.exists()) {
@@ -217,8 +226,12 @@ export default {
                     // Clear cookies after signout
                     Cookies.remove('username');
                     Cookies.remove('uid');
+                    Cookies.remove('profilePic');
+                    Cookies.remove('userType');
                     sessionStorage.removeItem('username');
                     sessionStorage.removeItem('uid');
+                    sessionStorage.removeItem('profilePic');
+                    sessionStorage.removeItem('userType');
                     // Redirect to login page
                     window.location.href = '/login';
                 })

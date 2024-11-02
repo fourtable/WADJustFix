@@ -3,7 +3,7 @@
     <div class="d-flex justify-content-between align-items-center">
       <h2>My Quotes</h2>
       <div v-if="userType === 'user'">
-        <createQuotesPopup />
+        <createQuotesPopup :show="showQuotesPopup" @close="showQuotesPopup = false"/>
       </div>
     </div>
     <!-- List Group to display each quote -->
@@ -56,6 +56,9 @@ import { db } from '../main';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import createQuotesPopup from '../components/createQuotesPopup.vue';
 import Cookies from 'js-cookie';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 export default {
   components: {
@@ -65,6 +68,7 @@ export default {
     return {
       showModal: false,
       selectedQuote: {},
+      showQuotesPopup: false,
     };
   },
   computed: {
@@ -79,6 +83,17 @@ export default {
     },
     userType() {
       return Cookies.get('userType') || sessionStorage.getItem('userType');
+    }
+  },
+  mounted() {
+    // Open popup if query parameter `openPopup` is true
+    this.showQuotesPopup = this.$route.query.openPopup === 'true';
+    this.updatePopupState();
+  },
+  watch: {
+    '$route.query.openPopup'(newVal) {
+      console.log("Route query changed, openPopup:", newVal); // Debugging log
+      this.showQuotesPopup = newVal === 'true';
     }
   },
   async created() {
@@ -127,7 +142,18 @@ export default {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
     },
+    updatePopupState() {
+      console.log("Initial or route update, openPopup:", this.$route.query.openPopup);
+      this.showQuotesPopup = this.$route.query.openPopup === 'true';
+    },
   },
+  beforeRouteUpdate(to, from, next) {
+    // Check for query changes before route update and apply the changes
+    if (to.query.openPopup !== from.query.openPopup) {
+      this.showQuotesPopup = to.query.openPopup === 'true';
+    }
+    next();
+  }
 };
 
 </script>

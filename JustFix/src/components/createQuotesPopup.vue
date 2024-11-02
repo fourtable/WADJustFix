@@ -63,10 +63,18 @@ import { db, storage } from '../main';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Cookies from 'js-cookie';
+import { ref, defineEmits } from 'vue';
 
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+const showModal = ref(false);
 
 export default {
+  props: {
+    show: {
+      type: Boolean,
+      required: true,
+    },
+  },
   data() {
     return {
       showModal: false,
@@ -88,6 +96,11 @@ export default {
         'Miscellaneous Repairs',
       ],
     };
+  },
+  watch: {
+    show(newValue) {
+      this.showModal = newValue;
+    },
   },
   methods: {
     handleFileUpload(event) {
@@ -137,6 +150,7 @@ export default {
         picture: null,
         description: '',
       };
+      this.$emit('close'); // Emit close event to notify parent component
     },
   },
 };

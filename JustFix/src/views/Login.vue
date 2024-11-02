@@ -83,7 +83,7 @@ export default {
                 const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password);
                 await this.retrieveUsername(this.email);
                 if (this.rememberMe) {
-                    Cookies.set('uid', userCredential.user.uid);
+                    Cookies.set('uid', userCredential.user.uid, { expires: 7 });
                 }
                 sessionStorage.setItem('uid', userCredential.user.uid);
                 window.location.href = '/';
@@ -132,13 +132,12 @@ export default {
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const userName = data.name; // Adjust to your actual field name
+                    console.log(data);
                     if (this.rememberMe) {
-                        Cookies.set('uid', data.id, { expires: 7 }); // Set the username in a cookie
                         Cookies.set('username', userName, { expires: 7 }); // Set the username in a cookie
                         Cookies.set('profilePic', data.imageUrl, { expires: 7 })
                         Cookies.set('userType', data.userType, { expires: 7 })
                     }
-                    sessionStorage.setItem('uid', data.id);
                     sessionStorage.setItem('username', userName);
                     sessionStorage.setItem('profilePic', data.imageUrl);
                     sessionStorage.setItem('userType', data.userType);
