@@ -9,7 +9,7 @@
           <span class="trophy-icon">🏆</span>
           <p class="total-points">{{ totalPoints }}</p>
           <p>Total Points</p>
-          <button class="btn btn-primary" @click="redeemPoints">Redeem Points</button>
+          <button class="btn btn-primary" @click="redeemPoints">Redeem Rewards</button>
         </div>
       </div>
     </div>
@@ -21,6 +21,7 @@ import { onMounted, ref } from "vue";
 import { auth, db } from '../main';
 import { collection, query, getDocs, doc, where, getDoc, orderBy } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import { useRouter } from 'vue-router'
 import LineChart from "../components/linechart.vue";
 
 
@@ -29,11 +30,16 @@ export default {
     LineChart
   },
   setup() {
-
+    
+    const router = useRouter();
     const totalPoints = ref(0);
     let pointsData = ref(Array(12).fill(0)); // Initialize with 12 months of 0 points
     const username = ref("");
     const chartLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    const redeemPoints = () => {
+      router.push({ name: 'redeem' }); // Navigate to the Redeem route
+    };
 
     const fetchUserPoints = async (userId) => {
       try {
@@ -95,14 +101,15 @@ export default {
       // Cleanup subscription on component unmount
       return () => unsubscribe();
     });
-    return { chartLabels, totalPoints, pointsData };
+    return { redeemPoints, chartLabels, totalPoints, pointsData };
   },
   methods: {
-    redeemPoints() {
-      // alert("Redeeming points...");
-      // this method will route user to redeem page, will need to create
-      this.showNotification("Points redeemed", "alert")
-    },
+    // redeemPoints() {
+    //   // alert("Redeeming points...");
+    //   // this method will route user to redeem page, will need to create
+    //   // router.push({ name: 'redeem' });
+    //   // this.showNotification("Points redeemed", "alert")
+    // },
     showNotification(message, type) {
       const notification = {
         type: type,
