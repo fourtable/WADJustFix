@@ -1,6 +1,5 @@
 <template>
     <div class="container py-5" id="redeem-rewards">
-      <NavBar />
   
       <div class="text-center mb-4">
         <h2>Your Points: {{ userPoints }}</h2>
@@ -30,12 +29,11 @@
   <script>
   import { ref, onMounted } from "vue";
   import { auth, db } from "../main";
-  import { collection, getDocs, doc, updateDoc, getDoc } from "firebase/firestore";
+  import { collection, getDocs, doc, updateDoc, query, where, orderBy} from "firebase/firestore";
   import { onAuthStateChanged } from "firebase/auth";
   import NavBar from "../components/newNavbar.vue";
   
   export default {
-    components: { NavBar },
     setup() {
       const rewards = ref([]);
       const userPoints = ref(0);
@@ -54,18 +52,41 @@
       };
   
       // Fetch user points
-      const fetchUserPoints = async (uid) => {
+      const fetchUserPoints = async (userId) => {
         try {
-          const userDoc = await getDoc(doc(db, "users", uid));
-          if (userDoc.exists()) {
-            userPoints.value = userDoc.data().points || 0;
-          } else {
-            console.error("User document does not exist.");
-          }
-        } catch (error) {
-          console.error("Error fetching user points:", error);
+          const pointsRef = query(
+            collection(db, "points"),
+            where("UID", "==", userId),
+            orderBy("Date", "asc"));
+
+          // Step 1: Test without `where` filter
+          const q = query(pointsRef); // Remove filters for debugging
+
+          const querySnapshot = await getDocs(q);
+
+          // Process the filtered results as before
+          const monthlyPoints = Array(12).fill(0);
+
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            // const date = parseTimestamp(data.timestamp);
+            // console.log("Document ID:", doc.id, "UID:", data.UID, "Timestamp:", data.Date);
+            const date = new Date(data.Date.seconds * 1000)
+            const monthIndex = date.getMonth();
+            const pointsValue = Number(data.points) || 0;
+
+            monthlyPoints[monthIndex] += pointsValue;
+            userPoints.value += pointsValue;
+          });
+
+          pointsData.value = [...monthlyPoints];
+          pointsData = pointsData.value;
+          console.log("Final monthly points distribution:", pointsData);
         }
-      };
+        catch (error) {
+          console.error("Error fetching points:", error);
+        }
+        };
   
       // Redeem reward function
       const redeemReward = async (reward) => {
