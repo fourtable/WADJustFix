@@ -12,14 +12,14 @@
         <p class="skill-level">Skill Level: {{ calculateSkillLevel(userData.experience) }}</p>
         <h4 v-if="userData.expertise && userData.expertise.length">Areas of Expertise:</h4>
         <div v-if="userData.expertise && userData.expertise.length">
-          <span v-for="expertise in userData.expertise" :key="expertise" class="expertise-badge">
+          <span v-for="expertise in userData.expertise" :key="expertise" class="expertise-badge" data-aos="flip-right" data-aos-duration="600">
             {{ expertise }}
           </span>
         </div>
         <div v-else>
           <p>No areas of expertise provided.</p>
         </div>
-        <div v-if="userData.description">
+        <div v-if="userData.description" data-aos="fade-up" data-aos-duration="800">
           <h4>About Me:</h4>
           <p>{{ userData.description }}</p>
         </div>
@@ -30,7 +30,7 @@
       <div class="profile-details" v-else>
         <h2 class="profile-name">{{ userData.name }}</h2>
         <p>User</p>
-        <div v-if="userData.description">
+        <div v-if="userData.description" data-aos="fade-up" data-aos-duration="800">
           <h4>About Me:</h4>
           <p>{{ userData.description }}</p>
         </div>
@@ -39,12 +39,12 @@
     </div>
 
     <!-- Edit Profile Button for Profile Owner -->
-    <div v-if="isOwnProfile" class="edit-profile-btn">
+    <div v-if="isOwnProfile" class="edit-profile-btn" data-aos="fade-up" data-aos-duration="600">
       <router-link :to="{ name: 'editProfile' }" class="btn btn-primary">Edit Profile</router-link>
     </div>
 
     <!-- Tabs -->
-    <div class="tabs">
+    <div class="tabs" data-aos="fade-up" data-aos-duration="700">
       <button class="tab-button" :class="{ active: activeTab === 'reviews' }" @click="switchTab('reviews')">Reviews</button>
       <button v-if="userData.userType === 'repairer' && isOwnProfile" class="tab-button" :class="{ active: activeTab === 'upcoming-events' }" @click="switchTab('upcoming-events')">Upcoming Events</button>
       <button class="tab-button" :class="{ active: activeTab === 'past-events' }" @click="switchTab('past-events')">Past Events</button>
@@ -52,10 +52,10 @@
 
     <div class="tab-content">
       <!-- Reviews Tab -->
-      <div id="reviews" class="tab" v-show="activeTab === 'reviews'">
+      <div id="reviews" class="tab" v-show="activeTab === 'reviews'" data-aos="fade-up" data-aos-duration="700">
         <h3>Ratings: {{ averageRating || 'N/A' }} / 5 ⭐</h3>
         <div v-if="userData.reviews && userData.reviews.length">
-          <div v-for="review in userData.reviews" :key="review.id" class="review">
+          <div v-for="review in userData.reviews" :key="review.id" class="review" data-aos="fade-up" data-aos-delay="200">
             <div class="review-header">
               <strong>{{ review.customer }}</strong> - {{ review.date }}
             </div>
@@ -74,7 +74,7 @@
       <!-- Upcoming Events Tab -->
       <div id="upcoming-events" class="tab" v-if="userData.userType === 'repairer' && isOwnProfile" v-show="activeTab === 'upcoming-events'">
         <h3>Upcoming Repair Events</h3>
-        <div v-for="event in upcomingEvents" :key="event.id" class="event">
+        <div v-for="event in upcomingEvents" :key="event.id" class="event" data-aos="fade-up" data-aos-delay="200">
           <h4>{{ event.title }}</h4>
           <p>{{ event.date }}</p>
           <p>{{ event.description }}</p>
@@ -82,9 +82,9 @@
       </div>
 
       <!-- Past Events Tab -->
-      <div id="past-events" class="tab" v-if="userData.userType === 'repairer'" v-show="activeTab === 'past-events'">
+      <div id="past-events" class="tab" v-if="userData.userType === 'repairer'" v-show="activeTab === 'past-events'" data-aos="fade-up" data-aos-duration="700">
         <h3>Past Repair Events</h3>
-        <div v-for="event in pastEvents" :key="event.id" class="event">
+        <div v-for="event in pastEvents" :key="event.id" class="event" data-aos="fade-up" data-aos-delay="200">
           <h4>{{ event.title }}</h4>
           <p>{{ event.date }}</p>
           <p>{{ event.description }}</p>
