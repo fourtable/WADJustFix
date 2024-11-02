@@ -6,20 +6,20 @@
       <div class="row">
         <!-- First Hero Box -->
         <div class="col-lg-6 col-md-6 col-sm-12 my-3">
-          <div class="hero-box light-blue">
+          <div class="hero-box light-blue animate__animated animate__fadeInLeft animate__delay-1s">
             <h1>Need Something Fixed?</h1>
-            <p>Send your request now to your favorite repairer and watch the magic happen! </p>
-            <a :href="repairLink" class="button">Create Request &rarr;</a>
+            <p>Send your request now to your favorite repairer and watch the magic happen!</p>
+<a :href="repairLink" class="button animate__animated animate__pulse">Create Request &rarr;</a>
           </div>
         </div>
         <!-- Second and Third Hero Boxes -->
         <div class="col-lg-6 col-md-6 col-sm-12 my-3">
-          <div class="hero-box light-green">
+          <div class="hero-box light-green animate__animated animate__fadeInLeft animate__delay-2s">
             <h2>Join Us As a Repairer!</h2>
             <p>Whether you're a repair hobbyist or a professional repairer, we welcome you!</p>
             <a :href="registerLink" class="button">Register Now &rarr;</a>
           </div>
-          <div class="col-12 hero-box dark-green mt-4">
+          <div class="col-12 hero-box dark-green mt-4 animate__animated animate__fadeInLeft animate__delay-3s">
             <h2>Discover Our Repair Events</h2>
             <p>Attend our events to learn DIY repair techniques or upskill as a repairer.</p>
             <a :href="eventLink" class="button">Learn More &rarr;</a>
@@ -30,19 +30,15 @@
 
         <div class="row mt-5">
           <div class="col-12">
-            <p href="#repairers" style="font-weight:bolder; font-size:x-large; padding-top:10px;">
+            <p href="#repairers" style="font-weight:bolder; font-size:x-large; padding-top:10px;" class="animate__animated animate__pulse">
               Find A Repairer Near You
             </p>
-            <!-- Search bar for location -->
-            <input type="text" class="form-control" id="locationInput" placeholder="Enter location..."
-              ref="locationInput" />
-            <!-- Search radius slider -->
-            <label for="radiusSlider" class="mt-3">Search Radius (km): {{ searchRadius }} km</label>
-            <input type="range" id="radiusSlider" v-model="searchRadius" min="1" max="50" class="form-range" />
-
-            <div id="map" class="map-container mt-3"></div>
+            <input type="text" class="form-control animate__animated animate__slideInUp animate__delay-1s" id="locationInput" placeholder="Enter location..." ref="locationInput" />
+              <label for="radiusSlider" class="mt-3 animate__animated animate__slideInUp animate__delay-2s">Search Radius (km): {{ searchRadius }} km</label>
+              <input type="range" id="radiusSlider" v-model="searchRadius" min="1" max="50" class="form-range animate__animated animate__slideInUp animate__delay-3s" />
+            <div id="map" class="map-container animate__animated animate__fadeIn mt-3"></div>
             <!-- repairmenListings -->
-            <RepairmenCards :repairmen="repairmen" />
+            <RepairmenCards :repairmen="repairmen" data-aos="fade-up" data-aos-delay="200" />
           </div>
         </div>
 
@@ -61,6 +57,7 @@ import RepairmenCards from "../components/repairmenCards.vue";
 import QuotesPopup from '../components/createQuotesPopup.vue';
 import { mapActions } from 'vuex';
 import Cookies from 'js-cookie';
+
 
 // Reactive properties
 const searchQuery = ref('');
@@ -81,6 +78,10 @@ watch(searchRadius, () => {
 
 // Lifecycle hooks
 onMounted(async () => {
+  AOS.init({
+    duration: 1000, // Animation duration in milliseconds
+    once: true,     // Whether animation should happen only once - while scrolling down
+  });
   if (uid) {
     // Fetch user quotes only if the user is authenticated
     await store.dispatch('fetchUserQuotes');
