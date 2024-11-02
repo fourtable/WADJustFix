@@ -86,6 +86,7 @@ onMounted(async () => {
     await store.dispatch('fetchUserQuotes');
     console.log("Quotes in Home.vue:", store.getters.getUserQuotes);
   }
+  initializeAutocomplete();
   // Get user location and initialize map
   await getUserLocation();
   initializeMapAndFetchRepairers();
@@ -139,7 +140,6 @@ async function getUserLocation() {
     initializeMapAndFetchRepairers(); // Proceed without user location
   }
 }
-
 
 async function initializeMapAndFetchRepairers() {
   await initializeMap('map', userLocation.value);
