@@ -13,6 +13,43 @@
         </div>
       </div>
     </div>
+    <div class="row mt-3" style="height: 50vh;">
+
+      <!-- How to Earn More Points - Card 1 -->
+      <div class="col-md-3 dashboard-section">
+          <div class="earn-points-card">
+              <h5>Join Events</h5>
+              <p>Participate in events to get 20 bonus points!</p>
+              <button class="btn btn-primary" @click="joinEvents">Join Events</button>
+          </div>
+      </div>
+
+      <!-- How to Earn More Points - Card 2 -->
+      <div class="col-md-3 dashboard-section">
+          <div class="earn-points-card">
+              <h5>Earn Points Through Repairs</h5>
+              <p>Complete/Request more repairs to earn  an additional 50 points!</p>
+              <!-- <button class="btn btn-primary" @click="joinEvents">Join Events</button> -->
+          </div>
+      </div>
+
+      <!-- How to Earn More Points - Card 3 -->
+      <div class="col-md-3 dashboard-section">
+          <div class="earn-points-card">
+              <h5>Leave Reviews </h5>
+              <p>Complete a review after every repair has been completed to earn 10 points!</p>
+              <button class="btn btn-primary" @click="leaveReview">Leave Review</button>
+          </div>
+      </div>
+
+      <!-- How to Earn More Points - Card 4 -->
+      <div class="col-md-3 dashboard-section">
+          <div class="earn-points-card">
+              <h5>Earn More Points By Participating In Events (for users)</h5>
+              <p>Join our events to get bonus points.</p>
+          </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -39,6 +76,12 @@ export default {
 
     const redeemPoints = () => {
       router.push({ name: 'redeem' }); // Navigate to the Redeem route
+    };
+    const joinEvents = () => {
+      router.push({ name: 'event' }); // Navigate to the Event route
+    };
+    const leaveReview = () => {
+      router.push({ name: 'myQuotes' }); // Navigate to the Event route
     };
 
     const fetchUserPoints = async (userId) => {
@@ -101,7 +144,7 @@ export default {
       // Cleanup subscription on component unmount
       return () => unsubscribe();
     });
-    return { redeemPoints, chartLabels, totalPoints, pointsData };
+    return { redeemPoints, joinEvents, leaveReview, chartLabels, totalPoints, pointsData };
   },
   methods: {
     // redeemPoints() {
