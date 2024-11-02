@@ -31,7 +31,10 @@ const clearSelected = () => {
     selectedRepairmen.value = []; // Clear the selected repairmen
     console.log("Cleared selected repairmen");
 };
-
+// Computed property to get full repairman objects based on selected IDs
+const selectedRepairmenDetails = computed(() => {
+    return props.repairmen.filter(repairman => selectedRepairmen.value.includes(repairman.id));
+});
 
 const topSkills = (expertise) => expertise.slice(0, 3);
 
@@ -54,13 +57,23 @@ const requestQuote = () => {
     });
 };
 
-
 // Helper method to check if a repairman is selected
 const isSelected = (repairmanId) => selectedRepairmen.value.includes(repairmanId);
 
+// Search functionality
+const searchQuery = ref(''); // Step 1: Create a reactive search query
 
+// Computed property to filter repairmen based on selected expertise and search query
+const filteredRepairmen = computed(() => {
+    return props.repairmen.filter(repairman => {
+        const name = repairman.username || repairman.name;
+        const expertiseMatch = selectedExpertise.value.length === 0 || selectedExpertise.value.includes("All") || repairman.expertise.some(skill => selectedExpertise.value.includes(skill));
+        const searchMatch = name.toLowerCase().includes(searchQuery.value.toLowerCase()); // Step 2: Implement the search logic
+        return expertiseMatch && searchMatch;
+    });
+});
 
-//select and filter Exepertise logic
+//select and filter Expertise logic
 const selectedExpertise = ref([]);
 
 // Available expertise options
@@ -75,16 +88,6 @@ const expertiseOptions = ref([
     "Automotive Repairs",
     "Miscellaneous Repairs"
 ]);
-
-// Computed property to filter repairmen based on selected expertise
-const filteredRepairmen = computed(() => {
-    if (selectedExpertise.value.length === 0 || selectedExpertise.value.includes("All")) {
-        return props.repairmen;
-    }
-    return props.repairmen.filter(repairman => {
-        return repairman.expertise.some(skill => selectedExpertise.value.includes(skill));
-    });
-});
 
 // Toggle expertise selection
 const toggleExpertise = (expertise) => {
@@ -104,19 +107,59 @@ const clearSelections = () => {
     selectedExpertise.value = [];
 };
 </script>
+
 <template>
+    <!-- New Section for Selected Repairmen -->
+
+    <div v-if="selectedRepairmen.length > 0" class="selected-repairmen-section">
+        <!-- <h3>Selected Repairmen</h3> -->
+        <!-- <button @click="clearSelected" class="btn btn-danger">Clear Selected Repairmen</button> -->
+
+        <div class="container repairmen-container">
+            <p class="section-title">Your Selected Repairmen</p>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
+                <button @click="clearSelected" :disabled="selectedRepairmen.length === 0" class="hero-button">Request a
+                    Quote</button>
+                <span @click="clearSelected" class="clear-link"
+                    style="text-decoration: underline; cursor: pointer; margin-top: 8px; padding-right: 14px;">
+                    Clear Selected Repairmen
+                </span>
+            </div>
+        </div>
+
+        <div class="row justify-content-center gx-4 mt-3 mb-3">
+            <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-0" v-for="repairman in selectedRepairmenDetails"
+                :key="repairman.id">
+                <div class="card text-center shadow-sm" style="padding: 0; border-radius: 20px;">
+                    <div class="card-header d-flex align-items-center"
+                        style="background-color: transparent; border: none;">
+                        <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
+                            :checked="isSelected(repairman.id)" style="margin-left: auto;" />
+                    </div>
+                    <img :src="repairman.profilePic || defaultProfilePic" class="card-img-top" alt="Profile Picture"
+                        height="200px" style="object-fit: cover; border-radius: 20px;">
+                    <div class="card-body text-start">
+                        <h5 class="card-title" style="font-weight: bold;">{{ repairman.username || repairman.name }}
+                        </h5>
+                        <p class="text-muted mb-1"><span class="star-icon">★</span> 5.0 (123)</p>
+                        <p class="card-description">{{ truncateDescription(repairman.description) }}</p>
+                        <ul class="list-unstyled">
+                            <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index"
+                                class="skill-pill">
+                                {{ skill }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <div class="container repairmen-container" id="fixer">
         <p class="section-title">Browse Our Most Trusted Handymen</p>
-
-        <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
-            <button @click="requestQuote" :disabled="selectedRepairmen.length === 0" class="hero-button">Request a Quote</button>
-            <span @click="clearSelected" class="clear-link"
-                style="text-decoration: underline; cursor: pointer; margin-top: 8px; padding-right: 14px;">
-                Clear Selected Repairmen
-            </span>
-        </div>
     </div>
+
     <!-- Expertise Pills -->
     <div class="expertise-pills py-4">
         <button v-for="expertise in expertiseOptions" :key="expertise"
@@ -127,40 +170,37 @@ const clearSelections = () => {
         <button class="clear-button" @click="clearSelections">Clear</button>
     </div>
 
+    <!-- Search Bar -->
+    <div class="mb-3">
+        <input type="text" v-model="searchQuery" placeholder="Search Repairers" class="form-control" />
+    </div>
 
+    <!-- Original Repairmen Listing -->
     <div class="row justify-content-center gx-4" style="padding:0; margin:0;">
         <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-0" v-for="repairman in filteredRepairmen"
             :key="repairman.id">
             <div class="card text-center shadow-sm clickable-card" style="padding: 0; border-radius: 20px;"
-                @click="toggleSelection(repairman.id)" :class="{ selected: selectedRepairmen.includes(repairman.id) }">
-                <img :src="repairman.profilePic || defaultProfilePic" class="card-img-top" alt="Profile Picture"
-                    height="200px" style="object-fit: cover; border-radius: 20px;">
-                <div class="checkbox-container">
-                    <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
+                :class="{ selected: selectedRepairmen.includes(repairman.id) }">
+                <div class="card-header d-flex justify-content-end"
+                    style="border: none; border-radius: 20px 20px 0 0; margin: 0;">
+                    <input type="checkbox" class="custom-checkbox" @change="toggleSelection(repairman.id)"
                         :checked="isSelected(repairman.id)" />
                 </div>
-                <div class="card-body text-start position-relative">
-                    <div class="d-flex justify-content-between">
-                        <h5 class="card-title mb-1 text-center pb-2" style="font-weight:bold;">
-                            {{ repairman.username || repairman.name }}
-                        </h5>
-                        <p class="text-muted mb-1">
-                            <span class="star-icon">★</span>
-                            5.0 (123)
-                        </p>
-                    </div>
-                    <p class="card-description text-muted" style="font-size: 0.9rem;">
-                        {{ truncateDescription(repairman.description) }}
-                    </p>
+                <img :src="repairman.profilePic || defaultProfilePic" class="card-img-top" alt="Profile Picture"
+                    height="200px" style="object-fit: cover; border-radius: 20px;">
+                <div class="card-body text-start position-relative" @click="navigateToProfile(repairman.id)">
+                    <h5 class="card-title mb-1 text-start pb-2" style="font-weight:bold;">{{ repairman.username ||
+                        repairman.name }}</h5>
+                    <p class="text-muted mb-1"><span class="star-icon">★</span> 5.0 (123)</p>
+                    <p class="card-description text-muted" style="font-size: 0.9rem;">{{
+                        truncateDescription(repairman.description) }}</p>
                     <ul class="list-unstyled">
-                        <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill">
-                            {{ skill }}
-                        </li>
+                        <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill">{{
+                            skill }}</li>
                     </ul>
                 </div>
             </div>
         </div>
-
     </div>
 </template>
 
@@ -211,7 +251,7 @@ const clearSelections = () => {
     width: 100%;
     max-width: 40vw;
     border: 0;
-    transition: transform 0.3s, background-color 0.3s;
+    transition: transform 0.3s, background-color 0.3s ease;
     border-radius: 10px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border: 1px solid #e1e1e1;
@@ -223,7 +263,7 @@ const clearSelections = () => {
     background-color: #f0f0f0;
 }
 
-.selected {
+.card.selected {
     background-color: #f0f0f0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     transform: translateY(-5px);
@@ -242,6 +282,18 @@ const clearSelections = () => {
     overflow: hidden;
     text-align: left;
     /* Ensure text is left-aligned */
+}
+
+.card-header {
+    transition: background-color 0.3s ease;
+    background-color: white;
+    border: none;
+}
+
+.card:hover .card-header,
+.card.selected .card-header {
+    background-color: #f0f0f0;
+    /* Ensure header stays white on hover and selected */
 }
 
 /* Additional styling for other elements */

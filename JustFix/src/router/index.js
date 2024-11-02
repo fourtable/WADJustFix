@@ -7,8 +7,9 @@ import Register from '../views/Register.vue'; // Import Register view
 import ViewProfile from '../views/ViewProfile.vue'; // Import ViewProfile view
 import EditProfile from '../views/EditProfile.vue'; // Import EditProfile view
 import Chat from '../views/Chat.vue' //Import Chat view
-import { db, auth } from "../main"; // Import Firebase setup
 import MyQuotes from "../views/myQuotes.vue";
+import { db, auth } from "../main"; // Import Firebase setup
+
 import PointsDashboard from "../views/PointsDashboard.vue";
 
 
