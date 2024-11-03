@@ -8,6 +8,10 @@
               <th>Name</th>
               <th>Email</th>
               <th>User Type</th>
+              <th>UID</th>
+              <th>Account Created</th>
+              <th>Last Login</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -16,10 +20,13 @@
               <td>{{ user.name }}</td>
               <td>{{ user.email }}</td>
               <td>{{ user.userType }}</td>
+              <td>{{ user.uid }}</td>
+              <td>{{ formatDate(user.createdAt) }}</td>
+              <td>{{ formatDate(user.lastLogin) }}</td>
+              <td>{{ user.status }}</td>
               <td>
-                <!-- Add actions like View, Edit, or Delete if necessary -->
-                <button @click="viewUser(user.id)">View</button>
-                <button @click="deleteUser(user.id)">Delete</button>
+                <button class="action-button" @click="viewUser(user.id)">View</button>
+                <button class="action-button delete-button" @click="deleteUser(user.id)">Delete</button>
               </td>
             </tr>
           </tbody>
@@ -51,14 +58,15 @@
           this.users = querySnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
+            createdAt: doc.data().createdAt, // Account creation date
+            lastLogin: doc.data().lastLogin, // Last login date
           }));
         } catch (error) {
           console.error("Error fetching users:", error);
         }
       },
       viewUser(userId) {
-        // Navigate to user profile page or open a modal with user details
-        this.$router.push({ name: "ViewProfile", params: { id: userId } });
+        this.$router.push({ name: "viewProfile", params: { id: userId } });
       },
       async deleteUser(userId) {
         try {
@@ -68,6 +76,11 @@
         } catch (error) {
           console.error("Error deleting user:", error);
         }
+      },
+      formatDate(timestamp) {
+        if (!timestamp) return "N/A";
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return date.toLocaleDateString();
       }
     }
   };
@@ -75,19 +88,59 @@
   
   <style>
   .users-container {
-    padding: 20px;
+    padding: 80px 20px 20px;
   }
+  
+  h1 {
+    margin-bottom: 20px;
+    font-size: 2em;
+    text-align: center;
+  }
+  
   table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #f9f9f9;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   }
+  
   th, td {
-    padding: 10px;
-    border: 1px solid #ccc;
+    padding: 15px;
+    border: 1px solid #ddd;
     text-align: left;
   }
-  button {
+  
+  th {
+    background-color: #085C44;
+    color: #fff;
+    font-weight: bold;
+  }
+  
+  td {
+    background-color: #ffffff;
+  }
+  
+  button.action-button {
+    padding: 5px 10px;
     margin: 5px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  
+  button.action-button:hover {
+    opacity: 0.9;
+  }
+  
+  button.delete-button {
+    background-color: #f76c6c;
+    color: white;
+  }
+  
+  button.delete-button:hover {
+    background-color: #d9534f;
   }
   </style>
   
