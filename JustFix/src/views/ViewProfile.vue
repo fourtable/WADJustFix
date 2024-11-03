@@ -44,6 +44,7 @@
     </div>
 
     <!-- Tabs -->
+    <div v-if="userData.userType !== 'admin'">
     <div class="tabs" data-aos="fade-up" data-aos-duration="700">
       <button class="tab-button" :class="{ active: activeTab === 'reviews' }" @click="switchTab('reviews')">Reviews</button>
       <button v-if="userData.userType === 'repairer' && isOwnProfile" class="tab-button" :class="{ active: activeTab === 'upcoming-events' }" @click="switchTab('upcoming-events')">Upcoming Events</button>
@@ -91,6 +92,7 @@
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>
 

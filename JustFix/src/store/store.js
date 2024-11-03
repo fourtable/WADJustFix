@@ -11,7 +11,9 @@ const store = createStore({
       repairmen: [],
       currentProfileId: null,
       notificationsList: [], // Array to hold notifications
-      quotes: [] // Store quotes for the user
+      quotes: [], // Store quotes for the user
+      users: [] // Add users to state
+
     };
   },
   mutations: {
@@ -37,6 +39,9 @@ const store = createStore({
       state.notificationsList = state.notificationsList.filter(
         (notification) => notification.id !== id
       );
+    },
+    setUsers(state, users) {
+      state.users = users;
     },
   },
   actions: {
@@ -119,6 +124,20 @@ const store = createStore({
         });
       });
     },
+    async fetchUsers({ commit }) {
+      try {
+        const usersCollection = collection(db, "users");
+        const querySnapshot = await getDocs(usersCollection);
+        let users = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        console.log('Fetched Users:', users);
+        commit("setUsers", users);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    },
   },
   getters: {
     getUserName(state) {
@@ -135,6 +154,9 @@ const store = createStore({
     },
     getUserQuotes(state) {
       return state.quotes; // Getter for quotes
+    },
+    getUsers(state) {
+      return state.users;
     },
   },
 });
