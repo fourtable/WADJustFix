@@ -13,7 +13,7 @@
               <p class="card-text">{{ reward.description }}</p>
               <p class="card-text">Cost: {{ reward.cost }} Points</p>
               <button
-                class="btn btn-primary"
+                class="btn btn-success"
                 :disabled="userPoints < reward.cost || redeeming"
                 @click="redeemReward(reward)"
               >

@@ -35,14 +35,15 @@ export default {
 
       const ctx = pointsChart.value.getContext("2d");
       chartInstance = new Chart(ctx, {
-        type: "line",
+        type: "bar",
         data: {
           labels: props.labels,
           datasets: [{
             label: "Points",
             data: props.data,
             borderColor: "#007bff",
-            backgroundColor: "rgba(0, 123, 255, 0.1)",
+            backgroundColor: "#9BD0F5",
+            // "rgba(0, 123, 255, 0.1)",
             fill: true,
             tension: 0.3,
           }]
