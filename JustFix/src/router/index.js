@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from '../views/Home.vue';
 import Event from '../views/Event.vue'; // Import Event view
+import ApplyEvent from "../views/ApplyEvent.vue";
 import Repair from '../views/Repair.vue'; // Import Repair view
 import Login from '../views/Login.vue'; // Import Login view
 import Register from '../views/Register.vue'; // Import Register view
@@ -21,6 +22,11 @@ const routes = [
         path: '/event',
         name: 'event',
         component: Event
+    },
+    {
+        path: '/applyEvent',
+        name: 'applyEvent',
+        component: ApplyEvent
     },
     {
         path: '/repair',
