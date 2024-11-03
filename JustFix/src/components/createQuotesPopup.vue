@@ -2,7 +2,7 @@
   <div>
     <!-- Button to trigger modal -->
     <button type="button" class="btn btn-primary" @click="showModal = true">
-      +
+      {{ btnName }}
     </button>
 
     <!-- Modal -->
@@ -74,6 +74,7 @@ export default {
       type: Boolean,
       required: true,
     },
+    btnName: '',
   },
   data() {
     return {

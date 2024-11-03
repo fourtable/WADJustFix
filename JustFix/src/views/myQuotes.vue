@@ -3,7 +3,7 @@
     <div class="d-flex justify-content-between align-items-center">
       <h2>My Quotes</h2>
       <div v-if="userType === 'user'">
-        <createQuotesPopup :show="showQuotesPopup" @close="showQuotesPopup = false"/>
+        <createQuotesPopup :show="showQuotesPopup" :btnName="'+'" @close="showQuotesPopup = false"/>
       </div>
     </div>
     <!-- List Group to display each quote -->
@@ -121,7 +121,6 @@ export default {
         // Listen to changes in the collection and retrieve quotes for the user
         onSnapshot(userQuotesQuery, (snapshot) => {
           const retrievedQuotes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          console.log("Quotes retrieved from Firestore:", retrievedQuotes); // Log retrieved quotes
           this.$store.commit('setQuotes', retrievedQuotes); // Update quotes in Vuex store
         });
       } else {

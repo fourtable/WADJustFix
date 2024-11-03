@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import defaultProfilePic from '../assets/profile.jpg';
 import { defineProps } from 'vue';
 import { useRouter } from 'vue-router';
+import quoteListPopup from './quoteListPopup.vue';
 
 const props = defineProps({
     repairmen: {
@@ -15,6 +16,7 @@ const props = defineProps({
 
 // Router instance
 const router = useRouter();
+// const isQuotesListPopupVisible = ref(false);
 
 // Toggle the selected repairman
 const selectedRepairmen = ref([]);
@@ -25,6 +27,17 @@ const toggleSelection = (repairmanId) => {
         selectedRepairmen.value.push(repairmanId);
     }
     console.log("Selected repairmen:", selectedRepairmen.value);
+};
+
+const isQuotesListPopupVisible = ref(false); // State for controlling visibility
+
+const closeModal = () => {
+    console.log("Modal closed");
+    isQuotesListPopupVisible.value = false; // This should control the visibility of the modal
+};
+
+const openQuotesListPopup = () => {
+    isQuotesListPopupVisible.value = true; // Set visibility to true when the button is clicked
 };
 
 const clearSelected = () => {
@@ -118,15 +131,15 @@ const clearSelections = () => {
         <div class="container repairmen-container">
             <p class="section-title">Your Selected Repairmen</p>
             <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
-                <button @click="clearSelected" :disabled="selectedRepairmen.length === 0" class="hero-button">Request a
-                    Quote</button>
+                <button @click="openQuotesListPopup" :disabled="selectedRepairmen.length === 0"
+                    class="hero-button">Send Quote</button>
+                <quoteListPopup v-if="isQuotesListPopupVisible" :selectedRepairmen="selectedRepairmen" @close="closeModal" />
                 <span @click="clearSelected" class="clear-link"
                     style="text-decoration: underline; cursor: pointer; margin-top: 8px; padding-right: 14px;">
                     Clear Selected Repairmen
                 </span>
             </div>
         </div>
-
         <div class="row justify-content-center gx-4 mt-3 mb-3">
             <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-0" v-for="repairman in selectedRepairmenDetails"
                 :key="repairman.id" data-aos="fade-up" data-aos-delay="100">
@@ -136,7 +149,7 @@ const clearSelections = () => {
                         <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
                             :checked="isSelected(repairman.id)" style="margin-left: auto;" />
                     </div>
-                    <img :src="repairman.profilePic || defaultProfilePic" class="card-img-top" alt="Profile Picture"
+                    <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top" alt="Profile Picture"
                         height="200px" style="object-fit: cover; border-radius: 20px;">
                     <div class="card-body text-start" data-aos="fade-up" data-aos-delay="200">
                         <h5 class="card-title" style="font-weight: bold;">{{ repairman.username || repairman.name }}
@@ -144,8 +157,8 @@ const clearSelections = () => {
                         <p class="text-muted mb-1"><span class="star-icon">★</span> 5.0 (123)</p>
                         <p class="card-description">{{ truncateDescription(repairman.description) }}</p>
                         <ul class="list-unstyled">
-                            <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index"
-                                class="skill-pill" data-aos="flip-right" data-aos-delay="300">
+                            <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill"
+                                data-aos="flip-right" data-aos-delay="300">
                                 {{ skill }}
                             </li>
                         </ul>
@@ -186,9 +199,10 @@ const clearSelections = () => {
                     <input type="checkbox" class="custom-checkbox" @change="toggleSelection(repairman.id)"
                         :checked="isSelected(repairman.id)" />
                 </div>
-                <img :src="repairman.profilePic || defaultProfilePic" class="card-img-top" alt="Profile Picture"
+                <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top" alt="Profile Picture"
                     height="200px" style="object-fit: cover; border-radius: 20px;">
-                <div class="card-body text-start position-relative" @click="navigateToProfile(repairman.id)" data-aos="fade-up" data-aos-delay="300">
+                <div class="card-body text-start position-relative" @click="navigateToProfile(repairman.id)"
+                    data-aos="fade-up" data-aos-delay="300">
                     <h5 class="card-title mb-1 text-start pb-2" style="font-weight:bold;">{{ repairman.username ||
                         repairman.name }}</h5>
                     <p class="text-muted mb-1"><span class="star-icon">★</span> 5.0 (123)</p>
@@ -521,5 +535,13 @@ ul.list-unstyled {
         /* Keep it auto */
     }
 
+}
+
+.popup {
+    position: fixed;
+    /* or absolute depending on your layout */
+    z-index: 9999;
+    /* ensure it's on top of other content */
+    /* Add other necessary styles */
 }
 </style>

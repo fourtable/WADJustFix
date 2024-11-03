@@ -57,7 +57,6 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { initializeMap, fetchRepairers, placeRepairmenOnMap, updateSearchCircle as updateMapSearchCircle } from '../plugins/googleMaps';
 import store from "../store/store.js";
 import RepairmenCards from "../components/repairmenCards.vue";
-import QuotesPopup from '../components/createQuotesPopup.vue';
 import { mapActions } from 'vuex';
 import Cookies from 'js-cookie';
 import router from '../router/index.js';
