@@ -3,20 +3,41 @@
     <div class="d-flex justify-content-between align-items-center">
       <h2>My Quotes</h2>
       <div v-if="userType === 'user'">
-        <createQuotesPopup :show="showQuotesPopup" :btnName="'+'" @close="showQuotesPopup = false"/>
+        <createQuotesPopup :show="showQuotesPopup" :btnName="'+'" @close="showQuotesPopup = false" />
       </div>
     </div>
     <!-- List Group to display each quote -->
-    <ul class="list-group mt-4">
-      <li v-if="quotes && quotes.length > 0" v-for="quote in quotes" :key="quote.id"
-        class="list-group-item list-group-item-action" @click="showQuoteDetails(quote)">
-        <strong>{{ capitalizeWords(quote.item) }}</strong> - {{ quote.category }}
-      </li>
+    <div class="mt-4">
+      <div class="table-row header-row">
+        <div class="table-cell">Item</div>
+        <div class="table-cell">Category</div>
+        <div class="table-cell">Repairer</div>
+        <div class="table-cell">Created</div>
+        <div class="table-cell">Actions</div>
+      </div>
+      <div v-if="quotes && quotes.length > 0" v-for="quote in quotes" :key="quote.id" class="table-row">
+        <div class="table-cell">
+          <div @click="showQuoteDetails(quote)" style="cursor: pointer; display: flex; align-items: center;">
+            <img :src="quote.picture" alt="Quote Image" class="quote-image img-thumbnail" />
+            <strong>{{ capitalizeWords(quote.item) }}</strong>
+          </div>
+        </div>
+        <div class="table-cell">{{ quote.category }}</div>
+        <div class="table-cell" v-if="quote.repairerName">{{ quote.repairerName }}</div>
+        <div class="table-cell" v-else>No Repairer</div>
+        <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
+        <div class="table-cell">
+          <div class="button-container">
+            <button class="btn btn-warning btn-sm table-button" @click="editQuote(quote)">Edit</button>
+            <button class="btn btn-danger btn-sm table-button" @click="deleteQuote(quote.id)">Delete</button>
+          </div>
+        </div>
+      </div>
       <!-- Display message if no quotes are available -->
-      <li v-else class="list-group-item text-center">
+      <div v-else class="text-center">
         No quotes available
-      </li>
-    </ul>
+      </div>
+    </div>
 
     <!-- Quote Details Modal -->
     <div class="modal fade" :class="{ show: showModal }" :style="{ display: showModal ? 'block' : 'none' }"
@@ -83,7 +104,7 @@ export default {
     },
     userType() {
       return Cookies.get('userType') || sessionStorage.getItem('userType');
-    }
+    },
   },
   mounted() {
     // Open popup if query parameter `openPopup` is true
@@ -145,6 +166,9 @@ export default {
       console.log("Initial or route update, openPopup:", this.$route.query.openPopup);
       this.showQuotesPopup = this.$route.query.openPopup === 'true';
     },
+    formatTimestamp(timestamp){
+      return timestamp ? new Date(timestamp.seconds * 1000).toLocaleDateString() : '';
+    }, 
   },
   beforeRouteUpdate(to, from, next) {
     // Check for query changes before route update and apply the changes
@@ -200,6 +224,133 @@ img {
 .list-group {
   li {
     padding: 3% 0 3% 3%;
+  }
+}
+
+/* Flexbox for the entire table body */
+.table-row {
+  display: flex;
+  align-items: center;
+  /* Center vertically */
+  text-align: center;
+  padding: 10px;
+  transition: background-color 0.3s ease;
+  /* Smooth transition */
+  border-bottom: 1px solid #dee2e6;
+  /* Bottom border for each row */
+
+  /* Image styling */
+  .quote-image {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+    /* Space between image and text */
+  }
+
+  /* Animation on image hover */
+  .quote-image:hover {
+    transform: scale(1.1);
+    /* Scale image on hover */
+    transition: transform 0.3s ease;
+  }
+}
+
+/* Change background color on hover */
+.table-row:hover {
+  background-color: #cdf696;
+  /* Light gray background on hover */
+}
+
+/* Flexbox for horizontal alignment */
+.table-cell {
+  flex: 1;
+  /* Equal space for each cell */
+  display: flex;
+  align-items: center;
+  /* Center vertically */
+  justify-content: flex-start;
+  /* Align to the left */
+  padding: 5px;
+  /* Add some padding for aesthetics */
+  border-right: 1px solid #dee2e6;
+  /* Right border for each cell */
+}
+
+/* Remove the last cell's right border */
+.table-cell:last-child {
+  border-right: none;
+  /* No border on the last cell */
+}
+
+/* Header styling */
+.header-row {
+  font-weight: bold;
+  background-color: #085C44;
+  /* Bootstrap primary color */
+  color: white;
+  /* Text color */
+  border-bottom: 2px solid #cdf696;
+  /* Bottom border for header */
+}
+
+/* Flexbox for button container */
+.button-container {
+  display: flex;
+  justify-content: space-around;
+  /* Space buttons evenly */
+  width: 100%;
+}
+
+/* Container styling */
+.table-container {
+  border: 1px solid #dee2e6;
+  /* Outer border for the entire table */
+  border-radius: 5px;
+  /* Optional: rounded corners */
+  overflow: hidden;
+  /* Ensures inner rows don't overflow */
+}
+
+.table-button {
+  width: 10vh;
+  /* Set a fixed width for both buttons */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Media queries for mobile responsiveness */
+@media (max-width: 768px) {
+
+  /* Stack table cells vertically on small screens */
+  .table-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .table-cell {
+    flex-direction: row;
+    width: 100%;
+    border-right: none;
+    padding: 5px 0;
+  }
+
+  /* Resize image for smaller screens */
+  .quote-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Adjust button width and font size for smaller screens */
+  .table-button {
+    width: 100%;
+    /* Full width for easier clicking on mobile */
+    font-size: 14px;
+  }
+
+  /* Reduce padding for smaller screen */
+  .table-row {
+    padding: 8px;
   }
 }
 </style>

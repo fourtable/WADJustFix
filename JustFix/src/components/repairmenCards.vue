@@ -4,6 +4,7 @@ import defaultProfilePic from '../assets/profile.jpg';
 import { defineProps } from 'vue';
 import { useRouter } from 'vue-router';
 import quoteListPopup from './quoteListPopup.vue';
+import Cookies from 'js-cookie';
 
 const props = defineProps({
     repairmen: {
@@ -37,7 +38,15 @@ const closeModal = () => {
 };
 
 const openQuotesListPopup = () => {
-    isQuotesListPopupVisible.value = true; // Set visibility to true when the button is clicked
+    const uid = Cookies.get('uid') || sessionStorage.getItem('uid')
+    if(uid){
+        isQuotesListPopupVisible.value = true; // Set visibility to true when the button is clicked
+    }
+    else{
+        router.push({
+        name: 'login'
+    });
+    }
 };
 
 const clearSelected = () => {

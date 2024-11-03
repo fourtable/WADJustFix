@@ -40,12 +40,13 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { db } from '../main'; // Ensure you import your Firebase db configuration
-import { collection, getDocs, query, where, onSnapshot } from 'firebase/firestore';
+import { db, realtimeDb } from '../main'; // Ensure you import your Firebase db configuration
+import { collection, getDocs, query, where, onSnapshot, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import { defineEmits } from 'vue';
 import createQuotesPopup from './createQuotesPopup.vue';
-import toast from './toast.vue';
+import store from '../store/store';
+import { ref as dbRef, set, onValue, push } from 'firebase/database';
 
 
 const props = defineProps({
@@ -78,7 +79,7 @@ function showNotification(message, type) {
         isVisible: true,
     };
     console.log('Dispatching notification:', notification);
-    this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
+    store.dispatch('addNotification', notification); // Dispatch the action to add notification
 
 }
 
@@ -94,26 +95,54 @@ const sendQuotes = async () => {
     // Send each selected quote to each selected repairman
     for (const repairman of props.selectedRepairmen) {
         for (const quote of selectedQuotes) {
-            await sendQuoteToRepairer(quote, repairman.id); // Implement your logic here
+            const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+            const profilePic = Cookies.get('profilePic') || sessionStorage.getItem('profilePic');
+            const username = Cookies.get('username') || sessionStorage.getItem('username');
+            await sendQuoteToRepairer(quote, repairman, uid, profilePic, username); // Implement your logic here
         }
     }
 
     showNotification('Quotes sent successfully!', 'success');
-    alert('Quotes sent successfully!');
+    // alert('Quotes sent successfully!');
     selectedQuoteIds.value = []; // Clear selections after sending
     closePopup(); // Close the popup
 };
 
 // Implement the actual logic to send a quote to a repairer
-const sendQuoteToRepairer = async (quote, repairerId) => {
+const sendQuoteToRepairer = async (quote, repairerId, senderId, senderPic, senderName) => {
     try {
-        const repairerQuotesRef = collection(db, 'repairerQuotes');
+        const repairerQuotesRef = collection(db, 'chats');
         await addDoc(repairerQuotesRef, {
+            participants: [senderId, repairerId],
+            photoURL: senderPic,
             repairerId: repairerId,
+            senderId: senderId,
+            senderName: senderName,
+            text: "You have a quote request",
             quoteId: quote.id,
             quoteData: quote, // You may want to store specific fields instead
-            sentAt: new Date()
+            timestamp: new Date()
         });
+        await sendNotification(repairerId, "You have a quote request", senderName);
+        const arrayIds = [repairerId, senderId];
+        const contactsQuery = query(
+            collection(db, 'contacts'),
+            where('userIds', '==', arrayIds),
+        );
+        const querySnapshot = await getDocs(contactsQuery);
+
+        if (querySnapshot.empty) {
+            // If no existing contact, add new with userIds as an array
+            console.log('Adding contacts')
+            await addDoc(collection(db, 'contacts'), {
+                userIds: arrayIds,
+                lastMessageTime: serverTimestamp(),
+            });
+        } else {
+            // Update the lastMessageTime for the existing contact
+            console.log('not adding contacts')
+            await updateDoc(querySnapshot.docs[0].ref, { lastMessageTime: serverTimestamp() });
+        }
         console.log(`Quote sent to repairer ${repairerId}`);
     } catch (error) {
         console.error("Error sending quote to repairer:", error);
@@ -155,6 +184,17 @@ function capitalizeWords(item) {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 }
+
+const sendNotification = async (receiverId, message, name) => {
+    const notificationRef = dbRef(realtimeDb, `notifications/${receiverId}`);
+    await push(notificationRef, {
+        notificationType: 'message',
+        senderName: name,
+        message: message,
+        timestamp: new Date().toISOString(),
+    });
+    console.log('Notification sent to:', receiverId);
+};
 </script>
 
 <style lang="scss" scoped>
