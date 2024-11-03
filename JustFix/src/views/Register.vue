@@ -208,6 +208,7 @@ export default {
                     expertise: selectedExpertise,
                     businessLocation: this.formData.businessLocation,
                     createdAt: new Date(),
+                    lastLogin: new Date(),
                 });
 
                 alert('Registration successful!');
@@ -237,6 +238,7 @@ export default {
                     email: this.formData.email,
                     userType: 'user',
                     createdAt: new Date(),
+                    lastLogin: new Date(),
                 });
 
                 alert('Registration successful!');
