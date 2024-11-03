@@ -21,6 +21,9 @@
                 <li v-if="type === 'admin'">
                     <router-link class="link" :to="{ name: 'users' }">Users</router-link>
                 </li>
+                <li v-if="type === 'admin'">
+                    <router-link class="link" :to="{ name: 'approveEvent' }">Approval</router-link>
+                </li>
             </ul>
             <ul v-if="!username && !mobile" class="navigation auth-buttons">
                 <li>
@@ -83,6 +86,9 @@
                     </li>
                     <li v-if="type === 'admin'">
                         <router-link class="link" :to="{ name: 'users' }">Users</router-link>
+                    </li>
+                    <li v-if="type === 'admin'">
+                    <router-link class="link" :to="{ name: 'approveEvent' }">Approval</router-link>
                     </li>
                     <li v-if="uid">
                         <router-link class="link"
