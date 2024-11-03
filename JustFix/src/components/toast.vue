@@ -23,6 +23,16 @@
           <!-- <small class="text-muted ms-auto">{{ notification.timestamp }}</small> Optionally display timestamp -->
         </div>
       </div>
+      <div v-if="notification.type == 'success'">
+        <div class="toast-header">
+          <strong class="me-auto">Sucess</strong>
+          <button type="button" class="btn-close" @click="removeNotification(index)" aria-label="Close"></button>
+        </div>
+        <div class="toast-body d-flex justify-content-between align-items-center">
+          {{ notification.message }} <!-- Ensure message is displayed here -->
+          <!-- <small class="text-muted ms-auto">{{ notification.timestamp }}</small> Optionally display timestamp -->
+        </div>
+      </div>
     </div>
   </div>
 </template>

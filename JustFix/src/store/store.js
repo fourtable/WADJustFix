@@ -1,6 +1,8 @@
-import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js";
+import { collection, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js";
 import { db } from '../plugins/firebaseManager'; // Import db from firebaseManager
 import { createStore } from 'vuex';
+import { auth } from "../main"; // Import getAuth from Firebase Auth
+import Cookies from 'js-cookie';
 
 const store = createStore({
   state() {
@@ -9,7 +11,9 @@ const store = createStore({
       repairmen: [],
       currentProfileId: null,
       notificationsList: [], // Array to hold notifications
-      userQuotes: []
+      quotes: [], // Store quotes for the user
+      users: [] // Add users to state
+
     };
   },
   mutations: {
@@ -22,8 +26,8 @@ const store = createStore({
     setCurrentProfileId(state, id) {
       state.currentProfileId = id; // Store the currently viewed profile's id
     },
-    setUserQuotes(state, quotes) {
-      state.userQuotes = quotes; // Mutation to set user quotes
+    setQuotes(state, quotes) {
+      state.quotes = quotes; // Set quotes to the state
     },
     ADD_NOTIFICATION(state, notification) {
       console.log('Current notifications:', state.notificationsList);
@@ -35,6 +39,9 @@ const store = createStore({
       state.notificationsList = state.notificationsList.filter(
         (notification) => notification.id !== id
       );
+    },
+    setUsers(state, users) {
+      state.users = users;
     },
   },
   actions: {
@@ -62,24 +69,40 @@ const store = createStore({
         console.error("Error fetching repairmen:", error); // Error handling
       }
     },
-    async fetchUserQuotes({ commit }, uid) { // Add this action
-      try {
-        const quotesQuery = query(collection(db, 'quotes'), where('uid', '==', uid)); // Query for user's quotes
-        const querySnapshot = await getDocs(quotesQuery);
-        const quotes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        commit('setUserQuotes', quotes); // Commit user quotes to state
-      } catch (error) {
-        console.error("Error fetching user quotes:", error);
+    async fetchUserQuotes({ commit }) {
+      let userQuotesQuery = '';
+      const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+      const userType = Cookies.get('userType') || sessionStorage.getItem('userType'); // Directly reference userType
+      console.log(uid);
+      console.log(userType);
+      if (uid) {
+        const quotesCollection = collection(db, 'quotes');
+        if (userType === "user") { // Use the local userType
+          userQuotesQuery = query(quotesCollection, where('userId', '==', uid));
+        }
+        else if (userType === "repairer") {
+          userQuotesQuery = query(quotesCollection, where('repairerId', '==', uid));
+        }
+        else {
+          userQuotesQuery = quotesCollection; // Fetch all if no specific user type
+        }
+
+        console.log(userQuotesQuery);
+    
+        // Use onSnapshot to listen for real-time updates
+        onSnapshot(userQuotesQuery, (snapshot) => {
+          const quotes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+          commit('setQuotes', quotes);
+          console.log("Fetched Quotes:", quotesCollection); // Log the fetched quotes
+          return quotes;
+        });
+      } else {
+        console.log("User is not logged in");
       }
-    },
+    },    
     updateCurrentProfileId({ commit }, id) {
       commit('setCurrentProfileId', id);
     },
-    addNotification({ commit }, notification) {
-      console.log("Adding notification:", notification); // Log added notification
-      commit('ADD_NOTIFICATION', notification);
-  },
     removeNotification({ commit }, index) {
       console.log("Remove notification:");
       commit('REMOVE_NOTIFICATION', index);
@@ -101,6 +124,20 @@ const store = createStore({
         });
       });
     },
+    async fetchUsers({ commit }) {
+      try {
+        const usersCollection = collection(db, "users");
+        const querySnapshot = await getDocs(usersCollection);
+        let users = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        console.log('Fetched Users:', users);
+        commit("setUsers", users);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    },
   },
   getters: {
     getUserName(state) {
@@ -112,17 +149,14 @@ const store = createStore({
     getCurrentProfileId(state) { // Optional: Get current profile id
       return state.currentProfileId;
     },
-    addNotification({ commit }, notification) {
-      commit('ADD_NOTIFICATION', notification);
-    },
-    removeNotification({ commit }, id) {
-      commit('REMOVE_NOTIFICATION', id);
-    },
     notificationsList(state) {
       return state.notificationsList;
     },
     getUserQuotes(state) {
-      return state.userQuotes; // Getter for user quotes
+      return state.quotes; // Getter for quotes
+    },
+    getUsers(state) {
+      return state.users;
     },
   },
 });

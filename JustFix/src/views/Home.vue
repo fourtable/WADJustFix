@@ -6,20 +6,20 @@
       <div class="row">
         <!-- First Hero Box -->
         <div class="col-lg-6 col-md-6 col-sm-12 my-3">
-          <div class="hero-box light-blue">
+          <div class="hero-box light-blue animate__animated animate__fadeInLeft animate__delay-1s">
             <h1>Need Something Fixed?</h1>
-            <p>Send your request now to your favorite repairer and watch the magic happen! </p>
-            <a :href="repairLink" class="button">Create Request &rarr;</a>
+            <p>Send your request now to your favorite repairer and watch the magic happen!</p>
+            <a :href="repairLink" class="button animate__animated animate__pulse" @click="openQuotesPopup">Create Request &rarr;</a>
           </div>
         </div>
         <!-- Second and Third Hero Boxes -->
         <div class="col-lg-6 col-md-6 col-sm-12 my-3">
-          <div class="hero-box light-green">
+          <div class="hero-box light-green animate__animated animate__fadeInLeft animate__delay-2s">
             <h2>Join Us As a Repairer!</h2>
             <p>Whether you're a repair hobbyist or a professional repairer, we welcome you!</p>
             <a :href="registerLink" class="button">Register Now &rarr;</a>
           </div>
-          <div class="col-12 hero-box dark-green mt-4">
+          <div class="col-12 hero-box dark-green mt-4 animate__animated animate__fadeInLeft animate__delay-3s">
             <h2>Discover Our Repair Events</h2>
             <p>Attend our events to learn DIY repair techniques or upskill as a repairer.</p>
             <a :href="eventLink" class="button">Learn More &rarr;</a>
@@ -30,35 +30,37 @@
 
         <div class="row mt-5">
           <div class="col-12">
-            <p href="#repairers" style="font-weight:bolder; font-size:x-large; padding-top:10px;">
+            <p href="#repairers" style="font-weight:bolder; font-size:x-large; padding-top:10px;" data-aos="fade-up"
+              data-aos-duration="800">
               Find A Repairer Near You
             </p>
-            <!-- Search bar for location -->
             <input type="text" class="form-control" id="locationInput" placeholder="Enter location..."
-              ref="locationInput" />
-            <!-- Search radius slider -->
-            <label for="radiusSlider" class="mt-3">Search Radius (km): {{ searchRadius }} km</label>
-            <input type="range" id="radiusSlider" v-model="searchRadius" min="1" max="50" class="form-range" />
-
-            <div id="map" class="map-container mt-3"></div>
-
+              ref="locationInput" data-aos="fade-up" data-aos-delay="200" data-aos-duration="800" />
+            <label for="radiusSlider" class="mt-3" data-aos="fade-up" data-aos-delay="300" data-aos-duration="800">
+              Search Radius (km): {{ searchRadius }} km
+            </label>
+            <input type="range" id="radiusSlider" v-model="searchRadius" min="1" max="50" class="form-range"
+              data-aos="fade-up" data-aos-delay="400" data-aos-duration="800" />
+            <div id="map" class="map-container" data-aos="fade-up" data-aos-duration="1000"></div>
             <!-- repairmenListings -->
-            <RepairmenCards :repairmen="repairmen" />
+            <RepairmenCards :repairmen="repairmen" data-aos="fade-up" data-aos-delay="500" data-aos-offset="300" />
           </div>
         </div>
-
-
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
-
+import { auth } from '../main.js';
 import { ref, computed, onMounted, watch } from 'vue';
 import { initializeMap, fetchRepairers, placeRepairmenOnMap, updateSearchCircle as updateMapSearchCircle } from '../plugins/googleMaps';
 import store from "../store/store.js";
 import RepairmenCards from "../components/repairmenCards.vue";
+import { mapActions } from 'vuex';
+import Cookies from 'js-cookie';
+import router from '../router/index.js';
+
 
 // Reactive properties
 const searchQuery = ref('');
@@ -69,6 +71,7 @@ const allRepairmen = ref([]); // Store all repairers
 // Computed properties
 const username = computed(() => store.getters.getUserName);
 const repairmen = computed(() => store.getters.getRepairmen);
+const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 
 // Watchers
 watch(searchRadius, () => {
@@ -77,10 +80,23 @@ watch(searchRadius, () => {
 });
 
 // Lifecycle hooks
-onMounted(() => {
-  getUserLocation();
+onMounted(async () => {
+  AOS.init({
+    duration: 1000,  // Animation duration in milliseconds
+    once: true,      // Whether animation should happen only once - while scrolling down
+    offset: 200      // Whether animation should happen only once - while scrolling down
+  });
+  if (uid) {
+    // Fetch user quotes only if the user is authenticated
+    await store.dispatch('fetchUserQuotes');
+    console.log("Quotes in Home.vue:", store.getters.getUserQuotes);
+  }
   initializeAutocomplete();
+  // Get user location and initialize map
+  await getUserLocation();
+  initializeMapAndFetchRepairers();
 });
+
 
 // Methods
 function initializeAutocomplete() {
@@ -130,7 +146,6 @@ async function getUserLocation() {
   }
 }
 
-
 async function initializeMapAndFetchRepairers() {
   await initializeMap('map', userLocation.value);
   await store.dispatch('fetchRepairmen');
@@ -156,6 +171,11 @@ function filterRepairersByLocation() {
 function topSkills(expertise) {
   return expertise ? expertise.slice(0, 3) : [];
 }
+
+function openQuotesPopup() {
+  router.push({ name: 'myQuotes', query: { openPopup: 'true' } });
+}
+
 </script>
 
 

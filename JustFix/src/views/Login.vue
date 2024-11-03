@@ -62,8 +62,8 @@
 </template>
 <script>
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, } from '../main'; // Adjust the import to your Firebase configuration
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore'; // Ensure proper Firestore import
+import { auth, db } from '../main'; // Adjust the import to your Firebase configuration
+import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore'; // Ensure proper Firestore import
 import Cookies from 'js-cookie'; // If using cookies
 
 
@@ -77,14 +77,17 @@ export default {
         };
     },
     methods: {
-
         async login() {
             this.errorMessage = ''; // Clear previous error messages
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password);
+                const user = userCredential.user;
+                // Update the lastLogin field in Firestore
+                await this.updateLastLogin(user.uid);
+                await this.updateStatus(user.uid, "Active"); // Optionally set status to "Active"
                 await this.retrieveUsername(this.email);
                 if (this.rememberMe) {
-                    Cookies.set('uid', userCredential.user.uid);
+                    Cookies.set('uid', userCredential.user.uid, { expires: 7 });
                 }
                 sessionStorage.setItem('uid', userCredential.user.uid);
                 window.location.href = '/';
@@ -92,6 +95,26 @@ export default {
                 // this.errorMessage = error.message || 'Invalid login credentials';
                 // Call the method to show the toast notification
                 this.showNotification("Invalid Login Credentials", 'alert');
+            }
+        },
+        async updateLastLogin(uid) {
+            try {
+                const userDoc = doc(db, "users", uid);
+                await updateDoc(userDoc, {
+                    lastLogin: new Date() // Set lastLogin to the current date and time
+                });
+            } catch (error) {
+                console.error("Error updating lastLogin:", error);
+            }
+        },
+        async updateStatus(uid, status) {
+            try {
+                const userDoc = doc(db, "users", uid);
+                await updateDoc(userDoc, {
+                    status: status
+                });
+            } catch (error) {
+                console.error("Error updating status:", error);
             }
         },
         showNotification(message, type) {
@@ -133,13 +156,15 @@ export default {
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const userName = data.name; // Adjust to your actual field name
+                    console.log(data);
                     if (this.rememberMe) {
                         Cookies.set('username', userName, { expires: 7 }); // Set the username in a cookie
                         Cookies.set('profilePic', data.imageUrl, { expires: 7 })
+                        Cookies.set('userType', data.userType, { expires: 7 })
                     }
                     sessionStorage.setItem('username', userName);
                     sessionStorage.setItem('profilePic', data.imageUrl);
-                    // store.dispatch('updateUserName', userName); // Update the Vuex store with the username
+                    sessionStorage.setItem('userType', data.userType);
                 });
             } catch (error) {
                 console.error('Error retrieving username:', error);

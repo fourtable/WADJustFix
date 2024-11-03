@@ -19,17 +19,6 @@
 
       <!-- Repairer-specific Fields -->
       <div v-if="profile.userType === 'repairer'">
-        <!-- <div class="mb-3">
-          <label for="experience" class="form-label">Years of Experience</label>
-          <select id="experience" v-model="profile.experience" class="form-control">
-            <option value="" disabled>Select</option>
-            <option value="0">Less than 1 year</option>
-            <option value="1">1-3 years</option>
-            <option value="2">3-5 years</option>
-            <option value="4">More than 5 years</option>
-          </select>
-        </div> -->
-
         <!-- Expertise Checkboxes -->
         <div class="mb-3">
           <label class="form-label">Area of Expertise</label>
@@ -101,13 +90,15 @@ export default {
       },
       profilePicFile: null,
       expertiseList: [
-        "Home Appliances (e.g, Microwaves, Ovens, etc.)",
-        "Devices (e.g, Phones, Computers, etc.)",
-        "Networking Devices (e.g, Routers, Modems, etc.)",
-        "Photography Equipment (e.g, Cameras, Drones, etc.)",
-        "Audio/Visual Equipment (e.g, Speakers, Projectors, etc.)",
-        "Printers and Scanners (e.g, Inkjet, Printer, etc.)",
-      ],
+                "Home Appliances (e.g Microwaves, Washing Machines, etc.)",
+                "Electrical Systems and Fixtures (e.g Lighting, Wiring, etc.)",
+                "Electronics Repair (e.g Devices, TVs, etc.)",
+                "Plumbing (e.g Toilets, Heaters, etc.)",
+                "Air Conditioners (e.g Repairing, Maintaining, etc.)",
+                "Furnitures (e.g Shelves, Tables, etc.)",
+                "Windows and Doors (e.g Locks, Window Frames, etc.)",
+                "Automative Repairs (e.g Tires, Brakes, etc.)"
+            ]
     };
   },
   methods: {
@@ -118,100 +109,100 @@ export default {
       return window.URL.createObjectURL(file); // Fix for createObjectURL
     },
     async updateProfile() {
-  try {
-    const user = auth.currentUser;
-    if (!user) {
-      throw new Error('User is not authenticated.');
-    }
-    const userId = user.uid;
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error('User is not authenticated.');
+        }
+        const userId = user.uid;
 
-    // Ensure expertise is always an array before processing
-    if (!Array.isArray(this.profile.expertise)) {
-      this.profile.expertise = [];
-    }
-
-    // Include other expertise if checked
-    if (this.profile.otherChecked && this.profile.otherExpertise) {
-      this.profile.expertise.push(this.profile.otherExpertise);
-    }
-
-    // Upload profile picture if a new one is selected
-    if (this.profilePicFile) {
-      const profilePicRef = storageRef(storage, `profile_pics/${userId}.jpg`);
-      await uploadBytes(profilePicRef, this.profilePicFile);
-      this.profile.imageUrl = await getDownloadURL(profilePicRef);
-    }
-
-    // Prepare fields to update, only add fields if they are defined
-    const updatedProfile = {};
-
-    if (this.profile.name) {
-      updatedProfile.name = this.profile.name;
-    }
-
-    if (this.profile.userType) {
-      updatedProfile.userType = this.profile.userType;
-    }
-
-    if (this.profile.expertise && this.profile.expertise.length > 0) {
-      updatedProfile.expertise = this.profile.expertise;
-    }
-
-    if (this.profile.description) {
-      updatedProfile.description = this.profile.description;
-    }
-
-    if (this.profile.imageUrl) {
-      updatedProfile.imageUrl = this.profile.imageUrl;
-    }
-
-    // Only include experience if the user is a repairer
-    if (this.profile.userType === 'repairer' && this.profile.experience) {
-      updatedProfile.experience = this.profile.experience;
-    }
-
-    // Update Firestore
-    const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, updatedProfile);
-
-    console.log('Profile updated successfully');
-    alert('Profile updated');
-    await this.fetchUserProfile(userId);
-
-    // Emit the updated profile info (username and profile image) to be used in other components like Navbar
-    const event = new CustomEvent('profileUpdated', {
-      detail: {
-        username: this.profile.name,
-        profileImage: this.profile.imageUrl,
-      },
-    });
-    window.dispatchEvent(event);  // Dispatch event globally so other components like Navbar can listen to it.
-
-  } catch (error) {
-    console.error('Error updating profile:', error.message);
-  }
-}
-
-
-,
-    async fetchUserProfile(uid) {
-      const userDoc = await getDoc(doc(db, 'users', uid));
-      if (userDoc.exists()) {
-        this.profile = userDoc.data();
-
-        // Ensure `expertise` is an array
+        // Ensure expertise is always an array before processing
         if (!Array.isArray(this.profile.expertise)) {
           this.profile.expertise = [];
         }
 
-        // Only process expertise if the user is a repairer
-        if (this.profile.userType === 'repairer') {
-          if (this.profile.expertise.includes(this.profile.otherExpertise)) {
-            this.profile.otherChecked = true;
-          }
-        } else {
-          this.profile.expertise = []; // Ensure expertise is empty for non-repairers
+        // Include other expertise if checked
+        if (this.profile.otherChecked && this.profile.otherExpertise) {
+          this.profile.expertise.push(this.profile.otherExpertise);
         }
+
+        // Remove parentheses from each expertise item for storage in Firebase
+        let cleanedExpertise = Array.from(
+          new Set(this.profile.expertise.map(expertise => 
+            expertise.replace(/\s*\(.*?\)/, '').trim()
+          ))
+        );
+
+        // Upload profile picture if a new one is selected
+        if (this.profilePicFile) {
+          const profilePicRef = storageRef(storage, `profile_pics/${userId}.jpg`);
+          await uploadBytes(profilePicRef, this.profilePicFile);
+          this.profile.imageUrl = await getDownloadURL(profilePicRef);
+        }
+
+        // Prepare fields to update
+        const updatedProfile = {
+          name: this.profile.name,
+          userType: this.profile.userType,
+          expertise: cleanedExpertise, // Use cleaned expertise here
+          description: this.profile.description,
+          imageUrl: this.profile.imageUrl,
+        };
+
+        // Only include experience if the user is a repairer
+        if (this.profile.userType === 'repairer' && this.profile.experience) {
+          updatedProfile.experience = this.profile.experience;
+        }
+
+        // Update Firestore
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, updatedProfile);
+
+        console.log('Profile updated successfully');
+        alert('Profile updated');
+        await this.fetchUserProfile(userId);
+
+        // Emit the updated profile info to other components
+        const event = new CustomEvent('profileUpdated', {
+          detail: {
+            username: this.profile.name,
+            profileImage: this.profile.imageUrl,
+          },
+        });
+        window.dispatchEvent(event);
+
+      } catch (error) {
+        console.error('Error updating profile:', error.message);
+      }
+    },
+
+    async fetchUserProfile(uid) {
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+
+        // Transform the stored expertise to match expertiseList items with parentheses
+        const storedExpertise = userData.expertise || [];
+        const expertiseWithParentheses = storedExpertise.map((item) => {
+          // Find a matching item in the expertiseList
+          const matchedExpertise = this.expertiseList.find((expertise) =>
+            expertise.startsWith(item.trim())
+          );
+          return matchedExpertise || item; // If no match found, fallback to item itself
+        });
+
+        // Load profile data, including expertise with parentheses for checkbox display
+        this.profile = {
+          ...this.profile,
+          name: userData.name,
+          userType: userData.userType,
+          experience: userData.experience || '',
+          description: userData.description || '',
+          expertise: Array.from(new Set(expertiseWithParentheses)), // Ensure unique expertise
+          otherChecked: userData.otherExpertise ? true : false,
+          otherExpertise: userData.otherExpertise || '',
+          imageUrl: userData.imageUrl || ''
+        };
       } else {
         console.error('No user data found!');
       }
