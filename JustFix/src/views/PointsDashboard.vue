@@ -43,12 +43,12 @@
       </div>
 
       <!-- How to Earn More Points - Card 4 -->
-      <div class="col-md-3 dashboard-section">
+      <!-- <div class="col-md-3 dashboard-section">
           <div class="earn-points-card">
               <h5>Earn More Points By Participating In Events (for users)</h5>
               <p>Join our events to get bonus points.</p>
           </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

@@ -1,15 +1,15 @@
 <template>
     <div class="container py-5" id="redeem-rewards">
   
-      <div class="text-center mb-5">
+      <div class="text-center mb-5 points-header">
         <h2>Your Points: {{ userPoints }}</h2>
       </div>
   
       <div class="rewards-list row">
         <div class="col-lg-4 col-md-6 col-sm-12 mb-4" v-for="reward in rewards" :key="reward.id">
-          <div class="card h-200">
+          <div class="card h-100">
             <img :src="reward.imageURL" class="card-img-top" alt="Reward Image" 
-            style="object-fit: cover; border-radius: 15px 15px 0 0;">
+            style="object-fit: cover; border-radius: 15px 15px 0 0; height: 200px;">
             <div class="card-body d-flex flex-column">
               <h5 class="card-title">{{ reward.name }}</h5>
               <p class="card-text">{{ reward.description }}</p>
@@ -168,6 +168,11 @@ import { merge } from "chart.js/helpers";
 .container {
   max-width: 900px;
   margin: auto;
+  padding-top: 80px;
+}
+
+.points-header{
+  margin-top: 30px
 }
 
 .rewards-list {
@@ -181,7 +186,7 @@ import { merge } from "chart.js/helpers";
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s, box-shadow 0.3s;
-  height: 100%;
+  min-height: 100%;
 }
 
 .card:hover {
@@ -193,6 +198,8 @@ import { merge } from "chart.js/helpers";
   display: flex;
   flex-direction: column;
   padding: 20px;
+  justify-content: space-between;
+  min-height: 250px;
 }
 
 .card-title {
