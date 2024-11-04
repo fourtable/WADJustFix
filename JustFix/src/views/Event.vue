@@ -7,15 +7,26 @@
     
     <!-- Filters Section -->
     <div class="d-flex align-items-center gap-4 mb-4">
-      <!-- Near Me Filter -->
-      <div class="d-flex align-items-center">
-        <input type="checkbox" id="nearMe" v-model="nearMe" class="form-check-input" @change="applyFilters">
-        <label class="form-check-label" for="nearMe">Near me</label>
+      <!-- Region Filter -->
+      <div>
+        <label class="filter-title fw-bold d-block mb-1">Region</label>
+        <select v-model="selectedRegion" @change="applyFilters" class="form-select">
+          <option value="all">All</option>
+          <option value="North">North</option>
+          <option value="South">South</option>
+          <option value="East">East</option>
+          <option value="West">West</option>
+          <option value="North-East">North-East</option>
+          <option value="North-West">North-West</option>
+          <option value="South-East">South-East</option>
+          <option value="South-West">South-West</option>
+          <option value="Central">Central</option>
+        </select>
       </div>
 
       <!-- Price Filter -->
-      <div>
-        <label class="filter-title fw-bold d-block mb-1">Price</label>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <label class="filter-title fw-bold d-block mb-1 ">Price</label>
         <div class="d-flex align-items-center input-group">
             <input 
               type="number" 
@@ -38,13 +49,19 @@
       </div>
 
       <!-- Event Status Filter -->
-      <div>
+      <div class="col-12 col-sm-6 col-lg-3">
         <label class="filter-title fw-bold d-block mb-1">Event Status:</label>
         <select v-model="selectedStatus" @change="applyFilters" class="form-select">
           <option value="all">All</option>
           <option value="Open">Open</option>
           <option value="Closing Soon">Closing Soon</option>
         </select>
+      </div>
+
+      <!-- Event Date Filter -->
+      <div class="col-12 col-sm-6 col-lg-3">
+        <label for="eventDate" class="filter-title fw-bold d-block mb-1">Event Date:</label>
+        <input type="date" @change="applyFilters" v-model="eventDate" class="form-control" required />
       </div>
     </div>
 
@@ -62,7 +79,6 @@
       v-if="isModalVisible"
       :event="selectedEvent"
       @close="isModalVisible = false"
-      @signUp="navigateToSignUp"
     />
     <!-- Apply to Host an Event Section -->
   <div class="organise-info-section">
@@ -98,6 +114,8 @@ export default {
       nearMe: false,
       priceRange: { min: 0, max: 500 },
       selectedStatus: "all",
+      selectedRegion: "all", // Set default to "all"
+      eventDate:null,
       userLocation: null,
       events: [], // Stores all events fetched from Firebase
       filteredEvents: [] // Stores events filtered based on selected criteria
@@ -128,33 +146,53 @@ export default {
       this.isModalVisible = true;
     },
     navigateToSignUp(eventId) {
-      this.$router.push({ name: 'SignUpPage', params: { eventId } });
+      this.$router.push({ name: 'eventSignup', params: { eventId } });
     },
     async fetchEvents() {
       // Fetch all events from Firestore
       const eventsRef = collection(db, "events");
       const snapshot = await getDocs(eventsRef);
-      this.events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const geocodedEvents = await Promise.all(snapshot.docs.map(async doc => {
+      const event = { id: doc.id, ...doc.data() };
+      const coordinates = await this.getCoordinatesFromAddress(event.address);
+      event.coordinates = coordinates;
+      event.region = this.getRegionFromCoordinates(coordinates);
+      return event;
+    }));
+      this.events = geocodedEvents;
+      this.applyFilters();
       console.log("Loaded Events:", this.events);
     },
+    async getCoordinatesFromAddress(address) {
+    const apiKey = 'AIzaSyAe51tIu9Mpq06AxiZRLbiziX_NH2X6cLw';
+    const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`);
+    const data = await response.json();
+    if (data.results && data.results.length > 0) {
+      const location = data.results[0].geometry.location;
+      return { lat: location.lat, lng: location.lng };
+    } else {
+      console.error("Geocoding failed for address:", address);
+      return null;
+    }
+  },
     applyFilters() {
-       console.log("Applying Filters:", {
+      console.log("Applying Filters:", {
       priceRange: this.priceRange,
       selectedStatus: this.selectedStatus,
       nearMe: this.nearMe,
+      eventDate: this.eventDate,
    });
       // Filter based on price
       this.filteredEvents = this.events.filter(event => {
         const matchesPrice = 
-         event.price >= this.priceRange.min && 
-         event.price <= this.priceRange.max;
+          event.price >= this.priceRange.min && 
+          event.price <= this.priceRange.max;
+        const matchesStatus = this.filterByStatus(event);
+        const matchesRegion = this.filterByRegion(event);
+      const matchesDate = this.filterByDate(event);
 
-      const matchesStatus = this.filterByStatus(event);
 
-      // Uncomment location filter if using geolocation
-      // const matchesLocation = this.filterByLocation(event);
-
-      return matchesPrice && matchesStatus; // && matchesLocation;
+        return matchesPrice && matchesStatus && matchesDate && matchesRegion;
       });
       console.log("Filtered Events:", this.filteredEvents);
     },
@@ -168,45 +206,42 @@ export default {
       }
       return true
     },
-    // filterByLocation(event) {
-    //   if (!this.nearMe || !this.userLocation) return true;
-    //   const distance = this.calculateDistance(
-    //     this.userLocation.lat,
-    //     this.userLocation.lng,
-    //     event.location.lat,
-    //     event.location.lng
-    //   );
-    //   return distance <= 10; // Only shows events within 10 km
-    // },
-    // calculateDistance(lat1, lon1, lat2, lon2) {
-    //   const R = 6371; // Radius of the earth in km
-    //   const dLat = this.deg2rad(lat2 - lat1);
-    //   const dLon = this.deg2rad(lon2 - lon1);
-    //   const a =
-    //     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    //     Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
-    //     Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    //   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    //   return R * c; // Distance in km
-    // },
-    // deg2rad(deg) {
-    //   return deg * (Math.PI / 180);
-    // },
-    // initializeGeolocation() {
-    //   if (navigator.geolocation) {
-    //     navigator.geolocation.getCurrentPosition(
-    //       position => {
-    //         this.userLocation = {
-    //           lat: position.coords.latitude,
-    //           lng: position.coords.longitude
-    //         };
-    //       },
-    //       error => {
-    //         console.error("Error getting location:", error);
-    //       }
-    //     );
-    //   }
-    // }
+    filterByRegion(event) {
+      if (this.selectedRegion === "all") return true;
+      return event.region === this.selectedRegion;
+    },
+    getRegionFromCoordinates(coordinates) {
+    const { lat, lng } = coordinates;
+
+    // Define approximate lat/lng ranges for each region in Singapore
+    if (lat >= 1.35 && lat <= 1.45 && lng >= 103.75 && lng <= 103.85) return "North";
+    if (lat >= 1.35 && lat <= 1.45 && lng >= 103.85 && lng <= 103.95) return "North-East";
+    if (lat >= 1.30 && lat <= 1.40 && lng >= 103.70 && lng <= 103.80) return "North-West";
+    if (lat >= 1.25 && lat <= 1.35 && lng >= 103.75 && lng <= 103.85) return "Central";
+    if (lat >= 1.30 && lat <= 1.40 && lng >= 103.90 && lng <= 104.00) return "East";
+    if (lat >= 1.25 && lat <= 1.35 && lng >= 103.65 && lng <= 103.75) return "West";
+    if (lat >= 1.20 && lat <= 1.30 && lng >= 103.90 && lng <= 104.00) return "South-East";
+    if (lat >= 1.20 && lat <= 1.30 && lng >= 103.65 && lng <= 103.75) return "South-West";
+    if (lat >= 1.20 && lat <= 1.28 && lng >= 103.75 && lng <= 103.85) return "South";
+    return "Unknown";
+},
+    filterByDate(event) {
+      if (!this.eventDate) return true;
+      
+      // Convert the selected date from input to Timestamp
+      const selectedDate = Timestamp.fromDate(new Date(this.eventDate));
+      
+      // Convert timestamps to Date objects for comparison
+      const eventDate = event.eventDate.toDate();
+      const inputDate = selectedDate.toDate();
+      
+      // Set time to start of day for both dates for comparison
+      eventDate.setHours(0, 0, 0, 0);
+      inputDate.setHours(0, 0, 0, 0);
+      
+      // Compare the dates
+      return eventDate.getTime() === inputDate.getTime();
+    }
   }
 };
 </script>

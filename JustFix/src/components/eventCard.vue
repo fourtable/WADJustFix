@@ -44,10 +44,18 @@ export default {
       const twoWeeksBeforeDeadline = new Date(registrationDeadline.getTime() - 14 * 24 * 60 * 60 * 1000);
       return today >= twoWeeksBeforeDeadline && today < registrationDeadline;
     },
+    // Check if the event is closed (past registration deadline)
+    isClosed() {
+      const today = new Date();
+      const registrationDeadline = this.event.registrationDeadline.toDate();
+      return today > registrationDeadline;
+    },
     badgeText() {
+      if (this.isClosed) return "Closed";
       return this.isClosingSoon ? "Closing soon" : "Open";
     },
     badgeClass() {
+      if (this.isClosed) return "badge-secondary";
       return this.isClosingSoon ? "badge-danger" : "badge-success";
     }
   },
@@ -96,5 +104,9 @@ h5{
 }
 .badge-success {
   background-color: #5cb85c;
+}
+.badge-secondary {
+  background-color: #6c757d;
+  color: white;
 }
 </style>
