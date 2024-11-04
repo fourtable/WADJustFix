@@ -33,7 +33,6 @@
   import { auth, db } from "../main";
   import { collection, getDocs, doc, updateDoc, query, where, orderBy} from "firebase/firestore";
   import { onAuthStateChanged } from "firebase/auth";
-  import NavBar from "../components/newNavbar.vue";
   
   export default {
     setup() {
