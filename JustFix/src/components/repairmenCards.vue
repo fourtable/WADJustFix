@@ -44,7 +44,7 @@ const openQuotesListPopup = () => {
     }
     else {
         router.push({
-            name: 'login'
+            name: 'viewProfile', params: { id: userId }
         });
     }
 };
@@ -123,6 +123,15 @@ const toggleExpertise = (expertise) => {
         }
     }
 };
+
+const navigateToProfile = (userId) => {
+    console.log('Navigating to profile with ID:', userId); // Debug line
+    router.push({
+        name: 'viewProfile', // Make sure this matches the name of your route
+        params: { id: userId } // Pass the repairman ID as a parameter
+    });
+};
+
 
 // Clear all selections
 const clearSelections = () => {
