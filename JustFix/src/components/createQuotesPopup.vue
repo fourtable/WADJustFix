@@ -14,7 +14,7 @@
             <h5 class="modal-title" id="popupFormLabel">Create Quote</h5>
             <button type="button" class="btn-close" @click="closeModal" aria-label="Close"></button>
           </div>
-          <div class="modal-body">
+          <div class="modal-body" style="text-align: left;">
             <form @submit.prevent="handleSubmit">
               <!-- Item Name -->
               <div class="mb-3">

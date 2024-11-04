@@ -14,6 +14,7 @@
                                 <div class="chat-info">
                                     <strong>{{ contact.otherUserName }}</strong>
                                     <small class="d-block text-muted">{{ contact.status }}</small>
+                                    <span v-if="contact.unreadCount > 0"> ({{ contact.unreadCount }})</span>
                                 </div>
                             </li>
                         </ul>
@@ -32,7 +33,7 @@
                         </div>
                         <div v-else>
                             <div v-for="message in chatHistory" :key="message.id"
-                                :class="{ 'chat-message-right': message.senderId === user.uid, 'chat-message-left': message.senderId !== user.uid }">
+                                :class="{ 'chat-message-right': message.senderId === uid, 'chat-message-left': message.senderId !== uid }">
                                 <img :src="message.photoURL" width="40" height="40" class="rounded-circle">
 
                                 <div v-if="message.quoteData" @click="openQuoteDetails(message.quoteData, message.id)">
@@ -105,7 +106,7 @@ import { db, auth, realtimeDb } from "../main"; // Ensure your Firebase setup is
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, collection, query, getDocs, where, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc, deleteDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
-import { ref as dbRef, set, onValue, push } from 'firebase/database';
+import { ref as dbRef, get, query as dbquery, set, onValue, update, push, remove } from 'firebase/database';
 
 const route = useRoute();
 const store = useStore();
@@ -114,7 +115,6 @@ const contacts = ref([]);
 const chatHistory = ref([]);
 const newMessage = ref('');
 const selectedContact = ref(null);
-const isRepairerStatus = ref(false); // New reactive variable to store isRepairer result
 const messagesContainer = ref(null);
 
 // Populating receiver details from route
@@ -159,7 +159,7 @@ async function acceptQuote() {
 
         await updateDoc(quoteDocRef, {
             repairerId: uid, // Update repairerId with the current user's ID
-            repairerName : username,
+            repairerName: username,
             status: 'In Progress',
         });
 
@@ -186,7 +186,7 @@ async function rejectQuote() {
         await sendNotification(selectedQuote.value.userId, "Quote rejected", username);
         closeQuoteDetails();
         await deleteDoc(messageDocRef);
-    }catch (error) {
+    } catch (error) {
         console.error("Error deleting message:", error);
     }
     // closeQuoteDetails(); // Optionally close the modal after rejecting
@@ -212,34 +212,35 @@ onMounted(() => {
     if (contactId.value != null) {
         loadChatHistory(contactId.value, uid);
     }
-    isRepairerStatus.value = isRepairer(uid);
-
 });
 
+// Load contacts the user has recently chatted with
+const fetchUnreadMessagesCount = async (userId, otherUserId) => {
+    const notificationsRef = dbRef(realtimeDb, `notifications/${otherUserId}`); // Notifications for the other user
+    const unreadCount = ref(0);
 
+    // Count unread messages where the sender is the current user and read is false
+    onValue(notificationsRef, (snapshot) => {
+        unreadCount.value = 0; // Reset unread count
 
-const isRepairer = async (userId) => {
-    try {
-        // Reference to the specific user's document
-        console.log(userId);
-        const userDocRef = doc(db, 'users', userId);
-        const userDoc = await getDoc(userDocRef);
-
-        if (userDoc.exists() && userDoc.data().userType === "repairer") {
-            return true;
+        if (snapshot.exists()) {
+            snapshot.forEach(childSnapshot => {
+                const notificationData = childSnapshot.val();
+                if (notificationData.senderId === userId && notificationData.read === false) {
+                    unreadCount.value++;
+                }
+            });
         }
-        return false;
-    } catch (error) {
-        console.error('Error fetching userType:', error);
-        return null;
-    }
+    });
+
+    return unreadCount; // Return the reactive unread count reference
 };
 
-// Load contacts the user has recently chatted with
+// Modify loadContacts to show unread message count on the receiver's side
 const loadContacts = () => {
     const contactsQuery = query(
         collection(db, 'contacts'),
-        where('userIds', 'array-contains', uid), // Check if user ID is in the userIds array
+        where('userIds', 'array-contains', uid), // Current user's ID
         orderBy('lastMessageTime', 'desc')
     );
 
@@ -247,37 +248,41 @@ const loadContacts = () => {
         console.log("Raw Query Snapshot:", snapshot.docs.map(doc => doc.data()));
         contacts.value = snapshot.empty
             ? []
-            : await Promise.all(snapshot.docs.map(async docs => {
+            : await Promise.all(snapshot.docs.map(async (docs) => {
                 const data = docs.data();
                 const otherUserId = data.userIds.find(id => id !== uid); // Get the other user ID
 
                 // Retrieve the imageUrl for the other user
                 const userDocRef = doc(db, 'users', otherUserId);
+                let otherUserName = null;
+                let otherUserImageUrl = null;
+
                 try {
                     const userDoc = await getDoc(userDocRef);
-                    const otherUserName = userDoc.exists() ? userDoc.data().name : null;
-                    const otherUserImageUrl = userDoc.exists() ? userDoc.data().imageUrl : null; // Get imageUrl
-
-                    return {
-                        id: doc.id,
-                        ...data,
-                        otherUserName,
-                        otherUserId, // Add other user ID to the contact object
-                        otherUserImageUrl // Add imageUrl to the contact object
-                    };
+                    if (userDoc.exists()) {
+                        otherUserName = userDoc.data().name;
+                        otherUserImageUrl = userDoc.data().imageUrl;
+                    }
                 } catch (error) {
                     console.error("Error retrieving user document:", error);
-                    return {
-                        id: doc.id,
-                        ...data,
-                        otherUserId,
-                        otherUserName,
-                        otherUserImageUrl: null // Fallback if user document can't be retrieved
-                    };
                 }
+
+                // Fetch the unread messages count for the other user (receiver)
+                const unreadCount = await fetchUnreadMessagesCount(otherUserId, uid); // Fetch unread count for the receiver
+
+                return {
+                    id: doc.id,
+                    ...data,
+                    otherUserName,
+                    otherUserId,
+                    otherUserImageUrl,
+                    unreadCount // Include the unread message count
+                };
             }));
     });
 };
+
+loadContacts();
 
 // Load chat history with a selected contact
 const loadChatHistory = async (contactId, uid) => {
@@ -308,7 +313,7 @@ const selectContact = async (contact) => {
         // Query to find the contact document that includes the current user ID
         const contactsQuery = query(
             collection(db, 'contacts'),
-            where('userIds', 'array-contains', [uid, contact.otherUserId]) // Check if uid is in the userIds array
+            where('userIds', 'array-contains', uid) // Check if uid is in the userIds array
         );
         const querySnapshot = await getDocs(contactsQuery);
         let receiverId = null;
@@ -316,13 +321,13 @@ const selectContact = async (contact) => {
         // Loop through the matching documents
         querySnapshot.forEach(doc => {
             const data = doc.data();
-            if (data.userIds.includes(contact)) {
+            if (data.userIds.includes(contact.otherUserId)) {
                 // Get the other user ID in the array that is not the current user ID
                 receiverId = data.userIds.find(id => id !== uid);
             }
         });
 
-        if (contactId) {
+        if (receiverId) {
             // If receiverId is found, load the repairer data
             const contactDocRef = doc(db, 'users', contact.otherUserId);
             const contactDoc = await getDoc(contactDocRef);
@@ -332,7 +337,10 @@ const selectContact = async (contact) => {
                 contactId.value = contact.otherUserId;
                 contactName.value = contactData.name; // Assuming the field is 'name'
                 contactPic.value = contactData.imageUrl; // Assuming the field is 'photoURL'
-                loadChatHistory(contact.otherUserId, uid); // Load chat history for the receiver
+                // Load chat history for the receiver
+                loadChatHistory(contact.otherUserId, uid);
+                // Delete unread messages
+                resetUnreadMessages(uid); // Update to delete unread messages for this contact
             } else {
                 console.log('No such document for repairer!');
             }
@@ -343,6 +351,36 @@ const selectContact = async (contact) => {
         console.error("Error selecting contact:", error);
     }
 };
+
+// Function to delete unread messages
+const resetUnreadMessages = async (receiverId) => {
+    const notificationsRef = dbRef(realtimeDb, `notifications/${receiverId}`); // Get notifications for the current user
+
+    // Retrieve the notifications
+    const snapshot = await get(notificationsRef);
+    if (snapshot.exists()) {
+        const updates = {};
+
+        snapshot.forEach(childSnapshot => {
+            const notificationData = childSnapshot.val();
+            const notificationKey = childSnapshot.key;
+
+            // Check if the senderId matches the contactId
+            if (notificationData.senderId === contactId.value) {
+                updates[notificationKey] = { ...notificationData, read: true }; // Set read to true
+            }
+        });
+
+        // Update notifications in bulk if there are any updates
+        if (Object.keys(updates).length > 0) {
+            await update(notificationsRef, updates);
+            console.log(`Marked notifications as read for senderId: ${contactId}`);
+        }
+    } else {
+        console.log('No notifications found for the user.');
+    }
+};
+
 
 
 // Format timestamp for display
@@ -423,9 +461,11 @@ const sendNotification = async (receiverId, message, name) => {
     const notificationRef = dbRef(realtimeDb, `notifications/${receiverId}`);
     await push(notificationRef, {
         notificationType: 'message',
+        senderId: uid,
         senderName: name,
         message: message,
         timestamp: new Date().toISOString(),
+        read: false,
     });
     console.log('Notification sent to:', receiverId);
 };

@@ -112,7 +112,7 @@ const sendQuotes = async () => {
 const sendQuoteToRepairer = async (quote, repairerId, senderId, senderPic, senderName) => {
     try {
         const repairerQuotesRef = collection(db, 'chats');
-        await addDoc(repairerQuotesRef, {
+        const newQuote = {
             participants: [senderId, repairerId],
             photoURL: senderPic,
             repairerId: repairerId,
@@ -122,27 +122,40 @@ const sendQuoteToRepairer = async (quote, repairerId, senderId, senderPic, sende
             quoteId: quote.id,
             quoteData: quote, // You may want to store specific fields instead
             timestamp: new Date()
-        });
+        };
+
+        // Add the new quote to the chats collection
+        await addDoc(repairerQuotesRef, newQuote);
+        
+        // Send notification to repairer
         await sendNotification(repairerId, "You have a quote request", senderName);
+
         const arrayIds = [repairerId, senderId];
         const contactsQuery = query(
             collection(db, 'contacts'),
             where('userIds', '==', arrayIds),
         );
+
         const querySnapshot = await getDocs(contactsQuery);
 
         if (querySnapshot.empty) {
-            // If no existing contact, add new with userIds as an array
-            console.log('Adding contacts')
+            // If no existing contact, add new with userIds as an array and unreadCount initialized to 1
+            console.log('Adding contacts');
             await addDoc(collection(db, 'contacts'), {
                 userIds: arrayIds,
                 lastMessageTime: serverTimestamp(),
+                unreadCount: 1,  // Initialize unread count to 1
             });
         } else {
-            // Update the lastMessageTime for the existing contact
-            console.log('not adding contacts')
-            await updateDoc(querySnapshot.docs[0].ref, { lastMessageTime: serverTimestamp() });
+            // Update the lastMessageTime and increment the unread count for the existing contact
+            console.log('Updating existing contact');
+            const contactRef = querySnapshot.docs[0].ref;
+            await updateDoc(contactRef, {
+                lastMessageTime: serverTimestamp(),
+                unreadCount: increment(1) // Increment the unread count
+            });
         }
+        
         console.log(`Quote sent to repairer ${repairerId}`);
     } catch (error) {
         console.error("Error sending quote to repairer:", error);

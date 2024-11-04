@@ -30,11 +30,11 @@
           <div class="button-container" v-if="quote.status == 'Completed'">
             <button class="btn btn-primary btn-sm table-button" @click="reviewQuote(quote)">Review</button>
           </div>
-          <div class="button-container" v-if="quote.userId == uid">
+          <div class="button-container" v-if="quote.userId == uid && quote.status!= 'Completed'">
             <button class="btn btn-warning btn-sm table-button" @click="editQuote(quote)" :disabled="quote.repairerName">Edit</button>
             <button class="btn btn-danger btn-sm table-button" @click="deleteQuote(quote.id)" :disabled="quote.repairerName">Delete</button>
           </div>
-          <div class="button-container" v-if="quote.repairerId == uid && quote.status == 'In Progress'">
+          <div class="button-container" v-if="quote.repairerId == uid && quote.status == 'In Progress' ">
             <button class="btn btn-success btn-sm table-button" @click="CompleteQuote(quote)">Completed</button>
             <button class="btn btn-danger btn-sm table-button" @click="RejectQuote(quote.id)">Reject</button>
           </div>
