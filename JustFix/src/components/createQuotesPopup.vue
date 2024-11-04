@@ -60,7 +60,7 @@
 
 <script>
 import { db, storage } from '../main';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Cookies from 'js-cookie';
 import { ref, defineEmits } from 'vue';
@@ -135,6 +135,7 @@ export default {
           description: this.formData.description,
           userId: uid,
           repairerId: '',
+          timestamp: serverTimestamp(),
         });
 
         console.log('Quote saved successfully');

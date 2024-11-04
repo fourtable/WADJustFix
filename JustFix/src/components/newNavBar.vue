@@ -21,6 +21,9 @@
                 <li v-if="type === 'admin'">
                     <router-link class="link" :to="{ name: 'users' }">Users</router-link>
                 </li>
+                <li v-if="type === 'admin'">
+                    <router-link class="link" :to="{ name: 'approveEvent' }">Approval</router-link>
+                </li>
             </ul>
             <ul v-if="!username && !mobile" class="navigation auth-buttons">
                 <li>
@@ -59,7 +62,7 @@
                 <div class="fixer-text">Fixer</div>
                 <i class="fas fa-wrench fixer-icon"></i>
             </div>
-            <div v-if="type == 'user' && !mobile" class="customer-icon-container">
+            <div v-if="type == 'user' && !mobile" class="customer-icon-container animate__animated animate__fadeIn animate__delay-1s">
                 <p class="customer-text animate__animated animate__fadeInUp">Customer</p>
                 <i class="fa fa-user customer-icon animate__animated animate__bounce"></i>
             </div>
@@ -83,6 +86,9 @@
                     </li>
                     <li v-if="type === 'admin'">
                         <router-link class="link" :to="{ name: 'users' }">Users</router-link>
+                    </li>
+                    <li v-if="type === 'admin'">
+                    <router-link class="link" :to="{ name: 'approveEvent' }">Approval</router-link>
                     </li>
                     <li v-if="uid">
                         <router-link class="link"
@@ -320,6 +326,7 @@ header {
 
         .fixer-container {
             display: flex; // Ensure it's displayed as flex
+            font-weight: bold;
             align-items: center; // Center items vertically
             margin-left: 1%; // Add a small margin to space it from the dropdown
             margin-right: 1%;
@@ -327,7 +334,7 @@ header {
         }
 
         .fixer-icon {
-            font-size: 4rem;
+            font-size: 1.5rem;
             /* Adjust icon size */
             color: #085C44;
             /* Bootstrap primary color */
@@ -338,7 +345,7 @@ header {
         }
 
         .fixer-text {
-            font-size: 3rem;
+            font-size: 2rem;
             color: #cdf696;
             /* Bootstrap primary color */
             transition: transform 0.3s ease, color 0.3s ease;
@@ -391,7 +398,7 @@ header {
         }
 
         .customer-icon {
-            font-size: 24px;
+            font-size: 1.5rem;
             /* Adjust size as needed */
             color: #2f855a;
             /* Customize color */
@@ -400,7 +407,7 @@ header {
         }
 
         .customer-text {
-            font-size: 18px;
+            font-size: 1.5rem;
             /* Customize as desired */
             font-weight: bold;
             color: #2f855a;

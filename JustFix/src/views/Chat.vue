@@ -33,10 +33,53 @@
                         <div v-else>
                             <div v-for="message in chatHistory" :key="message.id"
                                 :class="{ 'chat-message-right': message.senderId === user.uid, 'chat-message-left': message.senderId !== user.uid }">
-                                <div>
-                                    <img :src="message.photoURL" width="40" height="40" class="rounded-circle">
+                                <img :src="message.photoURL" width="40" height="40" class="rounded-circle">
+
+                                <div v-if="message.quoteData" @click="openQuoteDetails(message.quoteData, message.id)">
+                                    <div class="card quote-card my-2">
+                                        <div class="card-header">
+                                            {{ message.quoteData.item }}
+                                        </div>
+
+                                        <div class="card-body p-2">
+                                            <img :src="message.quoteData.picture" class="card-img-top" alt="Quote Image"
+                                                style="max-height: 150px; object-fit: cover; width: 100%;">
+                                        </div>
+                                    </div>
+                                    <div class="message-content text-center">{{ message.text }}</div>
+                                    <small class="text-muted d-block text-end">{{ formatTimestamp(message.timestamp)
+                                        }}</small>
+                                </div>
+
+                                <div v-else>
                                     <div class="message-content">{{ message.text }}</div>
                                     <small class="text-muted">{{ formatTimestamp(message.timestamp) }}</small>
+                                </div>
+                            </div>
+
+                            <!-- Quote Details Modal (Moved Outside the Loop) -->
+                            <div class="modal fade" id="quoteDetailsModal" tabindex="-1"
+                                aria-labelledby="quoteDetailsModalLabel" aria-hidden="true" v-if="isModalOpen">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="quoteDetailsModalLabel">{{ selectedQuote.item }}
+                                            </h5>
+                                            <button type="button" class="btn-close" @click="closeQuoteDetails"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <img :src="selectedQuote.picture" class="img-fluid mb-3"
+                                                alt="Quote Image" />
+                                            <p><strong>Category:</strong> {{ selectedQuote.category }}</p>
+                                            <p><strong>Description:</strong> {{ selectedQuote.description }}</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-success"
+                                                @click="acceptQuote">Accept</button>
+                                            <button type="button" class="btn btn-danger"
+                                                @click="rejectQuote">Reject</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -44,7 +87,8 @@
                 </div>
             </div>
             <div class="input-group">
-                <input v-model="newMessage" type="text" class="form-control" placeholder="Click here to type" @keyup.enter="sendMessage"/>
+                <input v-model="newMessage" type="text" class="form-control" placeholder="Click here to type"
+                    @keyup.enter="sendMessage" />
                 <button @click="sendMessage" class="btn btn-success">
                     <i class="fa fa-paper-plane"></i>
                 </button>
@@ -59,7 +103,7 @@ import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import { db, auth, realtimeDb } from "../main"; // Ensure your Firebase setup is correctly imported
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, collection, query, getDocs, where, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, getDocs, where, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc, deleteDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import { ref as dbRef, set, onValue, push } from 'firebase/database';
 
@@ -80,6 +124,73 @@ const contactPic = ref(route.query.repairerPic); // Make it reactive
 const senderPic = sessionStorage.getItem('profilePic') || Cookies.get('profilePic');
 const username = Cookies.get('username') || sessionStorage.getItem('username');
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+const isModalOpen = ref(false);
+const selectedQuote = ref({});
+const messageId = ref();
+
+function openQuoteDetails(quoteData, msgId) {
+    selectedQuote.value = quoteData;
+    isModalOpen.value = true;
+    messageId.value = msgId;
+
+    // Wait for the next tick to ensure the modal is rendered
+    nextTick(() => {
+        const modalInstance = new bootstrap.Modal(document.getElementById('quoteDetailsModal'));
+        modalInstance.show();
+    });
+}
+
+function closeQuoteDetails() {
+    selectedQuote.value = {};
+    isModalOpen.value = false;
+    messageId.value = '';
+
+    // Hide Bootstrap modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('quoteDetailsModal'));
+    modal.hide();
+
+}
+
+async function acceptQuote() {
+    // Logic for accepting the quote
+    try {
+        // Update the quote in Firestore
+        const quoteDocRef = doc(db, 'quotes', selectedQuote.value.id); // Assuming selectedQuote.value.id is the document ID
+
+        await updateDoc(quoteDocRef, {
+            repairerId: uid, // Update repairerId with the current user's ID
+            repairerName : username,
+            status: 'In Progress',
+        });
+
+        console.log("Quote accepted and updated in Firestore:", selectedQuote.value);
+
+        // Optionally, you can close the modal after acceptance
+        await sendNotification(selectedQuote.value.userId, "Quote accepted", username);
+    } catch (error) {
+        console.error("Error updating quote:", error);
+    }
+    // You may want to save this state to your database or perform any other actions
+    // console.log("Quote accepted", selectedQuote);
+    closeQuoteDetails(); // Optionally close the modal after accepting
+}
+
+async function rejectQuote() {
+    // Logic for rejecting the quote
+    // console.log(messageId.value);
+    // closeQuoteDetails();
+    try {
+        const messageDocRef = doc(db, 'chats', messageId.value);
+        // // Delete the message
+        console.log("Quote rejected:", messageId.value);
+        await sendNotification(selectedQuote.value.userId, "Quote rejected", username);
+        closeQuoteDetails();
+        await deleteDoc(messageDocRef);
+    }catch (error) {
+        console.error("Error deleting message:", error);
+    }
+    // closeQuoteDetails(); // Optionally close the modal after rejecting
+}
 
 // Check authentication and fetch user data
 onAuthStateChanged(auth, async (currentUser) => {
@@ -104,6 +215,8 @@ onMounted(() => {
     isRepairerStatus.value = isRepairer(uid);
 
 });
+
+
 
 const isRepairer = async (userId) => {
     try {
@@ -453,5 +566,18 @@ const sendNotification = async (receiverId, message, name) => {
         /* Prevent button from shrinking */
         border-radius: 50% !important;
     }
+}
+
+.quote-card {
+    cursor: pointer;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: box-shadow 0.3s;
+    min-height: auto;
+}
+
+.quote-card:hover {
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }
 </style>
