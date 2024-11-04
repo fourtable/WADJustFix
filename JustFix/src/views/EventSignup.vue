@@ -1,6 +1,6 @@
 <template>
     <div class="container-fluid mt-5 p-5">
-      <h2>Host Your Own Event</h2>
+      <h2>Sign up</h2>
       <p>Are you a skilled repair expert? Want to share your expertise with others? Host your own event and inspire a community of learners! Click here to request to organize an event with us.</p>
   
       <form @submit.prevent="submitForm">
@@ -18,66 +18,16 @@
             <label for="email">Email</label>
             <input type="email" id="email" v-model="form.email" placeholder="Enter your Email" class="form-control" required>
         </div>
-        
-        <div class="mb-3">
-          <label for="category">Repair Category</label>
-          <div id="category">
-            <div v-for="(category, index) in categories" :key="index" class="form-check">
-                <input class="form-check-input" type="checkbox" :id="'category_' + index" :value="category" v-model="form.selectedCategories">
-                <label class="form-check-label" :for="'category_' + index">{{ category }}</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="other" v-model="form.otherChecked">
-                <label class="form-check-label" for="other">Others (please specify)</label>
-                <input v-if="form.otherChecked" type="text" v-model="form.otherCategory" class="form-control mt-2" placeholder="Enter your expertise">
-            </div>
-          </div>
-        </div>
-
-        <div class="mb-3">
-        <label for="title">Event Title</label>
-        <input type="text" v-model="form.title" class="form-control" required />
-      </div>
-
-        <div class="mb-3">
-          <label for="eventDate">Event Date and Time</label>
-          <input type="datetime-local" v-model="form.eventDate" class="form-control" required />
-        </div>
-
-        <div class="mb-3">
-          <label for="registrationDeadline">Registration Deadline</label>
-          <input type="date" v-model="form.registrationDeadline" class="form-control" required />
-        </div>
-
-        <div class="mb-3">
-          <label for="duration">Duration of event</label>
-          <input type="number" v-model="form.duration" class="form-control" required />
-        </div>
-
-
-        <div class="mb-3">
-          <label for="price">Pricing</label>
-          <input type="number" v-model="form.price" class="form-control" required />
-        </div>
-
-        <div class="mb-3">
-          <label for="price">Number of pax</label>
-          <input type="number" v-model="form.totalPax" class="form-control" required />
-        </div>
   
         <div class="mb-3">
-          <label for="location">Preferred Location</label>
-          <input
-            type="text"
-            v-model="form.locationDetails"
-            placeholder="Enter location details"
-            class="form-control"
-          />
-        </div>
-  
-        <div class="mb-3">
-          <label for="additionalInfo">Additional Information</label>
-          <textarea v-model="form.additionalInfo" placeholder="Special equipment, age restrictions, etc." class="form-control"></textarea>
+            <label for="experienceLevel">Experience Level</label>
+            <select v-model="form.experienceLevel" class="form-control" required>
+                <option disabled value="">Select your experience level</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Expert">Expert</option>
+            </select>
         </div>
   
         <div class="mb-3">
@@ -89,7 +39,7 @@
       </form>
   
       <div v-if="formSubmitted" class="success-message">
-        <p>Thank you for your request! Your registration has been successfully submitted. We will review your request and get back to you within 2-3 business days with further details. Please check your email for updates.</p>
+        <p>Thank you for your sign up! Your sign up has been successfully submitted. We will review it and get back to you within 2-3 business days or you can check your email for updates.</p>
       </div>
     </div>
   </template>
@@ -105,18 +55,7 @@
           name: "",
           phone: "",
           email: "",
-          selectedCategories:[],
-          otherChecked: false,
-          otherExpertise: "",
-          title:"",
-          details: "",
-          eventDate: "",
-          duration: "",
-          price: "",
-          totalPax: "",
-          locationType: "",
-          locationDetails: "",
-          additionalInfo: "",
+          experienceLEvel:"",
           agreeToTerms: false,
         },
         formSubmitted: false,
@@ -173,21 +112,17 @@
       resetForm() {
       this.form = {
         name: "",
-          phone: "",
-          email: "",
-          selectedCategories:[],
-          otherChecked: false,
-          otherExpertise: "",
-          title:"",
-          details: "",
-          eventDate: "",
-          duration: "",
-          price: "",
-          totalPax: "",
-          locationType: "",
-          locationDetails: "",
-          additionalInfo: "",
-          agreeToTerms: false,
+        phone: "",
+        email: "",
+        selectedCategories: [],
+        otherChecked: false,
+        otherExpertise: "",
+        details: "",
+        price: "",
+        totalPax: "",
+        locationDetails: "",
+        additionalInfo: "",
+        agreeToTerms: false,
       };
       this.formSubmitted = false;
     }

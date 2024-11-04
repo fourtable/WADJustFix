@@ -6,16 +6,16 @@
     <p class="subheader">Upskill, learn DIY skills, and become a better fixer!</p>
     
     <!-- Filters Section -->
-    <div class="d-flex align-items-center gap-4 mb-4">
+    <div class="d-flex align-items-center gap-4 mb-4 row">
       <!-- Near Me Filter -->
-      <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center col-12 col-sm-6 col-lg-3">
         <input type="checkbox" id="nearMe" v-model="nearMe" class="form-check-input" @change="applyFilters">
         <label class="form-check-label" for="nearMe">Near me</label>
       </div>
 
       <!-- Price Filter -->
-      <div>
-        <label class="filter-title fw-bold d-block mb-1">Price</label>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <label class="filter-title fw-bold d-block mb-1 ">Price</label>
         <div class="d-flex align-items-center input-group">
             <input 
               type="number" 
@@ -38,13 +38,19 @@
       </div>
 
       <!-- Event Status Filter -->
-      <div>
+      <div class="col-12 col-sm-6 col-lg-3">
         <label class="filter-title fw-bold d-block mb-1">Event Status:</label>
         <select v-model="selectedStatus" @change="applyFilters" class="form-select">
           <option value="all">All</option>
           <option value="Open">Open</option>
           <option value="Closing Soon">Closing Soon</option>
         </select>
+      </div>
+
+      <!-- Event Date Filter -->
+      <div class="col-12 col-sm-6 col-lg-3">
+        <label for="eventDate" class="filter-title fw-bold d-block mb-1">Event Date:</label>
+        <input type="date" @change="applyFilters" v-model="eventDate" class="form-control" required />
       </div>
     </div>
 
@@ -62,7 +68,6 @@
       v-if="isModalVisible"
       :event="selectedEvent"
       @close="isModalVisible = false"
-      @signUp="navigateToSignUp"
     />
     <!-- Apply to Host an Event Section -->
   <div class="organise-info-section">
@@ -98,6 +103,7 @@ export default {
       nearMe: false,
       priceRange: { min: 0, max: 500 },
       selectedStatus: "all",
+      eventDate:null,
       userLocation: null,
       events: [], // Stores all events fetched from Firebase
       filteredEvents: [] // Stores events filtered based on selected criteria
@@ -128,7 +134,7 @@ export default {
       this.isModalVisible = true;
     },
     navigateToSignUp(eventId) {
-      this.$router.push({ name: 'SignUpPage', params: { eventId } });
+      this.$router.push({ name: 'eventSignup', params: { eventId } });
     },
     async fetchEvents() {
       // Fetch all events from Firestore
@@ -138,10 +144,11 @@ export default {
       console.log("Loaded Events:", this.events);
     },
     applyFilters() {
-       console.log("Applying Filters:", {
+      console.log("Applying Filters:", {
       priceRange: this.priceRange,
       selectedStatus: this.selectedStatus,
       nearMe: this.nearMe,
+      eventDate: this.eventDate,
    });
       // Filter based on price
       this.filteredEvents = this.events.filter(event => {
@@ -150,11 +157,13 @@ export default {
          event.price <= this.priceRange.max;
 
       const matchesStatus = this.filterByStatus(event);
+      const matchesDate = this.filterByDate(event);
+
 
       // Uncomment location filter if using geolocation
       // const matchesLocation = this.filterByLocation(event);
 
-      return matchesPrice && matchesStatus; // && matchesLocation;
+      return matchesPrice && matchesStatus && matchesDate; // && matchesLocation;
       });
       console.log("Filtered Events:", this.filteredEvents);
     },
@@ -168,45 +177,23 @@ export default {
       }
       return true
     },
-    // filterByLocation(event) {
-    //   if (!this.nearMe || !this.userLocation) return true;
-    //   const distance = this.calculateDistance(
-    //     this.userLocation.lat,
-    //     this.userLocation.lng,
-    //     event.location.lat,
-    //     event.location.lng
-    //   );
-    //   return distance <= 10; // Only shows events within 10 km
-    // },
-    // calculateDistance(lat1, lon1, lat2, lon2) {
-    //   const R = 6371; // Radius of the earth in km
-    //   const dLat = this.deg2rad(lat2 - lat1);
-    //   const dLon = this.deg2rad(lon2 - lon1);
-    //   const a =
-    //     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    //     Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
-    //     Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    //   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    //   return R * c; // Distance in km
-    // },
-    // deg2rad(deg) {
-    //   return deg * (Math.PI / 180);
-    // },
-    // initializeGeolocation() {
-    //   if (navigator.geolocation) {
-    //     navigator.geolocation.getCurrentPosition(
-    //       position => {
-    //         this.userLocation = {
-    //           lat: position.coords.latitude,
-    //           lng: position.coords.longitude
-    //         };
-    //       },
-    //       error => {
-    //         console.error("Error getting location:", error);
-    //       }
-    //     );
-    //   }
-    // }
+    filterByDate(event) {
+      if (!this.eventDate) return true;
+      
+      // Convert the selected date from input to Timestamp
+      const selectedDate = Timestamp.fromDate(new Date(this.eventDate));
+      
+      // Convert timestamps to Date objects for comparison
+      const eventDate = event.eventDate.toDate();
+      const inputDate = selectedDate.toDate();
+      
+      // Set time to start of day for both dates for comparison
+      eventDate.setHours(0, 0, 0, 0);
+      inputDate.setHours(0, 0, 0, 0);
+      
+      // Compare the dates
+      return eventDate.getTime() === inputDate.getTime();
+    }
   }
 };
 </script>
