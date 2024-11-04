@@ -102,13 +102,19 @@ export default {
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           // const date = parseTimestamp(data.timestamp);
-          console.log("Document ID:", doc.id, "UID:", data.UID, "Timestamp:", data.Date);
+          console.log("Document ID:", doc.id, "UID:", data.UID, "Timestamp:", data.Date, data.type);
           const date = new Date(data.Date.seconds * 1000)
           const monthIndex = date.getMonth();
           const pointsValue = Number(data.points) || 0;
 
-          monthlyPoints[monthIndex] += pointsValue;
-          totalPoints.value += pointsValue;
+          // monthlyPoints[monthIndex] += pointsValue;
+          // totalPoints.value += pointsValue;
+          if (data.type == "redeem") {
+              totalPoints.value -= pointsValue;
+            } else {
+              totalPoints.value += pointsValue;
+              monthlyPoints[monthIndex] += pointsValue;
+            }
         });
 
         pointsData.value = [...monthlyPoints];

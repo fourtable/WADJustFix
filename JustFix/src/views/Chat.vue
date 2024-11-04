@@ -160,6 +160,7 @@ async function acceptQuote() {
         await updateDoc(quoteDocRef, {
             repairerId: uid, // Update repairerId with the current user's ID
             repairerName : username,
+            status: 'In Progress',
         });
 
         console.log("Quote accepted and updated in Firestore:", selectedQuote.value);

@@ -27,9 +27,16 @@
         <div class="table-cell" v-else>No Repairer</div>
         <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
         <div class="table-cell">
-          <div class="button-container">
-            <button class="btn btn-warning btn-sm table-button" @click="editQuote(quote)">Edit</button>
-            <button class="btn btn-danger btn-sm table-button" @click="deleteQuote(quote.id)">Delete</button>
+          <div class="button-container" v-if="quote.status == 'Completed'">
+            <button class="btn btn-primary btn-sm table-button" @click="reviewQuote(quote)">Review</button>
+          </div>
+          <div class="button-container" v-if="quote.userId == uid">
+            <button class="btn btn-warning btn-sm table-button" @click="editQuote(quote)" :disabled="quote.repairerName">Edit</button>
+            <button class="btn btn-danger btn-sm table-button" @click="deleteQuote(quote.id)" :disabled="quote.repairerName">Delete</button>
+          </div>
+          <div class="button-container" v-if="quote.repairerId == uid && quote.status == 'In Progress'">
+            <button class="btn btn-success btn-sm table-button" @click="CompleteQuote(quote)">Completed</button>
+            <button class="btn btn-danger btn-sm table-button" @click="RejectQuote(quote.id)">Reject</button>
           </div>
         </div>
       </div>
@@ -90,6 +97,7 @@ export default {
       showModal: false,
       selectedQuote: {},
       showQuotesPopup: false,
+      isDisabled: false,
     };
   },
   computed: {
@@ -236,7 +244,7 @@ img {
   padding: 10px;
   transition: background-color 0.3s ease;
   /* Smooth transition */
-  border-bottom: 1px solid #dee2e6;
+  border: 2px solid #cdf696;
   /* Bottom border for each row */
 
   /* Image styling */
@@ -285,11 +293,12 @@ img {
 /* Header styling */
 .header-row {
   font-weight: bold;
-  background-color: #085C44;
+  /* background-color: #085C44; */
   /* Bootstrap primary color */
-  color: white;
+  color: black;
   /* Text color */
-  border-bottom: 2px solid #cdf696;
+  border: 2px solid #cdf696;
+  /* border-bottom: 2px solid #cdf696; */
   /* Bottom border for header */
 }
 

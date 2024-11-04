@@ -9,19 +9,20 @@
           <div class="hero-box light-blue animate__animated animate__fadeInLeft animate__delay-1s">
             <h1>Need Something Fixed?</h1>
             <p>Send your request now to your favorite repairer and watch the magic happen!</p>
-            <a :href="repairLink" class="button animate__animated animate__pulse" @click="openQuotesPopup">Create Request &rarr;</a>
+            <a :href="repairLink" class="button animate__animated animate__pulse" @click="openQuotesPopup">Create
+              Request &rarr;</a>
           </div>
         </div>
         <!-- Second and Third Hero Boxes -->
         <div class="col-lg-6 col-md-6 col-sm-12 my-3">
           <div class="hero-box light-green animate__animated animate__fadeInLeft animate__delay-2s">
-            <h2>Join Us As a Repairer!</h2>
-            <p>Whether you're a repair hobbyist or a professional repairer, we welcome you!</p>
+            <h2>Join Us As a Fixer!</h2>
+            <p>Whether you're a repair hobbyist or a professional, we welcome you!</p>
             <a :href="registerLink" class="button">Register Now &rarr;</a>
           </div>
           <div class="col-12 hero-box dark-green mt-4 animate__animated animate__fadeInLeft animate__delay-3s">
             <h2>Discover Our Repair Events</h2>
-            <p>Attend our events to learn DIY repair techniques or upskill as a repairer.</p>
+            <p>Attend our events to learn DIY repair techniques or upskill as a fixer.</p>
             <a :href="eventLink" class="button">Learn More &rarr;</a>
           </div>
         </div>
@@ -32,7 +33,7 @@
           <div class="col-12">
             <p href="#repairers" style="font-weight:bolder; font-size:x-large; padding-top:10px;" data-aos="fade-up"
               data-aos-duration="800">
-              Find A Repairer Near You
+              Find A Fixer Near You
             </p>
             <input type="text" class="form-control" id="locationInput" placeholder="Enter location..."
               ref="locationInput" data-aos="fade-up" data-aos-delay="200" data-aos-duration="800" />

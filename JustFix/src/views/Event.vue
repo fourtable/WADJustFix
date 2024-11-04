@@ -6,11 +6,22 @@
     <p class="subheader">Upskill, learn DIY skills, and become a better fixer!</p>
     
     <!-- Filters Section -->
-    <div class="d-flex align-items-center gap-4 mb-4 row">
-      <!-- Near Me Filter -->
-      <div class="d-flex align-items-center col-12 col-sm-6 col-lg-3">
-        <input type="checkbox" id="nearMe" v-model="nearMe" class="form-check-input" @change="applyFilters">
-        <label class="form-check-label" for="nearMe">Near me</label>
+    <div class="d-flex align-items-center gap-4 mb-4">
+      <!-- Region Filter -->
+      <div>
+        <label class="filter-title fw-bold d-block mb-1">Region</label>
+        <select v-model="selectedRegion" @change="applyFilters" class="form-select">
+          <option value="all">All</option>
+          <option value="North">North</option>
+          <option value="South">South</option>
+          <option value="East">East</option>
+          <option value="West">West</option>
+          <option value="North-East">North-East</option>
+          <option value="North-West">North-West</option>
+          <option value="South-East">South-East</option>
+          <option value="South-West">South-West</option>
+          <option value="Central">Central</option>
+        </select>
       </div>
 
       <!-- Price Filter -->
@@ -103,6 +114,7 @@ export default {
       nearMe: false,
       priceRange: { min: 0, max: 500 },
       selectedStatus: "all",
+      selectedRegion: "all", // Set default to "all"
       eventDate:null,
       userLocation: null,
       events: [], // Stores all events fetched from Firebase
@@ -140,9 +152,29 @@ export default {
       // Fetch all events from Firestore
       const eventsRef = collection(db, "events");
       const snapshot = await getDocs(eventsRef);
-      this.events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const geocodedEvents = await Promise.all(snapshot.docs.map(async doc => {
+      const event = { id: doc.id, ...doc.data() };
+      const coordinates = await this.getCoordinatesFromAddress(event.address);
+      event.coordinates = coordinates;
+      event.region = this.getRegionFromCoordinates(coordinates);
+      return event;
+    }));
+      this.events = geocodedEvents;
+      this.applyFilters();
       console.log("Loaded Events:", this.events);
     },
+    async getCoordinatesFromAddress(address) {
+    const apiKey = 'AIzaSyAe51tIu9Mpq06AxiZRLbiziX_NH2X6cLw';
+    const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`);
+    const data = await response.json();
+    if (data.results && data.results.length > 0) {
+      const location = data.results[0].geometry.location;
+      return { lat: location.lat, lng: location.lng };
+    } else {
+      console.error("Geocoding failed for address:", address);
+      return null;
+    }
+  },
     applyFilters() {
       console.log("Applying Filters:", {
       priceRange: this.priceRange,
@@ -153,17 +185,14 @@ export default {
       // Filter based on price
       this.filteredEvents = this.events.filter(event => {
         const matchesPrice = 
-         event.price >= this.priceRange.min && 
-         event.price <= this.priceRange.max;
-
-      const matchesStatus = this.filterByStatus(event);
+          event.price >= this.priceRange.min && 
+          event.price <= this.priceRange.max;
+        const matchesStatus = this.filterByStatus(event);
+        const matchesRegion = this.filterByRegion(event);
       const matchesDate = this.filterByDate(event);
 
 
-      // Uncomment location filter if using geolocation
-      // const matchesLocation = this.filterByLocation(event);
-
-      return matchesPrice && matchesStatus && matchesDate; // && matchesLocation;
+        return matchesPrice && matchesStatus && matchesDate && matchesRegion;
       });
       console.log("Filtered Events:", this.filteredEvents);
     },
@@ -177,6 +206,25 @@ export default {
       }
       return true
     },
+    filterByRegion(event) {
+      if (this.selectedRegion === "all") return true;
+      return event.region === this.selectedRegion;
+    },
+    getRegionFromCoordinates(coordinates) {
+    const { lat, lng } = coordinates;
+
+    // Define approximate lat/lng ranges for each region in Singapore
+    if (lat >= 1.35 && lat <= 1.45 && lng >= 103.75 && lng <= 103.85) return "North";
+    if (lat >= 1.35 && lat <= 1.45 && lng >= 103.85 && lng <= 103.95) return "North-East";
+    if (lat >= 1.30 && lat <= 1.40 && lng >= 103.70 && lng <= 103.80) return "North-West";
+    if (lat >= 1.25 && lat <= 1.35 && lng >= 103.75 && lng <= 103.85) return "Central";
+    if (lat >= 1.30 && lat <= 1.40 && lng >= 103.90 && lng <= 104.00) return "East";
+    if (lat >= 1.25 && lat <= 1.35 && lng >= 103.65 && lng <= 103.75) return "West";
+    if (lat >= 1.20 && lat <= 1.30 && lng >= 103.90 && lng <= 104.00) return "South-East";
+    if (lat >= 1.20 && lat <= 1.30 && lng >= 103.65 && lng <= 103.75) return "South-West";
+    if (lat >= 1.20 && lat <= 1.28 && lng >= 103.75 && lng <= 103.85) return "South";
+    return "Unknown";
+},
     filterByDate(event) {
       if (!this.eventDate) return true;
       

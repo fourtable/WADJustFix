@@ -1,8 +1,8 @@
 <template>
-  <div class="users-container">
-    <h1>All Users</h1>
-    <div v-if="users.length > 0">
-      <table>
+  <div class="container mt-5 pt-4">
+    <h1 class="text-center mb-4">All Users</h1>
+    <div v-if="users.length > 0" class="table-responsive">
+      <table class="table table-striped table-bordered">
         <thead>
           <tr>
             <th>Name</th>
@@ -23,14 +23,14 @@
             <td>{{ formatDate(user.createdAt) }}</td>
             <td>{{ formatDate(user.lastLogin) }}</td>
             <td>
-              <button class="action-button" @click="viewUser(user.id)">View</button>
-              <button class="action-button delete-button" @click="deleteUser(user.id)">Delete</button>
+              <button class="btn btn-primary btn-sm me-2" @click="viewUser(user.id)">View</button>
+              <button class="btn btn-danger btn-sm" @click="deleteUser(user.id)">Delete</button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div v-else>
+    <div v-else class="text-center">
       <p>No users found.</p>
     </div>
   </div>
@@ -41,103 +41,75 @@ import { db } from "../main";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 
 export default {
-data() {
-  return {
-    users: [],
-  };
-},
-async created() {
-  await this.fetchUsers();
-},
-methods: {
-  async fetchUsers() {
-    try {
-      const querySnapshot = await getDocs(collection(db, "users"));
-      this.users = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt, // Account creation date
-        lastLogin: doc.data().lastLogin, // Last login date
-      }));
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
+  data() {
+    return {
+      users: [],
+    };
   },
-  viewUser(userId) {
-    this.$router.push({ name: "viewProfile", params: { id: userId } });
+  async created() {
+    await this.fetchUsers();
   },
-  async deleteUser(userId) {
-    try {
-      await deleteDoc(doc(db, "users", userId));
-      this.users = this.users.filter(user => user.id !== userId);
-      alert("User deleted successfully");
-    } catch (error) {
-      console.error("Error deleting user:", error);
-    }
+  methods: {
+    async fetchUsers() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "users"));
+        this.users = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt, // Account creation date
+          lastLogin: doc.data().lastLogin, // Last login date
+        }));
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    },
+    viewUser(userId) {
+      this.$router.push({ name: "viewProfile", params: { id: userId } });
+    },
+    async deleteUser(userId) {
+      try {
+        await deleteDoc(doc(db, "users", userId));
+        this.users = this.users.filter((user) => user.id !== userId);
+        alert("User deleted successfully");
+      } catch (error) {
+        console.error("Error deleting user:", error);
+      }
+    },
+    formatDate(timestamp) {
+      if (!timestamp) return "N/A";
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return date.toLocaleDateString();
+    },
   },
-  formatDate(timestamp) {
-    if (!timestamp) return "N/A";
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString();
-  }
-}
 };
 </script>
 
-<style>
-.users-container {
-padding: 80px 20px 20px;
+<style scoped>
+.container {
+  padding: 20px;
 }
 
 h1 {
-margin-bottom: 20px;
-font-size: 2em;
-text-align: center;
+  font-size: 2em;
 }
 
-table {
-width: 100%;
-border-collapse: collapse;
-margin-top: 20px;
-background-color: #f9f9f9;
-box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-th, td {
-padding: 15px;
-border: 1px solid #ddd;
-text-align: left;
+.table {
+  background-color: #f9f9f9;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 th {
-background-color: #085C44;
-color: #fff;
-font-weight: bold;
+  background-color: #085C44;
+  color: #fff;
+  font-weight: bold;
+  text-align: center;
 }
 
 td {
-background-color: #ffffff;
+  text-align: center;
 }
 
-button.action-button {
-padding: 5px 10px;
-margin: 5px;
-border: none;
-cursor: pointer;
-border-radius: 4px;
-font-size: 0.9em;
-}
-
-button.action-button:hover {
-opacity: 0.9;
-}
-
-button.delete-button {
-background-color: #f76c6c;
-color: white;
-}
-
-button.delete-button:hover {
-background-color: #d9534f;
+button {
+  font-size: 0.9em;
 }
 </style>

@@ -3,6 +3,7 @@ import Home from '../views/Home.vue';
 import Event from '../views/Event.vue'; // Import Event view
 import EventSignup from '../views/EventSignup.vue';
 import ApplyEvent from "../views/ApplyEvent.vue";
+import ApproveEvent from "../views/ApproveEvent.vue"; // Import ApproveEvent
 import Repair from '../views/Repair.vue'; // Import Repair view
 import Login from '../views/Login.vue'; // Import Login view
 import Register from '../views/Register.vue'; // Import Register view
@@ -39,6 +40,12 @@ const routes = [
         component: ApplyEvent
     },
     {
+        path: '/approveEvent', // New route for admin to approve events
+        name: 'approveEvent',
+        component: ApproveEvent,
+        meta: { requiresAdmin: true } // Admin-only access
+    },
+    {
         path: '/repair',
         name: 'repair',
         component: Repair
@@ -57,7 +64,7 @@ const routes = [
         path: '/profile/:id', // Dynamic route for profile with user ID
         name: 'viewProfile', // Name of the route
         component: ViewProfile,
-        props: route => ({ id: route.params.id }) // Pass the route param as a prop
+        props: true // Pass the route param as a prop
     },
     {
         path: '/editProfile',
@@ -101,23 +108,23 @@ const router = createRouter({
         if (to.hash) {
             return {
                 el: to.hash,
-                behavior: 'smooth',  // Enable smooth scrolling
+                behavior: 'smooth',
             }
         } else if (savedPosition) {
-            return savedPosition
+            return savedPosition;
         } else {
-            return { top: 0 }
+            return { top: 0 };
         }
     },
 });
 
-// Route guard to protect profile editing and admin-only routes
+// Route guard for profile editing and admin-only routes
 router.beforeEach((to, from, next) => {
     const isAuthenticated = !!auth.currentUser;
-    const isAdmin = auth.currentUser && auth.currentUser.email === "admin@justfix.com"; // Replace with actual admin check
+    const isAdmin = auth.currentUser && auth.currentUser.email === "admin@justfix.com";
 
     if (to.meta.requiresAdmin && !isAdmin) {
-        // Redirect non-admin users trying to access the Users page
+        // Redirect non-admin users trying to access admin-only pages
         next({ name: 'home' });
     } else if (to.name === 'editProfile' && !isAuthenticated) {
         // Redirect unauthenticated users trying to edit profile

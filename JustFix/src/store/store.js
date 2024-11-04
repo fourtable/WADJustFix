@@ -12,7 +12,8 @@ const store = createStore({
       currentProfileId: null,
       notificationsList: [], // Array to hold notifications
       quotes: [], // Store quotes for the user
-      users: [] // Add users to state
+      users: [], // Add users to state
+      eventRequests: [] // Store event requests here
 
     };
   },
@@ -42,6 +43,9 @@ const store = createStore({
     },
     setUsers(state, users) {
       state.users = users;
+    },
+    setEventRequests(state, eventRequests) {
+      state.eventRequests = eventRequests;
     },
   },
   actions: {
@@ -138,6 +142,21 @@ const store = createStore({
         console.error("Error fetching users:", error);
       }
     },
+    fetchEventRequests({ commit }) {
+      const eventRequestQuery = query(collection(db, "eventRequest"), where("status", "==", "pending"));
+      onSnapshot(eventRequestQuery, (snapshot) => {
+        const eventRequests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        commit("setEventRequests", eventRequests);
+        console.log("Fetched Event Requests:", eventRequests);
+      });
+    },
+    async updateEventStatus(_, { id, status }) {
+      try {
+        await updateDoc(doc(db, "eventRequest", id), { status });
+      } catch (error) {
+        console.error(`Error updating event status to ${status}:`, error);
+      }
+    },
   },
   getters: {
     getUserName(state) {
@@ -157,6 +176,9 @@ const store = createStore({
     },
     getUsers(state) {
       return state.users;
+    },
+    getEventRequests(state) {
+      return state.eventRequests;
     },
   },
 });
