@@ -39,13 +39,13 @@ const closeModal = () => {
 
 const openQuotesListPopup = () => {
     const uid = Cookies.get('uid') || sessionStorage.getItem('uid')
-    if(uid){
+    if (uid) {
         isQuotesListPopupVisible.value = true; // Set visibility to true when the button is clicked
     }
-    else{
+    else {
         router.push({
-        name: 'login'
-    });
+            name: 'login'
+        });
     }
 };
 
@@ -140,9 +140,10 @@ const clearSelections = () => {
         <div class="container repairmen-container">
             <p class="section-title">Your Selected Repairmen</p>
             <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
-                <button @click="openQuotesListPopup" :disabled="selectedRepairmen.length === 0"
-                    class="hero-button">Send Quote</button>
-                <quoteListPopup v-if="isQuotesListPopupVisible" :selectedRepairmen="selectedRepairmen" @close="closeModal" />
+                <button @click="openQuotesListPopup" :disabled="selectedRepairmen.length === 0" class="hero-button">Send
+                    Quote</button>
+                <quoteListPopup v-if="isQuotesListPopupVisible" :selectedRepairmen="selectedRepairmen"
+                    @close="closeModal" />
                 <span @click="clearSelected" class="clear-link"
                     style="text-decoration: underline; cursor: pointer; margin-top: 8px; padding-right: 14px;">
                     Clear Selected Repairmen
@@ -158,8 +159,8 @@ const clearSelections = () => {
                         <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
                             :checked="isSelected(repairman.id)" style="margin-left: auto;" />
                     </div>
-                    <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top" alt="Profile Picture"
-                        height="200px" style="object-fit: cover; border-radius: 20px;">
+                    <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top"
+                        alt="Profile Picture" height="200px" style="object-fit: cover; border-radius: 20px;">
                     <div class="card-body text-start" data-aos="fade-up" data-aos-delay="200">
                         <h5 class="card-title" style="font-weight: bold;">{{ repairman.username || repairman.name }}
                         </h5>
@@ -179,7 +180,7 @@ const clearSelections = () => {
 
 
     <div class="container repairmen-container" id="fixer">
-        <p class="section-title" data-aos="fade-up">Browse Our Most Trusted Handymen</p>
+        <p class="section-title" data-aos="fade-up">Browse Our Most Trusted Fixers</p>
     </div>
 
     <!-- Expertise Pills -->
@@ -208,8 +209,8 @@ const clearSelections = () => {
                     <input type="checkbox" class="custom-checkbox" @change="toggleSelection(repairman.id)"
                         :checked="isSelected(repairman.id)" />
                 </div>
-                <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top" alt="Profile Picture"
-                    height="200px" style="object-fit: cover; border-radius: 20px;">
+                <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top"
+                    alt="Profile Picture" height="200px" style="object-fit: cover; border-radius: 20px;">
                 <div class="card-body text-start position-relative" @click="navigateToProfile(repairman.id)"
                     data-aos="fade-up" data-aos-delay="300">
                     <h5 class="card-title mb-1 text-start pb-2" style="font-weight:bold;">{{ repairman.username ||
