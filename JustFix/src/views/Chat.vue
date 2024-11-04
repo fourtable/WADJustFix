@@ -14,7 +14,8 @@
                                 <div class="chat-info">
                                     <strong>{{ contact.otherUserName }}</strong>
                                     <small class="d-block text-muted">{{ contact.status }}</small>
-                                    <span v-if="contact.unreadCount > 0"> ({{ contact.unreadCount }})</span>
+                                    <span class="unreadCount" v-if="contact.unreadCount > 0"> {{ contact.unreadCount
+                                        }}</span>
                                 </div>
                             </li>
                         </ul>
@@ -24,9 +25,15 @@
                 <div class="col-12 col-lg-7 col-xl-9 chat-container">
                     <div class="chat-header" v-if="selectedContact">
                         <img :src="contactPic" class="rounded-circle me-2" width="40" height="40">
-                        <strong>{{ contactName }}</strong>
+                        <div>
+                            <strong>{{ contactName }}</strong>
+                            <div class="status-container">
+                                <!-- Status circle and status text -->
+                                <span id="userStatusColor"></span>
+                                <p id="userStatus" class="status-text"></p>
+                            </div>
+                        </div>
                     </div>
-
                     <div class="chat-messages" ref="messagesContainer">
                         <div v-if="chatHistory.length === 0" class="text-center mt-3">
                             <em>No messages yet. Start the conversation!</em>
@@ -121,12 +128,42 @@ const messagesContainer = ref(null);
 const contactId = ref(route.query.repairerId); // Make it reactive
 const contactName = ref(route.query.repairName); // Make it reactive
 const contactPic = ref(route.query.repairerPic); // Make it reactive
+const contactState = ref();
 const senderPic = sessionStorage.getItem('profilePic') || Cookies.get('profilePic');
 const username = Cookies.get('username') || sessionStorage.getItem('username');
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 const isModalOpen = ref(false);
 const selectedQuote = ref({});
 const messageId = ref();
+
+function listenForUserStatus(userId, callback) {
+    const statusRef = dbRef(realtimeDb, `status/${userId}`);
+
+    onValue(statusRef, (snapshot) => {
+        const status = snapshot.val();
+        if (status) {
+            // Execute a callback to update the UI with the new status
+            callback(status.state, status.lastChanged);
+        } else {
+            // Handle case where status might not exist (e.g., new user or no data)
+            callback('offline', null);
+        }
+    }, (error) => {
+        console.error("Error reading user status:", error);
+    });
+}
+
+function updateUserStatusUI(state, lastChanged) {
+    const statusElement = document.getElementById("userStatus");
+    statusElement.textContent = capitalizeWords(state);
+    const statusColorElem = document.getElementById('userStatusColor');
+    if(state == 'online'){
+        statusColorElem.className = 'status-indicator online';
+    }
+    else{
+        statusColorElem.className = 'status-indicator offline';
+    }
+}
 
 function openQuoteDetails(quoteData, msgId) {
     selectedQuote.value = quoteData;
@@ -180,16 +217,25 @@ async function rejectQuote() {
     // console.log(messageId.value);
     // closeQuoteDetails();
     try {
-        const messageDocRef = doc(db, 'chats', messageId.value);
-        // // Delete the message
+        // const messageDocRef = doc(db, 'chats', messageId.value);
+        // Delete the message
+        this.newMessage.value = "Quote Rejected";
+        sendMessage();
         console.log("Quote rejected:", messageId.value);
         await sendNotification(selectedQuote.value.userId, "Quote rejected", username);
         closeQuoteDetails();
-        await deleteDoc(messageDocRef);
+        // await deleteDoc(messageDocRef);
     } catch (error) {
         console.error("Error deleting message:", error);
     }
     // closeQuoteDetails(); // Optionally close the modal after rejecting
+}
+
+function capitalizeWords(item) {
+    return item
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 }
 
 // Check authentication and fetch user data
@@ -269,14 +315,13 @@ const loadContacts = () => {
 
                 // Fetch the unread messages count for the other user (receiver)
                 const unreadCount = await fetchUnreadMessagesCount(otherUserId, uid); // Fetch unread count for the receiver
-
                 return {
                     id: doc.id,
                     ...data,
                     otherUserName,
                     otherUserId,
                     otherUserImageUrl,
-                    unreadCount // Include the unread message count
+                    unreadCount, // Include the unread message count
                 };
             }));
     });
@@ -331,12 +376,14 @@ const selectContact = async (contact) => {
             // If receiverId is found, load the repairer data
             const contactDocRef = doc(db, 'users', contact.otherUserId);
             const contactDoc = await getDoc(contactDocRef);
+            const state = await listenForUserStatus(contact.otherUserId, updateUserStatusUI);
 
             if (contactDoc.exists()) {
                 const contactData = contactDoc.data();
                 contactId.value = contact.otherUserId;
                 contactName.value = contactData.name; // Assuming the field is 'name'
                 contactPic.value = contactData.imageUrl; // Assuming the field is 'photoURL'
+                contactState.value = state;
                 // Load chat history for the receiver
                 loadChatHistory(contact.otherUserId, uid);
                 // Delete unread messages
@@ -517,6 +564,8 @@ const sendNotification = async (receiverId, message, name) => {
 
 .chat-info {
     flex-grow: 1;
+    position: relative;
+    padding: 10px;
 }
 
 .chat-container {
@@ -534,6 +583,34 @@ const sendNotification = async (receiverId, message, name) => {
     flex-shrink: 0;
     /* Prevent the header from shrinking */
     padding: 4%;
+
+    .status-container {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        /* Space between the circle and the text */
+    }
+
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+    /* Status colors */
+    .online {
+        background-color: green;
+    }
+
+    .offline {
+        background-color: red;
+    }
+
+    .status-text {
+        margin: 0;
+        font-size: 0.9rem;
+        color: gray;
+    }
 }
 
 .chat-messages {
@@ -619,5 +696,26 @@ const sendNotification = async (receiverId, message, name) => {
 
 .quote-card:hover {
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.unreadCount {
+    position: absolute;
+    /* Allows positioning within .chat-info */
+    bottom: 0;
+    /* Aligns to the bottom */
+    right: 0;
+    /* Aligns to the right */
+    background-color: lightgray;
+    color: black;
+    padding: 4px 8px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 20px;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 </style>

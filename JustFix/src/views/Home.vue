@@ -54,6 +54,7 @@
 
 <script setup>
 import { auth } from '../main.js';
+import { getDatabase, ref as dbref, set, onDisconnect } from "firebase/database";
 import { ref, computed, onMounted, watch } from 'vue';
 import { initializeMap, fetchRepairers, placeRepairmenOnMap, updateSearchCircle as updateMapSearchCircle } from '../plugins/googleMaps';
 import store from "../store/store.js";
@@ -62,6 +63,7 @@ import { mapActions } from 'vuex';
 import Cookies from 'js-cookie';
 import router from '../router/index.js';
 
+const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 
 // Reactive properties
 const searchQuery = ref('');
@@ -72,7 +74,6 @@ const allRepairmen = ref([]); // Store all repairers
 // Computed properties
 const username = computed(() => store.getters.getUserName);
 const repairmen = computed(() => store.getters.getRepairmen);
-const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 
 // Watchers
 watch(searchRadius, () => {

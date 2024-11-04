@@ -58,6 +58,7 @@ const emit = defineEmits(['close']);
 // Reactive variables
 const quotes = ref([]);
 const selectedQuoteIds = ref([]); // Store selected quote IDs
+const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 
 // Function to fetch quotes
 const fetchQuotes = async () => {
@@ -202,9 +203,11 @@ const sendNotification = async (receiverId, message, name) => {
     const notificationRef = dbRef(realtimeDb, `notifications/${receiverId}`);
     await push(notificationRef, {
         notificationType: 'message',
+        senderId: uid,
         senderName: name,
         message: message,
         timestamp: new Date().toISOString(),
+        read: false,
     });
     console.log('Notification sent to:', receiverId);
 };
