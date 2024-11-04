@@ -226,7 +226,7 @@ async function rejectQuote() {
         closeQuoteDetails();
         // await deleteDoc(messageDocRef);
     } catch (error) {
-        console.error("Error deleting message:", error);
+        console.error("Error rejecting:", error);
     }
     // closeQuoteDetails(); // Optionally close the modal after rejecting
 }

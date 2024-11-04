@@ -22,7 +22,7 @@
                         <li v-else class="list-group-item text-center">
                             No quotes available.
                             <br>
-                            <createQuotesPopup :show="showQuotesPopup" :btnName="'Add Quotes'"
+                            <QuotesPopup :show="showQuotesPopup" :btnName="'Add Quotes'" :action="'Create'"
                                 @close="showQuotesPopup = false" />
                         </li>
                     </ul>
@@ -44,7 +44,7 @@ import { db, realtimeDb } from '../main'; // Ensure you import your Firebase db 
 import { collection, getDocs, query, where, onSnapshot, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import { defineEmits } from 'vue';
-import createQuotesPopup from './createQuotesPopup.vue';
+import QuotesPopup from './QuotesPopup.vue';
 import store from '../store/store';
 import { ref as dbRef, set, onValue, push } from 'firebase/database';
 

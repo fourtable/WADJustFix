@@ -3,7 +3,7 @@
     <div class="d-flex justify-content-between align-items-center">
       <h2>My Quotes</h2>
       <div v-if="userType === 'user'">
-        <createQuotesPopup :show="showQuotesPopup" :btnName="'+'" @close="showQuotesPopup = false" />
+        <QuotesPopup :show="showQuotesPopup" :btnName="'+'" :action="'Create'" @close="showQuotesPopup = false" />
       </div>
     </div>
     <!-- List Group to display each quote -->
@@ -23,27 +23,25 @@
           </div>
         </div>
         <div class="table-cell">{{ quote.category }}</div>
-        <div class="table-cell" v-if="quote.repairerName">{{ quote.repairerName }}</div>
-        <div class="table-cell" v-else>No Repairer</div>
+        <div class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
         <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
         <div class="table-cell">
-          <div class="button-container" v-if="quote.status == 'Completed'">
-            <button class="btn btn-primary btn-sm table-button" @click="reviewQuote(quote)">Review</button>
-          </div>
-          <div class="button-container" v-if="quote.userId == uid && quote.status!= 'Completed'">
-            <button class="btn btn-warning btn-sm table-button" @click="editQuote(quote)" :disabled="quote.repairerName">Edit</button>
-            <button class="btn btn-danger btn-sm table-button" @click="deleteQuote(quote.id)" :disabled="quote.repairerName">Delete</button>
-          </div>
-          <div class="button-container" v-if="quote.repairerId == uid && quote.status == 'In Progress' ">
-            <button class="btn btn-success btn-sm table-button" @click="CompleteQuote(quote)">Completed</button>
-            <button class="btn btn-danger btn-sm table-button" @click="RejectQuote(quote.id)">Reject</button>
+          <div class="button-container">
+            <button v-if="quote.status === 'Completed'" class="btn btn-primary btn-sm table-button"
+              @click="reviewQuote(quote)">Review</button>
+            <!-- Edit Button for Popup -->
+            <button class="btn btn-warning btn-sm table-button" @click="openEditPopup(quote)">Edit</button>
+            <button v-if="quote.userId === uid && quote.status !== 'Completed'"
+              class="btn btn-danger btn-sm table-button" @click="deleteQuote(quote.id)">Delete</button>
+            <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
+              class="btn btn-success btn-sm table-button" @click="completeQuote(quote)">Complete</button>
+            <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
+              class="btn btn-danger btn-sm table-button" @click="rejectQuote(quote.id)">Reject</button>
           </div>
         </div>
       </div>
       <!-- Display message if no quotes are available -->
-      <div v-else class="text-center">
-        No quotes available
-      </div>
+      <div v-else class="text-center">No quotes available</div>
     </div>
 
     <!-- Quote Details Modal -->
@@ -65,9 +63,6 @@
               <p>{{ selectedQuote.description }}</p>
             </div>
           </div>
-          <div class="modal-footer">
-            <!-- <button type="button" class="btn btn-secondary" @click="closeModal">Close</button> -->
-          </div>
         </div>
       </div>
     </div>
@@ -78,19 +73,17 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { db } from '../main';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import createQuotesPopup from '../components/createQuotesPopup.vue';
+import QuotesPopup from '../components/QuotesPopup.vue';
 import Cookies from 'js-cookie';
 import { useRoute } from 'vue-router';
 
-const route = useRoute();
-
 export default {
   components: {
-    createQuotesPopup,
+    QuotesPopup,
   },
   data() {
     return {
@@ -101,7 +94,6 @@ export default {
     };
   },
   computed: {
-    // Access Vuex store
     quotes() {
       const userQuotes = this.$store.getters.getUserQuotes; // Access quotes from Vuex store
       console.log("Retrieved quotes from Vuex store:", userQuotes); // Log quotes for debugging
@@ -115,46 +107,38 @@ export default {
     },
   },
   mounted() {
-    // Open popup if query parameter `openPopup` is true
     this.showQuotesPopup = this.$route.query.openPopup === 'true';
-    this.updatePopupState();
-  },
-  watch: {
-    '$route.query.openPopup'(newVal) {
-      console.log("Route query changed, openPopup:", newVal); // Debugging log
-      this.showQuotesPopup = newVal === 'true';
-    }
-  },
-  async created() {
     this.fetchUserQuotes(); // Fetch quotes from Firestore
   },
-  // async created() {
-  //   await this.$store.dispatch('fetchUserQuotes'); // Fetch user quotes from Vuex store
-  // },
+  watch: {
+    '$route.query.openPopup': {
+      handler(newVal) {
+        console.log("Route query changed, openPopup:", newVal); // Debugging log
+        this.showQuotesPopup = newVal === 'true';
+      },
+      immediate: true // Ensures the watcher runs on component mount
+    },
+  },
   methods: {
     fetchUserQuotes() {
-      let userQuotesQuery = '';
-      if (this.uid) {
-        const quotesCollection = collection(db, 'quotes');
-
-        if (this.userType == "user") {
-          userQuotesQuery = query(quotesCollection, where('userId', '==', this.uid));
-        }
-        else if (this.userType == "repairer") {
-          userQuotesQuery = query(quotesCollection, where('repairerId', '==', this.uid));
-        }
-        else {
-          userQuotesQuery = quotesCollection;
-        }
-
-        // Listen to changes in the collection and retrieve quotes for the user
-        onSnapshot(userQuotesQuery, (snapshot) => {
-          const retrievedQuotes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          this.$store.commit('setQuotes', retrievedQuotes); // Update quotes in Vuex store
-        });
-      } else {
+      if (!this.uid) {
         console.log("User is not logged in");
+        return;
       }
+
+      const quotesCollection = collection(db, 'quotes');
+      const userQuotesQuery = this.userType === "user"
+        ? query(quotesCollection, where('userId', '==', this.uid))
+        : this.userType === "repairer"
+          ? query(quotesCollection, where('repairerId', '==', this.uid))
+          : quotesCollection;
+
+      onSnapshot(userQuotesQuery, (snapshot) => {
+        const retrievedQuotes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        this.$store.commit('setQuotes', retrievedQuotes); // Update quotes in Vuex store
+      }, (error) => {
+        console.error("Error fetching user quotes: ", error);
+      });
     },
     showQuoteDetails(quote) {
       this.selectedQuote = quote;
@@ -170,23 +154,52 @@ export default {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
     },
-    updatePopupState() {
-      console.log("Initial or route update, openPopup:", this.$route.query.openPopup);
-      this.showQuotesPopup = this.$route.query.openPopup === 'true';
-    },
-    formatTimestamp(timestamp){
+    formatTimestamp(timestamp) {
       return timestamp ? new Date(timestamp.seconds * 1000).toLocaleDateString() : '';
-    }, 
-  },
-  beforeRouteUpdate(to, from, next) {
-    // Check for query changes before route update and apply the changes
-    if (to.query.openPopup !== from.query.openPopup) {
-      this.showQuotesPopup = to.query.openPopup === 'true';
-    }
-    next();
-  }
-};
+    },
+    async rejectQuote(quoteId) {
+      try {
+        // Reference to the quotes collection
+        const quotesRef = collection(db, 'quotes');
 
+        // Create a query to find the quote by its ID
+        const q = query(quotesRef, where('id', '==', quoteId));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          // Assume quote ID is unique, so there's only one document
+          const quoteDoc = querySnapshot.docs[0];
+
+          // Update the quote with empty repairerId and rejected status
+          await updateDoc(doc(db, 'quotes', quoteDoc.id), {
+            repairerId: '',  // Clear the repairerId
+            status: 'Rejected'  // Set status to 'Rejected'
+          });
+
+          // Notify the user after rejection
+          this.notifyUser(quoteDoc.userId);
+          console.log("Quote rejected");
+        } else {
+          console.error("No quote found with the provided ID");
+        }
+      } catch (error) {
+        console.error("Error rejecting quote: ", error);
+      }
+    },
+    async notifyUser(receiverId) {
+      const notificationRef = dbRef(realtimeDb, `notifications/${receiverId}`);
+      await push(notificationRef, {
+        notificationType: 'message',
+        senderId: uid,
+        senderName: name,
+        message: message,
+        timestamp: new Date().toISOString(),
+        read: false,
+      });
+      console.log('Notification sent to:', receiverId);
+    },
+  },
+};
 </script>
 
 <style>
@@ -302,12 +315,33 @@ img {
   /* Bottom border for header */
 }
 
+@media (max-width: 768px) {
+  .header-row {
+    display: none;
+  }
+}
+
 /* Flexbox for button container */
 .button-container {
   display: flex;
-  justify-content: space-around;
-  /* Space buttons evenly */
-  width: 100%;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.table-button {
+  flex: 1 1 auto;
+  min-width: 80px;
+  padding: 0.5vw 1vw;
+  /* Adjusts padding relative to viewport width */
+  font-size: calc(0.8rem + 0.2vw);
+  /* Responsive font size */
+}
+
+/* Maintain button shape on smaller screens */
+@media (max-width: 768px) {
+  .table-button {
+    padding: 0.5rem 1rem;
+  }
 }
 
 /* Container styling */
