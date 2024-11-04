@@ -7,7 +7,7 @@
   
       <div class="rewards-list row">
         <div class="col-lg-4 col-md-6 col-sm-12 mb-4" v-for="reward in rewards" :key="reward.id">
-          <div class="card h-120">
+          <div class="card h-200">
             <img :src="reward.imageURL" class="card-img-top" alt="Reward Image" 
             style="object-fit: cover; border-radius: 15px 15px 0 0;">
             <div class="card-body d-flex flex-column">
@@ -31,8 +31,9 @@
   <script>
   import { ref, onMounted } from "vue";
   import { auth, db } from "../main";
-  import { collection, getDocs, doc, updateDoc, query, where, orderBy} from "firebase/firestore";
+  import { collection, getDocs, doc, updateDoc, query, where, orderBy, Timestamp, addDoc} from "firebase/firestore";
   import { onAuthStateChanged } from "firebase/auth";
+import { merge } from "chart.js/helpers";
   
   export default {
     setup() {
@@ -76,8 +77,13 @@
             const monthIndex = date.getMonth();
             const pointsValue = Number(data.points) || 0;
 
-            monthlyPoints[monthIndex] += pointsValue;
-            userPoints.value += pointsValue;
+            // monthlyPoints[monthIndex] += pointsValue;
+            if (data.type == "redeem") {
+              userPoints.value -= pointsValue;
+            } else {
+              userPoints.value += pointsValue;
+              monthlyPoints[monthIndex] += pointsValue;
+            }
           });
 
           // pointsData.value = [...monthlyPoints];
@@ -96,10 +102,16 @@
           try {
             const userRef = doc(db, "users", userId.value);
             
-            // Update user's points
-            await updateDoc(userRef, {
-              points: userPoints.value - reward.cost
+            await addDoc(collection(db,'points',), {
+              UID: userId.value,
+              points: reward.cost,
+              type: "redeem",
+              Date: Timestamp.now()
             });
+            // Update user's points
+            // await updateDoc(userRef, {
+            //   points: userPoints.value - reward.cost
+            // });
   
             userPoints.value -= reward.cost; // Update locally after Firestore updates
             alert(`Successfully redeemed ${reward.name}!`);

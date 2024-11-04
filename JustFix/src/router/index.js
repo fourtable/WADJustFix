@@ -58,7 +58,7 @@ const routes = [
         path: '/profile/:id', // Dynamic route for profile with user ID
         name: 'viewProfile', // Name of the route
         component: ViewProfile,
-        props: route => ({ id: route.params.id }) // Pass the route param as a prop
+        props: true // Pass the route param as a prop
     },
     {
         path: '/editProfile',
