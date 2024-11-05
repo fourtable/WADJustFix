@@ -200,6 +200,13 @@ async function acceptQuote() {
             status: 'In Progress',
         });
 
+        const pointCollection = collection(db, 'points');
+        await addDoc(pointCollection, {
+            Date: serverTimestamp(),
+            userId: uid,
+            points: 10,
+        });
+
         console.log("Quote accepted and updated in Firestore:", selectedQuote.value);
 
         // Optionally, you can close the modal after acceptance
@@ -293,7 +300,7 @@ const loadContacts = async () => {
         // Listen for real-time updates
         onSnapshot(contactsQuery, async (snapshot) => {
             console.log("Raw Query Snapshot:", snapshot.docs.map(doc => doc.data()));
-            
+
             // Map over the snapshot, retrieve user data, and keep latest contacts on top
             const updatedContacts = await Promise.all(snapshot.docs.map(async (docu) => {
                 const data = docu.data();
@@ -316,7 +323,7 @@ const loadContacts = async () => {
 
                 // Fetch the unread messages count for the other user (receiver)
                 const unreadCount = await fetchUnreadMessagesCount(otherUserId, uid);
-                
+
                 return {
                     id: doc.id,
                     ...data,

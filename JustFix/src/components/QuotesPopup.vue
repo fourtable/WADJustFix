@@ -89,10 +89,10 @@ export default {
     },
   },
   computed: {
-    uid(){
+    uid() {
       return Cookies.get('uid') || sessionStorage.getItem('uid');
     },
-    userName(){
+    userName() {
       return Cookies.get('username') || sessionStorage.getItem('username');
     },
   },
@@ -191,7 +191,12 @@ export default {
             repairerId: '',
             timestamp: serverTimestamp(),
           });
-
+          const pointCollection = collection(db, 'points');
+          await addDoc(pointCollection, {
+            Date: serverTimestamp(),
+            userId: this.uid,
+            points: 2,
+          });
           console.log('Quote saved successfully');
         }
 
@@ -232,7 +237,8 @@ export default {
 .modal {
   z-index: 1050;
 }
-.btn{
-  gap: 10px;  
+
+.btn {
+  gap: 10px;
 }
 </style>

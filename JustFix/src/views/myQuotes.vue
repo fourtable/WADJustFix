@@ -16,7 +16,8 @@
         <div class="table-cell">Created</div>
         <div class="table-cell">Actions</div>
       </div>
-      <div v-if="uncompleteQuotes && uncompleteQuotes.length > 0" v-for="quote in uncompleteQuotes" :key="quote.id" class="table-row">
+      <div v-if="uncompleteQuotes && uncompleteQuotes.length > 0" v-for="quote in uncompleteQuotes" :key="quote.id"
+        class="table-row">
         <div class="table-cell">
           <div @click="showQuoteDetails(quote)" style="cursor: pointer; display: flex; align-items: center;">
             <img :src="quote.picture" alt="Quote Image" class="quote-image img-thumbnail" />
@@ -29,12 +30,12 @@
         <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
         <div class="table-cell">
           <div class="button-container d-flex flex-column flex-xl-row">
-            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup" >Review</ReviewPopup>
-            <button v-if="quote.userId === uid && quote.status !== 'Completed'"
+            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup">Review</ReviewPopup>
+            <button v-if="quote.userId === uid && quote.status !== 'Completed'" :disabled="quote.repairerName != ''"
               class="btn btn-warning btn-sm table-button mb-2 mb-xl-0" @click="openEditPopup(quote)">
               Edit
             </button>
-            <button v-if="quote.userId === uid && quote.status !== 'Completed'"
+            <button v-if="quote.userId === uid && quote.status !== 'Completed'" :disabled="quote.repairerName != ''"
               class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" @click="deleteQuote(quote.id)">
               Remove
             </button>
@@ -42,10 +43,11 @@
               class="btn btn-success btn-sm table-button mb-2 mb-xl-0" @click="completeQuote(quote)">
               Complete
             </button>
-            <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
+            <!-- <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
               class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" @click="rejectQuote(quote)">
               Reject
-            </button>
+            </button> -->
+            <RejectPopup v-if="quote.repairerId === uid && quote.status === 'In Progress'" :quote="quote" />
           </div>
         </div>
       </div>
@@ -93,7 +95,8 @@
         <div class="table-cell">Created</div>
         <div class="table-cell">Actions</div>
       </div>
-      <div v-if="completedQuotes && completedQuotes.length > 0" v-for="quote in completedQuotes" :key="quote.id" class="table-row">
+      <div v-if="completedQuotes && completedQuotes.length > 0" v-for="quote in completedQuotes" :key="quote.id"
+        class="table-row">
         <div class="table-cell">
           <div @click="showQuoteDetails(quote)" style="cursor: pointer; display: flex; align-items: center;">
             <img :src="quote.picture" alt="Quote Image" class="quote-image img-thumbnail" />
@@ -106,7 +109,7 @@
         <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
         <div class="table-cell">
           <div class="button-container d-flex flex-column flex-xl-row">
-            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup" >Review</ReviewPopup>
+            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup">Review</ReviewPopup>
           </div>
         </div>
       </div>
@@ -144,9 +147,9 @@
 
 <script>
 import { ref, onMounted, computed, watch } from 'vue';
-import { db, realtimeDb} from '../main';
-import { collection, onSnapshot, query, where, getDocs, getDoc, doc, updateDoc } from 'firebase/firestore';
-import {ref as dbRef, push} from 'firebase/database'; 
+import { db, realtimeDb } from '../main';
+import { collection, onSnapshot, query, where, getDocs, getDoc, doc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref as dbRef, push } from 'firebase/database';
 import QuotesPopup from '../components/QuotesPopup.vue';
 import Cookies from 'js-cookie';
 import ReviewPopup from '../components/ReviewPopup.vue';
@@ -172,7 +175,7 @@ export default {
       console.log("Retrieved quotes from Vuex store:", userQuotes); // Log quotes for debugging
       return userQuotes;
     },
-    uncompleteQuotes(){
+    uncompleteQuotes() {
       return this.quotes.filter(quote => quote.status !== 'Completed');
     },
     uid() {
@@ -184,7 +187,10 @@ export default {
     username() {
       return Cookies.get('username') || sessionStorage.getItem('username');
     },
-    completedQuotes(){
+    userPicture() {
+      return Cookies.get('profilePic') || sessionStorage.getItem('profilePic');
+    },
+    completedQuotes() {
       return this.quotes.filter(quote => quote.status === 'Completed');
     }
   },
@@ -239,33 +245,22 @@ export default {
     formatTimestamp(timestamp) {
       return timestamp ? new Date(timestamp.seconds * 1000).toLocaleDateString() : '';
     },
-    async rejectQuote(quote) {
-      try {
-        // Reference to the specific quote document
-        const quoteRef = doc(db, 'quotes', quote.id);
-
-        // Update the document
-        await updateDoc(quoteRef, {
-          repairerId: '',
-          repairerName: '',
-          status: 'Rejected' // Update the status to 'Rejected'
-        });
-        this.notifyUser(quote.userId, "Quote Rejected");
-        console.log("Quote rejected");
-      } catch (error) {
-        console.error('Error rejecting quote:', error);
-      }
-    },
     async completeQuote(quote) {
       try {
         // Reference to the specific quote document
         const quoteRef = doc(db, 'quotes', quote.id);
+        const pointCollection = collection(db, 'points');
+        await addDoc(pointCollection, {
+          Date: serverTimestamp(),
+          userId: this.uid,
+          points: 10,
+          });
 
         // Update the document
         await updateDoc(quoteRef, {
           status: 'Completed' // Update the status to 'Rejected'
         });
-        this.notifyUser(quote.userId, "Quote comepleted!");
+        this.notifyUser(quote.userId, "Quote completed!");
       } catch (error) {
         console.error('Error:', error);
       }
@@ -280,7 +275,44 @@ export default {
         timestamp: new Date().toISOString(),
         read: false,
       });
+      await this.sendMessage(message, this.uid, receiverId)
       console.log('Notification sent to:', receiverId);
+    },
+    async sendMessage(message, senderId, receiverid) {
+      if (message.trim()) {
+        try {
+          const [firstUserId, secondUserId] = [senderId, receiverid].sort();
+          const arrayIds = [firstUserId, secondUserId];
+          const chatDocRef = await addDoc(collection(db, 'chats'), {
+            text: message,
+            senderId: senderId,
+            receiverId: receiverid,
+            timestamp: serverTimestamp(),
+            participants: arrayIds,
+            photoURL: this.userPicture,
+          });
+
+          // Check if the contact is already in the user’s recent chats
+          const contactsQuery = query(
+            collection(db, 'contacts'),
+            where('userIds', '==', arrayIds),
+          );
+          const querySnapshot = await getDocs(contactsQuery);
+
+          if (querySnapshot.empty) {
+            // If no existing contact, add new with userIds as an array
+            await addDoc(collection(db, 'contacts'), {
+              userIds: arrayIds,
+              lastMessageTime: serverTimestamp(),
+            });
+          } else {
+            // Update the lastMessageTime for the existing contact
+            await updateDoc(querySnapshot.docs[0].ref, { lastMessageTime: serverTimestamp() });
+          }
+        } catch (error) {
+          console.error("Error sending message:", error);
+        }
+      }
     },
   },
 };

@@ -46,7 +46,7 @@
 
 <script>
 import { db } from '../main';
-import {ref} from 'vue';
+import { ref } from 'vue';
 import { collection, onSnapshot, query, where, getDocs, getDoc, doc, updateDoc, Timestamp, addDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 
@@ -58,7 +58,7 @@ export default {
             rating: 0,
             hoverRating: null,
             comments: '',
-            revieweePhoto:'',
+            revieweePhoto: '',
         };
     },
     computed: {
@@ -68,7 +68,7 @@ export default {
         userName() {
             return Cookies.get('username') || sessionStorage.getItem('username');
         },
-        revieweeName(){
+        revieweeName() {
             if (this.quote.repairerId == this.uid) {
                 this.fetchRevieweeImageUrl(this.quote.userId);
                 return this.quote.userName;
@@ -125,6 +125,12 @@ export default {
             };
             try {
                 const reviewsCollection = collection(db, "reviews");
+                const pointCollection = collection(db, 'points');
+                await addDoc(pointCollection, {
+                    Date: serverTimestamp(),
+                    userId: this.uid,
+                    points: 10,
+                });
                 await addDoc(reviewsCollection, reviewData);
                 console.log("Review submitted:", reviewData);
                 // Reset the form
@@ -248,37 +254,55 @@ label {
     align-self: flex-end;
     /* Align button to the right */
 }
+
 .reviewer-picture {
-  max-width: 100%; /* Allow the image to scale down to the container's width */
-  height: auto; /* Maintain aspect ratio */
-  width: 150px; /* Set a default width */
-  border-radius: 50%; /* Optional: to make it circular */
+    max-width: 100%;
+    /* Allow the image to scale down to the container's width */
+    height: auto;
+    /* Maintain aspect ratio */
+    width: 150px;
+    /* Set a default width */
+    border-radius: 50%;
+    /* Optional: to make it circular */
 }
+
 /* For large screens (lg) */
-@media (max-width: 1199px) { /* 992px to 1199px */
-  .reviewer-picture {
-    width: 120px; /* Adjust size for lg */
-  }
+@media (max-width: 1199px) {
+
+    /* 992px to 1199px */
+    .reviewer-picture {
+        width: 120px;
+        /* Adjust size for lg */
+    }
 }
 
 /* For medium screens (md) */
-@media (max-width: 991px) { /* 768px to 991px */
-  .reviewer-picture {
-    width: 100px; /* Adjust size for md */
-  }
+@media (max-width: 991px) {
+
+    /* 768px to 991px */
+    .reviewer-picture {
+        width: 100px;
+        /* Adjust size for md */
+    }
 }
 
 /* For small screens (sm) */
-@media (max-width: 767px) { /* 576px to 767px */
-  .reviewer-picture {
-    width: 80px; /* Adjust size for sm */
-  }
+@media (max-width: 767px) {
+
+    /* 576px to 767px */
+    .reviewer-picture {
+        width: 80px;
+        /* Adjust size for sm */
+    }
 }
 
 /* For extra small screens (xs) */
-@media (max-width: 575px) { /* Less than 576px */
-  .reviewer-picture {
-    width: 70px; /* Adjust size for xs */
-  }
+@media (max-width: 575px) {
+
+    /* Less than 576px */
+    .reviewer-picture {
+        width: 70px;
+        /* Adjust size for xs */
+    }
 }
 </style>
