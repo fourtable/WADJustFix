@@ -41,7 +41,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { db, realtimeDb } from '../main'; // Ensure you import your Firebase db configuration
-import { collection, getDocs, query, where, onSnapshot, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where, onSnapshot, addDoc, updateDoc, serverTimestamp, increment } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import { defineEmits } from 'vue';
 import QuotesPopup from './QuotesPopup.vue';
@@ -61,12 +61,6 @@ const selectedQuoteIds = ref([]); // Store selected quote IDs
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 
 // Function to fetch quotes
-const fetchQuotes = async () => {
-    const quotesCollection = collection(db, 'quotes');
-    const quoteSnapshot = await getDocs(quotesCollection);
-    quotes.value = quoteSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-};
-
 function closePopup() {
     console.log("Closing popup...");
     emit('close');
@@ -129,7 +123,7 @@ const sendQuoteToRepairer = async (quote, repairerId, senderId, senderPic, sende
 
         // Add the new quote to the chats collection
         await addDoc(repairerQuotesRef, newQuote);
-        
+
         // Send notification to repairer
         await sendNotification(repairerId, "You have a quote request", senderName);
 
@@ -157,7 +151,7 @@ const sendQuoteToRepairer = async (quote, repairerId, senderId, senderPic, sende
                 unreadCount: increment(1) // Increment the unread count
             });
         }
-        
+        this.$emit('quoteSent');
         console.log(`Quote sent to repairer ${repairerId}`);
     } catch (error) {
         console.error("Error sending quote to repairer:", error);
@@ -172,12 +166,11 @@ const fetchUserQuotes = () => {
 
     if (uid) {
         const quotesCollection = collection(db, 'quotes');
+        const quotesQuery = query(quotesCollection, where('repairerId', '==', ''));
         if (userType === 'user') {
-            userQuotesQuery = query(quotesCollection, where('userId', '==', uid));
-        } else if (userType === 'repairer') {
-            userQuotesQuery = query(quotesCollection, where('repairerId', '==', uid));
+            userQuotesQuery = query(quotesQuery, where('userId', '==', uid));   
         } else {
-            userQuotesQuery = quotesCollection;
+            userQuotesQuery = quotesQuery;
         }
 
         // Listen to changes in the collection and retrieve quotes for the user
