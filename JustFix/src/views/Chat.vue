@@ -157,10 +157,10 @@ function updateUserStatusUI(state, lastChanged) {
     const statusElement = document.getElementById("userStatus");
     statusElement.textContent = capitalizeWords(state);
     const statusColorElem = document.getElementById('userStatusColor');
-    if(state == 'online'){
+    if (state == 'online') {
         statusColorElem.className = 'status-indicator online';
     }
-    else{
+    else {
         statusColorElem.className = 'status-indicator offline';
     }
 }
@@ -282,20 +282,21 @@ const fetchUnreadMessagesCount = async (userId, otherUserId) => {
     return unreadCount; // Return the reactive unread count reference
 };
 
-// Modify loadContacts to show unread message count on the receiver's side
-const loadContacts = () => {
-    const contactsQuery = query(
-        collection(db, 'contacts'),
-        where('userIds', 'array-contains', uid), // Current user's ID
-        orderBy('lastMessageTime', 'desc')
-    );
+const loadContacts = async () => {
+    try {
+        const contactsQuery = query(
+            collection(db, 'contacts'),
+            where('userIds', 'array-contains', uid), // Current user's ID
+            orderBy('lastMessageTime', 'desc') // Sort by latest message time
+        );
 
-    onSnapshot(contactsQuery, async (snapshot) => {
-        console.log("Raw Query Snapshot:", snapshot.docs.map(doc => doc.data()));
-        contacts.value = snapshot.empty
-            ? []
-            : await Promise.all(snapshot.docs.map(async (docs) => {
-                const data = docs.data();
+        // Listen for real-time updates
+        onSnapshot(contactsQuery, async (snapshot) => {
+            console.log("Raw Query Snapshot:", snapshot.docs.map(doc => doc.data()));
+            
+            // Map over the snapshot, retrieve user data, and keep latest contacts on top
+            const updatedContacts = await Promise.all(snapshot.docs.map(async (docu) => {
+                const data = docu.data();
                 const otherUserId = data.userIds.find(id => id !== uid); // Get the other user ID
 
                 // Retrieve the imageUrl for the other user
@@ -314,18 +315,25 @@ const loadContacts = () => {
                 }
 
                 // Fetch the unread messages count for the other user (receiver)
-                const unreadCount = await fetchUnreadMessagesCount(otherUserId, uid); // Fetch unread count for the receiver
+                const unreadCount = await fetchUnreadMessagesCount(otherUserId, uid);
+                
                 return {
                     id: doc.id,
                     ...data,
                     otherUserName,
                     otherUserId,
                     otherUserImageUrl,
-                    unreadCount, // Include the unread message count
+                    unreadCount,
                 };
             }));
-    });
-};
+
+            // Update contacts.value to refresh view
+            contacts.value = updatedContacts;
+        });
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
 
 loadContacts();
 
@@ -384,6 +392,7 @@ const selectContact = async (contact) => {
                 contactName.value = contactData.name; // Assuming the field is 'name'
                 contactPic.value = contactData.imageUrl; // Assuming the field is 'photoURL'
                 contactState.value = state;
+                console.log(contactName.value, contactId.value);
                 // Load chat history for the receiver
                 loadChatHistory(contact.otherUserId, uid);
                 // Delete unread messages
@@ -398,6 +407,8 @@ const selectContact = async (contact) => {
         console.error("Error selecting contact:", error);
     }
 };
+
+
 
 // Function to delete unread messages
 const resetUnreadMessages = async (receiverId) => {
@@ -459,16 +470,18 @@ const sendMessage = async () => {
             });
 
             // Check if the contact is already in the user’s recent chats
+            const [firstUserId, secondUserId] = [uid, contactId.value].sort();
+            const arrayIds = [firstUserId, secondUserId];
             const contactsQuery = query(
                 collection(db, 'contacts'),
-                where('userIds', 'array-contains', uid),
+                where('userIds', '==', arrayIds),
             );
             const querySnapshot = await getDocs(contactsQuery);
 
             if (querySnapshot.empty) {
                 // If no existing contact, add new with userIds as an array
                 await addDoc(collection(db, 'contacts'), {
-                    userIds: [uid, contactId.value],
+                    userIds: arrayIds,
                     lastMessageTime: serverTimestamp(),
                 });
             } else {
@@ -488,8 +501,9 @@ const sendMessage = async () => {
             console.error("Error sending message:", error);
         }
     }
-
+    loadContacts();
 };
+
 
 const scrollToBottom = () => {
     if (messagesContainer.value) {
@@ -501,6 +515,7 @@ const scrollToBottom = () => {
 watch(chatHistory, async () => {
     await nextTick(); // Ensure DOM updates before scrolling
     scrollToBottom();
+    loadContacts;
 });
 
 // Create a notification for the receiver

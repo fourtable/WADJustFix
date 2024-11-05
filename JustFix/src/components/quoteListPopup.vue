@@ -112,6 +112,8 @@ const sendQuotes = async () => {
 // Implement the actual logic to send a quote to a repairer
 const sendQuoteToRepairer = async (quote, repairerId, senderId, senderPic, senderName) => {
     try {
+        const [firstUserId, secondUserId] = [repairerId, senderId].sort();
+        const arrayIds = [firstUserId, secondUserId];
         const repairerQuotesRef = collection(db, 'chats');
         const newQuote = {
             participants: [senderId, repairerId],
@@ -131,7 +133,6 @@ const sendQuoteToRepairer = async (quote, repairerId, senderId, senderPic, sende
         // Send notification to repairer
         await sendNotification(repairerId, "You have a quote request", senderName);
 
-        const arrayIds = [repairerId, senderId];
         const contactsQuery = query(
             collection(db, 'contacts'),
             where('userIds', '==', arrayIds),
