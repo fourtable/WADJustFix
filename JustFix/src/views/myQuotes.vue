@@ -8,7 +8,7 @@
     </div>
     <!-- List Group to display each quote -->
     <div class="mt-4">
-      <div class="table-row header-row">
+      <div class="table-row header-row text-center">
         <div class="table-cell">Item</div>
         <div class="table-cell">Category</div>
         <div class="table-cell">Repairer</div>
@@ -26,17 +26,24 @@
         <div class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
         <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
         <div class="table-cell">
-          <div class="button-container">
-            <button v-if="quote.status === 'Completed'" class="btn btn-primary btn-sm table-button"
-              @click="reviewQuote(quote)">Review</button>
-            <!-- Edit Button for Popup -->
-            <button class="btn btn-warning btn-sm table-button" @click="openEditPopup(quote)">Edit</button>
+          <div class="button-container d-flex flex-column flex-xl-row">
+            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup" >Review</ReviewPopup>
             <button v-if="quote.userId === uid && quote.status !== 'Completed'"
-              class="btn btn-danger btn-sm table-button" @click="deleteQuote(quote.id)">Delete</button>
+              class="btn btn-warning btn-sm table-button mb-2 mb-xl-0" @click="openEditPopup(quote)">
+              Edit
+            </button>
+            <button v-if="quote.userId === uid && quote.status !== 'Completed'"
+              class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" @click="deleteQuote(quote.id)">
+              Remove
+            </button>
             <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
-              class="btn btn-success btn-sm table-button" @click="completeQuote(quote)">Complete</button>
+              class="btn btn-success btn-sm table-button mb-2 mb-xl-0" @click="completeQuote(quote)">
+              Complete
+            </button>
             <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
-              class="btn btn-danger btn-sm table-button" @click="rejectQuote(quote.id)">Reject</button>
+              class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" @click="rejectQuote(quote)">
+              Reject
+            </button>
           </div>
         </div>
       </div>
@@ -74,16 +81,17 @@
 
 <script>
 import { ref, onMounted, computed, watch } from 'vue';
-import { useStore } from 'vuex';
-import { db } from '../main';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db, realtimeDb} from '../main';
+import { collection, onSnapshot, query, where, getDocs, getDoc, doc, updateDoc } from 'firebase/firestore';
+import {ref as dbRef, push} from 'firebase/database'; 
 import QuotesPopup from '../components/QuotesPopup.vue';
 import Cookies from 'js-cookie';
-import { useRoute } from 'vue-router';
+import ReviewPopup from '../components/ReviewPopup.vue';
 
 export default {
   components: {
     QuotesPopup,
+    ReviewPopup,
   },
   data() {
     return {
@@ -105,6 +113,9 @@ export default {
     userType() {
       return Cookies.get('userType') || sessionStorage.getItem('userType');
     },
+    username() {
+      return Cookies.get('username') || sessionStorage.getItem('username');
+    }
   },
   mounted() {
     this.showQuotesPopup = this.$route.query.openPopup === 'true';
@@ -157,41 +168,43 @@ export default {
     formatTimestamp(timestamp) {
       return timestamp ? new Date(timestamp.seconds * 1000).toLocaleDateString() : '';
     },
-    async rejectQuote(quoteId) {
+    async rejectQuote(quote) {
       try {
-        // Reference to the quotes collection
-        const quotesRef = collection(db, 'quotes');
+        // Reference to the specific quote document
+        const quoteRef = doc(db, 'quotes', quote.id);
 
-        // Create a query to find the quote by its ID
-        const q = query(quotesRef, where('id', '==', quoteId));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-          // Assume quote ID is unique, so there's only one document
-          const quoteDoc = querySnapshot.docs[0];
-
-          // Update the quote with empty repairerId and rejected status
-          await updateDoc(doc(db, 'quotes', quoteDoc.id), {
-            repairerId: '',  // Clear the repairerId
-            status: 'Rejected'  // Set status to 'Rejected'
-          });
-
-          // Notify the user after rejection
-          this.notifyUser(quoteDoc.userId);
-          console.log("Quote rejected");
-        } else {
-          console.error("No quote found with the provided ID");
-        }
+        // Update the document
+        await updateDoc(quoteRef, {
+          repairerId: '',
+          repairerName: '',
+          status: 'Rejected' // Update the status to 'Rejected'
+        });
+        this.notifyUser(quote.userId, "Quote Rejected");
+        console.log("Quote rejected");
       } catch (error) {
-        console.error("Error rejecting quote: ", error);
+        console.error('Error rejecting quote:', error);
       }
     },
-    async notifyUser(receiverId) {
+    async completeQuote(quote) {
+      try {
+        // Reference to the specific quote document
+        const quoteRef = doc(db, 'quotes', quote.id);
+
+        // Update the document
+        await updateDoc(quoteRef, {
+          status: 'Completed' // Update the status to 'Rejected'
+        });
+        this.notifyUser(quote.userId, "Quote comepleted!");
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    },
+    async notifyUser(receiverId, message) {
       const notificationRef = dbRef(realtimeDb, `notifications/${receiverId}`);
       await push(notificationRef, {
         notificationType: 'message',
-        senderId: uid,
-        senderName: name,
+        senderId: this.uid,
+        senderName: this.username,
         message: message,
         timestamp: new Date().toISOString(),
         read: false,
@@ -252,8 +265,8 @@ img {
 .table-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   /* Center vertically */
-  text-align: center;
   padding: 10px;
   transition: background-color 0.3s ease;
   /* Smooth transition */
@@ -277,7 +290,7 @@ img {
 }
 
 /* Change background color on hover */
-.table-row:hover {
+.table-cell:hover {
   background-color: #cdf696;
   /* Light gray background on hover */
 }
@@ -289,11 +302,14 @@ img {
   display: flex;
   align-items: center;
   /* Center vertically */
-  justify-content: flex-start;
+  justify-content: center;
   /* Align to the left */
   padding: 5px;
   /* Add some padding for aesthetics */
   border-right: 1px solid #dee2e6;
+  max-height: 10vh;
+  min-height: 7vh;
+  min-width: 5vw;
   /* Right border for each cell */
 }
 
@@ -306,11 +322,12 @@ img {
 /* Header styling */
 .header-row {
   font-weight: bold;
-  /* background-color: #085C44; */
+  background-color: #cdf696;
   /* Bootstrap primary color */
   color: black;
   /* Text color */
   border: 2px solid #cdf696;
+  justify-content: flex-start;
   /* border-bottom: 2px solid #cdf696; */
   /* Bottom border for header */
 }

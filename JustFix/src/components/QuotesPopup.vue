@@ -69,8 +69,6 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import Cookies from 'js-cookie';
 import { ref, defineEmits } from 'vue';
 
-const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
-
 export default {
   props: {
     show: {
@@ -88,6 +86,14 @@ export default {
     editQuote: {
       type: Object,
       default: () => ({}),
+    },
+  },
+  computed: {
+    uid(){
+      return Cookies.get('uid') || sessionStorage.getItem('uid');
+    },
+    userName(){
+      return Cookies.get('username') || sessionStorage.getItem('username');
     },
   },
   data() {
@@ -180,7 +186,8 @@ export default {
             category: this.formData.category,
             picture: pictureUrl, // Store the URL of the uploaded image
             description: this.formData.description,
-            userId: uid,
+            userId: this.uid,
+            userName: this.userName,
             repairerId: '',
             timestamp: serverTimestamp(),
           });
