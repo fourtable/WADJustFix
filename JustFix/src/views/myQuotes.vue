@@ -3,12 +3,12 @@
     <div class="d-flex justify-content-between align-items-center">
       <h2>My Quotes</h2>
       <div v-if="userType === 'user'">
-        <createQuotesPopup :show="showQuotesPopup" :btnName="'+'" @close="showQuotesPopup = false" />
+        <QuotesPopup :show="showQuotesPopup" :btnName="'+'" :action="'Create'" @close="showQuotesPopup = false" />
       </div>
     </div>
     <!-- List Group to display each quote -->
     <div class="mt-4">
-      <div class="table-row header-row">
+      <div class="table-row header-row text-center">
         <div class="table-cell">Item</div>
         <div class="table-cell">Category</div>
         <div class="table-cell">Repairer</div>
@@ -23,27 +23,32 @@
           </div>
         </div>
         <div class="table-cell">{{ quote.category }}</div>
-        <div class="table-cell" v-if="quote.repairerName">{{ quote.repairerName }}</div>
-        <div class="table-cell" v-else>No Repairer</div>
+        <div class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
         <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
         <div class="table-cell">
-          <div class="button-container" v-if="quote.status == 'Completed'">
-            <button class="btn btn-primary btn-sm table-button" @click="reviewQuote(quote)">Review</button>
-          </div>
-          <div class="button-container" v-if="quote.userId == uid">
-            <button class="btn btn-warning btn-sm table-button" @click="editQuote(quote)" :disabled="quote.repairerName">Edit</button>
-            <button class="btn btn-danger btn-sm table-button" @click="deleteQuote(quote.id)" :disabled="quote.repairerName">Delete</button>
-          </div>
-          <div class="button-container" v-if="quote.repairerId == uid && quote.status == 'In Progress'">
-            <button class="btn btn-success btn-sm table-button" @click="CompleteQuote(quote)">Completed</button>
-            <button class="btn btn-danger btn-sm table-button" @click="RejectQuote(quote.id)">Reject</button>
+          <div class="button-container d-flex flex-column flex-xl-row">
+            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup" >Review</ReviewPopup>
+            <button v-if="quote.userId === uid && quote.status !== 'Completed'"
+              class="btn btn-warning btn-sm table-button mb-2 mb-xl-0" @click="openEditPopup(quote)">
+              Edit
+            </button>
+            <button v-if="quote.userId === uid && quote.status !== 'Completed'"
+              class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" @click="deleteQuote(quote.id)">
+              Remove
+            </button>
+            <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
+              class="btn btn-success btn-sm table-button mb-2 mb-xl-0" @click="completeQuote(quote)">
+              Complete
+            </button>
+            <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
+              class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" @click="rejectQuote(quote)">
+              Reject
+            </button>
           </div>
         </div>
       </div>
       <!-- Display message if no quotes are available -->
-      <div v-else class="text-center">
-        No quotes available
-      </div>
+      <div v-else class="text-center">No quotes available</div>
     </div>
 
     <!-- Quote Details Modal -->
@@ -65,9 +70,6 @@
               <p>{{ selectedQuote.description }}</p>
             </div>
           </div>
-          <div class="modal-footer">
-            <!-- <button type="button" class="btn btn-secondary" @click="closeModal">Close</button> -->
-          </div>
         </div>
       </div>
     </div>
@@ -78,19 +80,18 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue';
-import { useStore } from 'vuex';
-import { db } from '../main';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import createQuotesPopup from '../components/createQuotesPopup.vue';
+import { ref, onMounted, computed, watch } from 'vue';
+import { db, realtimeDb} from '../main';
+import { collection, onSnapshot, query, where, getDocs, getDoc, doc, updateDoc } from 'firebase/firestore';
+import {ref as dbRef, push} from 'firebase/database'; 
+import QuotesPopup from '../components/QuotesPopup.vue';
 import Cookies from 'js-cookie';
-import { useRoute } from 'vue-router';
-
-const route = useRoute();
+import ReviewPopup from '../components/ReviewPopup.vue';
 
 export default {
   components: {
-    createQuotesPopup,
+    QuotesPopup,
+    ReviewPopup,
   },
   data() {
     return {
@@ -101,7 +102,6 @@ export default {
     };
   },
   computed: {
-    // Access Vuex store
     quotes() {
       const userQuotes = this.$store.getters.getUserQuotes; // Access quotes from Vuex store
       console.log("Retrieved quotes from Vuex store:", userQuotes); // Log quotes for debugging
@@ -113,48 +113,43 @@ export default {
     userType() {
       return Cookies.get('userType') || sessionStorage.getItem('userType');
     },
-  },
-  mounted() {
-    // Open popup if query parameter `openPopup` is true
-    this.showQuotesPopup = this.$route.query.openPopup === 'true';
-    this.updatePopupState();
-  },
-  watch: {
-    '$route.query.openPopup'(newVal) {
-      console.log("Route query changed, openPopup:", newVal); // Debugging log
-      this.showQuotesPopup = newVal === 'true';
+    username() {
+      return Cookies.get('username') || sessionStorage.getItem('username');
     }
   },
-  async created() {
+  mounted() {
+    this.showQuotesPopup = this.$route.query.openPopup === 'true';
     this.fetchUserQuotes(); // Fetch quotes from Firestore
   },
-  // async created() {
-  //   await this.$store.dispatch('fetchUserQuotes'); // Fetch user quotes from Vuex store
-  // },
+  watch: {
+    '$route.query.openPopup': {
+      handler(newVal) {
+        console.log("Route query changed, openPopup:", newVal); // Debugging log
+        this.showQuotesPopup = newVal === 'true';
+      },
+      immediate: true // Ensures the watcher runs on component mount
+    },
+  },
   methods: {
     fetchUserQuotes() {
-      let userQuotesQuery = '';
-      if (this.uid) {
-        const quotesCollection = collection(db, 'quotes');
-
-        if (this.userType == "user") {
-          userQuotesQuery = query(quotesCollection, where('userId', '==', this.uid));
-        }
-        else if (this.userType == "repairer") {
-          userQuotesQuery = query(quotesCollection, where('repairerId', '==', this.uid));
-        }
-        else {
-          userQuotesQuery = quotesCollection;
-        }
-
-        // Listen to changes in the collection and retrieve quotes for the user
-        onSnapshot(userQuotesQuery, (snapshot) => {
-          const retrievedQuotes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          this.$store.commit('setQuotes', retrievedQuotes); // Update quotes in Vuex store
-        });
-      } else {
+      if (!this.uid) {
         console.log("User is not logged in");
+        return;
       }
+
+      const quotesCollection = collection(db, 'quotes');
+      const userQuotesQuery = this.userType === "user"
+        ? query(quotesCollection, where('userId', '==', this.uid))
+        : this.userType === "repairer"
+          ? query(quotesCollection, where('repairerId', '==', this.uid))
+          : quotesCollection;
+
+      onSnapshot(userQuotesQuery, (snapshot) => {
+        const retrievedQuotes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        this.$store.commit('setQuotes', retrievedQuotes); // Update quotes in Vuex store
+      }, (error) => {
+        console.error("Error fetching user quotes: ", error);
+      });
     },
     showQuoteDetails(quote) {
       this.selectedQuote = quote;
@@ -170,23 +165,54 @@ export default {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
     },
-    updatePopupState() {
-      console.log("Initial or route update, openPopup:", this.$route.query.openPopup);
-      this.showQuotesPopup = this.$route.query.openPopup === 'true';
-    },
-    formatTimestamp(timestamp){
+    formatTimestamp(timestamp) {
       return timestamp ? new Date(timestamp.seconds * 1000).toLocaleDateString() : '';
-    }, 
-  },
-  beforeRouteUpdate(to, from, next) {
-    // Check for query changes before route update and apply the changes
-    if (to.query.openPopup !== from.query.openPopup) {
-      this.showQuotesPopup = to.query.openPopup === 'true';
-    }
-    next();
-  }
-};
+    },
+    async rejectQuote(quote) {
+      try {
+        // Reference to the specific quote document
+        const quoteRef = doc(db, 'quotes', quote.id);
 
+        // Update the document
+        await updateDoc(quoteRef, {
+          repairerId: '',
+          repairerName: '',
+          status: 'Rejected' // Update the status to 'Rejected'
+        });
+        this.notifyUser(quote.userId, "Quote Rejected");
+        console.log("Quote rejected");
+      } catch (error) {
+        console.error('Error rejecting quote:', error);
+      }
+    },
+    async completeQuote(quote) {
+      try {
+        // Reference to the specific quote document
+        const quoteRef = doc(db, 'quotes', quote.id);
+
+        // Update the document
+        await updateDoc(quoteRef, {
+          status: 'Completed' // Update the status to 'Rejected'
+        });
+        this.notifyUser(quote.userId, "Quote comepleted!");
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    },
+    async notifyUser(receiverId, message) {
+      const notificationRef = dbRef(realtimeDb, `notifications/${receiverId}`);
+      await push(notificationRef, {
+        notificationType: 'message',
+        senderId: this.uid,
+        senderName: this.username,
+        message: message,
+        timestamp: new Date().toISOString(),
+        read: false,
+      });
+      console.log('Notification sent to:', receiverId);
+    },
+  },
+};
 </script>
 
 <style>
@@ -239,8 +265,8 @@ img {
 .table-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   /* Center vertically */
-  text-align: center;
   padding: 10px;
   transition: background-color 0.3s ease;
   /* Smooth transition */
@@ -264,7 +290,7 @@ img {
 }
 
 /* Change background color on hover */
-.table-row:hover {
+.table-cell:hover {
   background-color: #cdf696;
   /* Light gray background on hover */
 }
@@ -276,11 +302,14 @@ img {
   display: flex;
   align-items: center;
   /* Center vertically */
-  justify-content: flex-start;
+  justify-content: center;
   /* Align to the left */
   padding: 5px;
   /* Add some padding for aesthetics */
   border-right: 1px solid #dee2e6;
+  max-height: 10vh;
+  min-height: 7vh;
+  min-width: 5vw;
   /* Right border for each cell */
 }
 
@@ -293,21 +322,43 @@ img {
 /* Header styling */
 .header-row {
   font-weight: bold;
-  /* background-color: #085C44; */
+  background-color: #cdf696;
   /* Bootstrap primary color */
   color: black;
   /* Text color */
   border: 2px solid #cdf696;
+  justify-content: flex-start;
   /* border-bottom: 2px solid #cdf696; */
   /* Bottom border for header */
+}
+
+@media (max-width: 768px) {
+  .header-row {
+    display: none;
+  }
 }
 
 /* Flexbox for button container */
 .button-container {
   display: flex;
-  justify-content: space-around;
-  /* Space buttons evenly */
-  width: 100%;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.table-button {
+  flex: 1 1 auto;
+  min-width: 80px;
+  padding: 0.5vw 1vw;
+  /* Adjusts padding relative to viewport width */
+  font-size: calc(0.8rem + 0.2vw);
+  /* Responsive font size */
+}
+
+/* Maintain button shape on smaller screens */
+@media (max-width: 768px) {
+  .table-button {
+    padding: 0.5rem 1rem;
+  }
 }
 
 /* Container styling */
