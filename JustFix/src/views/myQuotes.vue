@@ -11,11 +11,12 @@
       <div class="table-row header-row text-center">
         <div class="table-cell">Item</div>
         <div class="table-cell">Category</div>
-        <div class="table-cell">Repairer</div>
+        <div v-if="userType == 'user'" class="table-cell">Fixer</div>
+        <div v-else class="table-cell">Customer</div>
         <div class="table-cell">Created</div>
         <div class="table-cell">Actions</div>
       </div>
-      <div v-if="quotes && quotes.length > 0" v-for="quote in quotes" :key="quote.id" class="table-row">
+      <div v-if="uncompleteQuotes && uncompleteQuotes.length > 0" v-for="quote in uncompleteQuotes" :key="quote.id" class="table-row">
         <div class="table-cell">
           <div @click="showQuoteDetails(quote)" style="cursor: pointer; display: flex; align-items: center;">
             <img :src="quote.picture" alt="Quote Image" class="quote-image img-thumbnail" />
@@ -23,7 +24,8 @@
           </div>
         </div>
         <div class="table-cell">{{ quote.category }}</div>
-        <div class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
+        <div v-if="userType == 'user'" class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
+        <div v-else class="table-cell">{{ quote.userName }}</div>
         <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
         <div class="table-cell">
           <div class="button-container d-flex flex-column flex-xl-row">
@@ -77,6 +79,67 @@
     <!-- Modal backdrop -->
     <div v-if="showModal" class="modal-backdrop fade show" @click="closeModal"></div>
   </div>
+  <div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center">
+      <h2>Completed Quotes</h2>
+    </div>
+    <!-- List Group to display each quote -->
+    <div class="mt-4">
+      <div class="table-row header-row text-center">
+        <div class="table-cell">Item</div>
+        <div class="table-cell">Category</div>
+        <div v-if="userType == 'user'" class="table-cell">Fixer</div>
+        <div v-else class="table-cell">Customer</div>
+        <div class="table-cell">Created</div>
+        <div class="table-cell">Actions</div>
+      </div>
+      <div v-if="completedQuotes && completedQuotes.length > 0" v-for="quote in completedQuotes" :key="quote.id" class="table-row">
+        <div class="table-cell">
+          <div @click="showQuoteDetails(quote)" style="cursor: pointer; display: flex; align-items: center;">
+            <img :src="quote.picture" alt="Quote Image" class="quote-image img-thumbnail" />
+            <strong>{{ capitalizeWords(quote.item) }}</strong>
+          </div>
+        </div>
+        <div class="table-cell">{{ quote.category }}</div>
+        <div v-if="userType == 'user'" class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
+        <div v-else class="table-cell">{{ quote.userName }}</div>
+        <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
+        <div class="table-cell">
+          <div class="button-container d-flex flex-column flex-xl-row">
+            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup" >Review</ReviewPopup>
+          </div>
+        </div>
+      </div>
+      <!-- Display message if no quotes are available -->
+      <div v-else class="text-center">No quotes completed </div>
+    </div>
+
+    <!-- Quote Details Modal -->
+    <div class="modal fade" :class="{ show: showModal }" :style="{ display: showModal ? 'block' : 'none' }"
+      tabindex="-1" aria-labelledby="quoteDetailsLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="quoteDetailsLabel">{{ selectedQuote.category }}</h5>
+            <button type="button" class="btn-close" @click="closeModal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div v-if="selectedQuote.picture">
+              <p><strong>Picture:</strong></p>
+              <img :src="selectedQuote.picture" alt="Quote Image" class="img-fluid quote-image" />
+            </div>
+            <p><strong>Description:</strong></p>
+            <div class="description-box">
+              <p>{{ selectedQuote.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal backdrop -->
+    <div v-if="showModal" class="modal-backdrop fade show" @click="closeModal"></div>
+  </div>
 </template>
 
 <script>
@@ -87,11 +150,13 @@ import {ref as dbRef, push} from 'firebase/database';
 import QuotesPopup from '../components/QuotesPopup.vue';
 import Cookies from 'js-cookie';
 import ReviewPopup from '../components/ReviewPopup.vue';
+import RejectPopup from '../components/RejectPopup.vue';
 
 export default {
   components: {
     QuotesPopup,
     ReviewPopup,
+    RejectPopup,
   },
   data() {
     return {
@@ -107,6 +172,9 @@ export default {
       console.log("Retrieved quotes from Vuex store:", userQuotes); // Log quotes for debugging
       return userQuotes;
     },
+    uncompleteQuotes(){
+      return this.quotes.filter(quote => quote.status !== 'Completed');
+    },
     uid() {
       return Cookies.get('uid') || sessionStorage.getItem('uid');
     },
@@ -115,6 +183,9 @@ export default {
     },
     username() {
       return Cookies.get('username') || sessionStorage.getItem('username');
+    },
+    completedQuotes(){
+      return this.quotes.filter(quote => quote.status === 'Completed');
     }
   },
   mounted() {

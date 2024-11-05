@@ -19,7 +19,7 @@
                         </div>
                         <div class="rating" @mouseleave="resetHoverRating">
                             <label>Rating:</label>
-                            <div class="star-rating">
+                            <div class="star-rating" style="display: inline;">
                                 <span v-for="star in 5" :key="star" class="star" @mouseover="hoverRating = star"
                                     @click="setRating(star)">
                                     {{ star <= (hoverRating || rating) ? '★' : '☆' }} <!-- Use filled star or hollow
@@ -184,6 +184,10 @@ export default {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.rating .comments {
+    font-size: 36px;
+}
+
 .close {
     color: #aaa;
     float: right;
@@ -204,7 +208,7 @@ export default {
 }
 
 .star {
-    font-size: 36px;
+    font-size: 30px;
     /* Adjust star size */
     color: #ffd700;
     /* Default color for empty stars */
@@ -213,6 +217,8 @@ export default {
 
 label {
     font-weight: bold;
+    margin-right: 2%;
+    font-size: 24px;
 }
 
 .form-input,
