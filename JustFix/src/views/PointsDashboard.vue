@@ -1,10 +1,10 @@
 <template>
   <div class="container-fluid py-5" id="points">
-    <div class="row" style="height: 50vh;">
-      <div class="col-md-6 dashboard-section">
+    <div class="row align-items-start" style="height: 50vh;">
+      <div class="col-md-6 col-lg-6 col-sm-8 dashboard-section">
         <LineChart :labels="chartLabels" :data="pointsData" />
       </div>
-      <div class="col-md-6 dashboard-section">
+      <div class="col-md-6 col-lg-6 col-sm-4 dashboard-section">
         <div class="points-box">
           <span class="trophy-icon">🏆</span>
           <p class="total-points">{{ totalPoints }}</p>
@@ -13,42 +13,42 @@
         </div>
       </div>
     </div>
-    <div class="row mt-3" style="height: 50vh;">
+
+    <div class="row mt-3" style="height: auto;">
 
       <!-- How to Earn More Points - Card 1 -->
-      <div class="col-md-3 dashboard-section">
-          <div class="earn-points-card">
-              <h5>Join Events</h5>
-              <p>Participate in events to get 20 bonus points!</p>
-              <button class="btn btn-primary" @click="joinEvents">Join Events</button>
+      <div class="col-12 col-md-4 dashboard-section">
+        <div class="earn-points-card h-100 d-flex flex-column">
+          <h5>Join Events</h5>
+          <p>Participate in events to get 20 bonus points!</p>
+          <div class="card-footer mt-auto">
+            <button class="btn btn-primary" @click="joinEvents">Join Events</button>
           </div>
+        </div>
       </div>
 
       <!-- How to Earn More Points - Card 2 -->
-      <div class="col-md-3 dashboard-section">
-          <div class="earn-points-card">
-              <h5>Earn Points Through Repairs</h5>
-              <p>Complete/Request more repairs to earn  an additional 50 points!</p>
-              <!-- <button class="btn btn-primary" @click="joinEvents">Join Events</button> -->
+      <div class="col-md-4 col-12 dashboard-section">
+        <div class="earn-points-card h-100 d-flex flex-column">
+          <h5>Earn Points Through Repairs</h5>
+          <p>Complete/Request more repairs to earn  an additional 50 points!</p>
+          <div class="card-footer mt-auto">
+            <button class="btn btn-primary" @click="sendRequest">Send Request</button>
           </div>
+              <!-- <button class="btn btn-primary" @click="joinEvents">Join Events</button> -->
+        </div>
       </div>
 
       <!-- How to Earn More Points - Card 3 -->
-      <div class="col-md-3 dashboard-section">
-          <div class="earn-points-card">
-              <h5>Leave Reviews </h5>
-              <p>Complete a review after every repair has been completed to earn 10 points!</p>
-              <button class="btn btn-primary" @click="leaveReview">Leave Review</button>
+      <div class="col-md-4 col-12 dashboard-section">
+        <div class="earn-points-card h-100 d-flex flex-column">
+          <h5>Leave Reviews </h5>
+          <p>Complete a review after every repair has been completed to earn 10 points!</p>
+          <div class="card-footer mt-auto">
+            <button class="btn btn-primary" @click="leaveReview">Leave Review</button>
           </div>
+        </div>
       </div>
-
-      <!-- How to Earn More Points - Card 4 -->
-      <!-- <div class="col-md-3 dashboard-section">
-          <div class="earn-points-card">
-              <h5>Earn More Points By Participating In Events (for users)</h5>
-              <p>Join our events to get bonus points.</p>
-          </div>
-      </div> -->
     </div>
   </div>
 </template>
@@ -81,6 +81,9 @@ export default {
       router.push({ name: 'event' }); // Navigate to the Event route
     };
     const leaveReview = () => {
+      router.push({ name: 'myQuotes' }); // Navigate to the Event route
+    };
+    const sendRequest = () => {
       router.push({ name: 'myQuotes' }); // Navigate to the Event route
     };
 
@@ -150,7 +153,7 @@ export default {
       // Cleanup subscription on component unmount
       return () => unsubscribe();
     });
-    return { redeemPoints, joinEvents, leaveReview, chartLabels, totalPoints, pointsData };
+    return { redeemPoints, joinEvents, leaveReview, sendRequest, chartLabels, totalPoints, pointsData };
   },
   methods: {
     // redeemPoints() {
@@ -182,6 +185,7 @@ export default {
 
   .dashboard-section {
     height: 100%;
+    // height: auto;
     margin-top: 10px;
     margin-bottom: 10px;
   }
@@ -189,11 +193,12 @@ export default {
   .row {
     display: flex;  /* Use flexbox for better responsiveness */
     flex-wrap: wrap;  /* Allow wrapping */
+    // align-items: stretch
   }
 
   .line-graph-container {
-    position: relative;
-    height: 100%;
+    // position: relative;
+    max-height: 342px;
     padding: 20px;
     background-color: #fff;
     border-radius: 10px;
@@ -202,8 +207,7 @@ export default {
   }
 
   .points-box {
-    position: relative;
-    height: 100%;
+    // position: relative;
     padding: 20px;
     background-color: #fff;
     border-radius: 10px;
@@ -212,13 +216,15 @@ export default {
     align-items: center;
     justify-content: center; // Centers content vertically and horizontally
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: visible; // Allows content to overflow outside
+    // margin-top: 1rem;
+    height: 100%;
     text-align: center; // Centers text within the box
   }
 
   button.btn-primary {
     width: fit-content;
     margin-top: 1rem;
+    // margin-bottom: 1rem;
   }
 
 
@@ -242,7 +248,42 @@ export default {
     background-color: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    height: 100%;
+    // display: flex;
+    // flex-direction: column;
+    justify-content: space-between;
+    min-height: 240px;
+    // max-height: 200px;
   }
+
+  .card-footer{
+    display: flex;
+    justify-content: flex-start;
+    margin-top: auto;
+    // margin-bottom: 10px
+  }
+
+  // @media (max-width: 768px) {
+  //   /* Stack vertically on mobile screens and limit height */
+  //   .row {
+  //     flex-direction: column-reverse;
+  //   }
+
+  //   .dashboard-section {
+  //     height: auto;
+  //   }
+
+  //   .line-graph-container, 
+  //   .points-box {
+  //     max-height: 300px; /* Limit graph and points box height on small screens */
+  //     overflow-y: auto;  /* Allow scrolling if content overflows */
+  //     width: 100%;
+  //     flex: none
+  //   }
+  //   .earn-points-card{
+  //     // flex: 1;
+  //     // height: 100%;
+  //     flex-basis: auto;
+  //   }
+  // }
 }
 </style>
