@@ -67,7 +67,7 @@ const store = createStore({
             ...doc.data(),
           });
         });
-        console.log('Fetched Repairmen:', repairmen); // Log fetched data
+        // console.log('Fetched Repairmen:', repairmen); // Log fetched data
         commit("setRepairmen", repairmen);
       } catch (error) {
         console.error("Error fetching repairmen:", error); // Error handling
@@ -77,8 +77,6 @@ const store = createStore({
       let userQuotesQuery = '';
       const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
       const userType = Cookies.get('userType') || sessionStorage.getItem('userType'); // Directly reference userType
-      console.log(uid);
-      console.log(userType);
       if (uid) {
         const quotesCollection = collection(db, 'quotes');
         if (userType === "user") { // Use the local userType
@@ -90,9 +88,6 @@ const store = createStore({
         else {
           userQuotesQuery = quotesCollection; // Fetch all if no specific user type
         }
-
-        console.log(userQuotesQuery);
-    
         // Use onSnapshot to listen for real-time updates
         onSnapshot(userQuotesQuery, (snapshot) => {
           const quotes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
