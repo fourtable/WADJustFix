@@ -9,7 +9,7 @@
           <div class="hero-box light-blue animate__animated animate__fadeInLeft animate__delay-1s">
             <h1>Need Something Fixed?</h1>
             <p>Send your request now to your favorite repairer and watch the magic happen!</p>
-            <a :href="repairLink" class="button animate__animated animate__pulse" @click="openQuotesPopup">Create
+            <a class="button animate__animated animate__pulse" @click="openQuotesPopup">Create
               Request &rarr;</a>
           </div>
         </div>
@@ -18,12 +18,12 @@
           <div class="hero-box light-green animate__animated animate__fadeInLeft animate__delay-2s">
             <h2>Join Us As a Fixer!</h2>
             <p>Whether you're a repair hobbyist or a professional, we welcome you!</p>
-            <a :href="registerLink" class="button">Register Now &rarr;</a>
+            <router-link class="button" :to="{ name: 'register' }">Register Now &rarr;</router-link>
           </div>
           <div class="col-12 hero-box dark-green mt-4 animate__animated animate__fadeInLeft animate__delay-3s">
             <h2>Discover Our Repair Events</h2>
             <p>Attend our events to learn DIY repair techniques or upskill as a fixer.</p>
-            <a :href="eventLink" class="button">Learn More &rarr;</a>
+            <router-link  class="button" :to="{ name: 'event' }">Learn More &rarr;</router-link>
           </div>
         </div>
 
@@ -66,13 +66,13 @@ import router from '../router/index.js';
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 
 // Reactive properties
-const searchQuery = ref('');
+// const searchQuery = ref('');
 const searchRadius = ref(10); // Default search radius in km
 const userLocation = ref(null); // Stores the user's current geolocation
 const allRepairmen = ref([]); // Store all repairers
 
 // Computed properties
-const username = computed(() => store.getters.getUserName);
+// const username = computed(() => store.getters.getUserName);
 const repairmen = computed(() => store.getters.getRepairmen);
 
 // Watchers
@@ -91,7 +91,7 @@ onMounted(async () => {
   if (uid) {
     // Fetch user quotes only if the user is authenticated
     await store.dispatch('fetchUserQuotes');
-    console.log("Quotes in Home.vue:", store.getters.getUserQuotes);
+    // console.log("Quotes in Home.vue:", store.getters.getUserQuotes);
   }
   initializeAutocomplete();
   // Get user location and initialize map
@@ -154,7 +154,7 @@ async function initializeMapAndFetchRepairers() {
   allRepairmen.value = await fetchRepairers();
   placeRepairmenOnMap(allRepairmen.value);
   updateMapSearchCircle(userLocation.value, searchRadius.value); // Use the imported function for updating the search circle
-  console.log(userLocation.value);
+  // console.log(userLocation.value);
 }
 
 function updateSearchCircle() {
