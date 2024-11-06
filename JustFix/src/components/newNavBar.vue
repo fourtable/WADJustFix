@@ -1,6 +1,6 @@
 <template>
     <header :class="{ 'scrolled-nav': scrolledNav }">
-        <nav>
+        <nav class="sticky-navbar">
             <div class="branding">
                 <img src="../assets/newlogo.png" alt="JusFix Logo" width="120" height="60"
                     class="d-inline-block align-text-top" />
@@ -43,12 +43,12 @@
                     <img v-else :src="profilePic" alt="Profile" class="d-inline-block align-text-top" width="30"
                         height="30" />
                 </button>
-                <ul class="dropdown-menu" :class="{ show: dropdownVisible }" aria-labelledby="dropdownMenuButton" >
+                <ul class="dropdown-menu" :class="{ show: dropdownVisible }" aria-labelledby="dropdownMenuButton">
                     <li v-if="uid">
                         <router-link class="dropdown-item"
                             :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
                     </li>
-                    <li ><router-link class="dropdown-item" :to="{ name: 'myQuotes' }">My Quotes</router-link></li>
+                    <li><router-link class="dropdown-item" :to="{ name: 'myQuotes' }">My Quotes</router-link></li>
                     <li>
                         <router-link class="dropdown-item" :to="{ name: 'points' }">My Points</router-link>
                     </li>
@@ -62,7 +62,8 @@
                 <div class="fixer-text">Fixer</div>
                 <i class="fas fa-wrench fixer-icon"></i>
             </div>
-            <div v-if="type == 'user' && !mobile" class="customer-icon-container animate__animated animate__fadeIn animate__delay-1s">
+            <div v-if="type == 'user' && !mobile"
+                class="customer-icon-container animate__animated animate__fadeIn animate__delay-1s">
                 <p class="customer-text animate__animated animate__fadeInUp">Customer</p>
                 <i class="fa fa-user customer-icon animate__animated animate__bounce"></i>
             </div>
@@ -88,7 +89,7 @@
                         <router-link class="link" :to="{ name: 'users' }">Users</router-link>
                     </li>
                     <li v-if="type === 'admin'">
-                    <router-link class="link" :to="{ name: 'approveEvent' }">Approval</router-link>
+                        <router-link class="link" :to="{ name: 'approveEvent' }">Approval</router-link>
                     </li>
                     <li v-if="uid">
                         <router-link class="link"
@@ -237,6 +238,8 @@ export default {
                     sessionStorage.removeItem('uid');
                     sessionStorage.removeItem('profilePic');
                     sessionStorage.removeItem('userType');
+                    localStorage.removeItem('selectedRepairmen'); // Clear the selected repairmen from localStorage
+
                     // Redirect to login page
                     window.location.href = '/login';
                 })
@@ -569,5 +572,13 @@ header {
             }
         }
     }
+}
+
+.sticky-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: white;
+    width: 100%;
 }
 </style>

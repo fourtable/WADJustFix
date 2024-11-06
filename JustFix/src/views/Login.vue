@@ -6,12 +6,17 @@
     <div class="full-height">
         <!-- Left Section with Background -->
         <div class="left-section">
-            <!-- You can add content here if needed -->
+            <div class="left-section m-0">
+                <img src="../assets/aircon-servicing-home.png" alt="image of aircon servicing"
+                    class="full-height-image">
+            </div>
         </div>
 
         <!-- Right Section with the login form -->
         <div class="right-section">
-            <div class="card">
+
+
+            <div class="card login-right-card">
                 <!-- <button class="btn google-btn d-flex align-items-center mx-auto" id="googleSignInBtn"
                     style="padding: 8px 12px;">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo"
@@ -57,8 +62,12 @@
                     <p v-if="errorMessage" id="errorMessage" style="color: red;">{{ errorMessage }}</p>
                 </div>
             </div>
+
+
         </div>
     </div>
+
+
 </template>
 <script>
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
@@ -173,3 +182,61 @@ export default {
     },
 };
 </script>
+
+
+<style scoped>
+.full-height {
+    height: 100vh;
+    /* Full height of the viewport */
+    display: flex;
+    overflow: hidden;
+}
+
+.left-section,
+.right-section {
+    height: 100%;
+    /* Full height for both sections */
+    overflow: hidden;
+    /* Prevent scroll inside each section */
+}
+
+.left-section {
+    width: 50%;
+    /* Left section takes 50% width */
+}
+
+.right-section {
+    width: 50%;
+    /* Right section takes 50% width */
+    display: flex;
+    justify-content: center;
+    /* Center the login form horizontally */
+    align-items: center;
+    /* Center the login form vertically */
+}
+
+.login-right-card {
+    width: 500px;
+    /* Adjust the card width as needed */
+}
+
+/* Hide scrollbar for the entire page */
+body {
+    overflow: hidden;
+    /* Prevent any overflow */
+}
+
+/* Hide scrollbar even when content overflows */
+::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbars */
+}
+
+.full-height-image {
+    width: 100%;
+    /* Ensure the background image covers the full section */
+    height: 100%;
+    object-fit: cover;
+    /* Maintain aspect ratio */
+}
+</style>

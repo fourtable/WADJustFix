@@ -15,25 +15,25 @@ const userData = ref({
 
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 
-if(uid){
+if (uid) {
   setOnlineStatus(uid);
 }
 
 function setOnlineStatus(userId) {
-    const db = getDatabase();
-    const statusRef = dbRef(db, `status/${userId}`);
+  const db = getDatabase();
+  const statusRef = dbRef(db, `status/${userId}`);
 
-    // Set the user's status to online
-    set(statusRef, {
-        state: "online",
-        lastChanged: Date.now()
-    });
+  // Set the user's status to online
+  set(statusRef, {
+    state: "online",
+    lastChanged: Date.now()
+  });
 
-    // Automatically set the status to offline when the user disconnects
-    onDisconnect(statusRef).set({
-        state: "offline",
-        lastChanged: Date.now()
-    });
+  // Automatically set the status to offline when the user disconnects
+  onDisconnect(statusRef).set({
+    state: "offline",
+    lastChanged: Date.now()
+  });
 }
 
 // Function to set up notifications listener
@@ -108,8 +108,7 @@ onMounted(() => {
 
 <style>
 .content {
-  padding-top: 3%;
-  margin-bottom: 5%;
-  /* Adjust padding and margin to account for the navbar */
+  padding-top: 3vh;
+  margin-bottom: 5vh;
 }
 </style>
