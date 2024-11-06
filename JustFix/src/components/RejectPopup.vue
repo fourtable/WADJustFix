@@ -13,7 +13,7 @@
             </button>
           </div>
           <div class="modal-body">
-            <p style="color:red">Warning: You will get points deducted for rejecting an in progress item</p>
+            <p>Warning: You will get points deducted for rejecting an in progress item</p>
             <label for="rejectReason">Reason for Rejection:</label>
             <textarea v-model="rejectReason" required class="form-textarea"></textarea>
           </div>
