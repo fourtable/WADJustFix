@@ -14,6 +14,7 @@
         <div v-if="userType == 'user'" class="table-cell">Fixer</div>
         <div v-else class="table-cell">Customer</div>
         <div class="table-cell">Created</div>
+        <div class="table-cell">Status</div>
         <div class="table-cell">Actions</div>
       </div>
       <div v-if="uncompleteQuotes && uncompleteQuotes.length > 0" v-for="quote in uncompleteQuotes" :key="quote.id"
@@ -28,16 +29,15 @@
         <div v-if="userType == 'user'" class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
         <div v-else class="table-cell">{{ quote.userName }}</div>
         <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
+        <div class="table-cell">{{ quote.status || '-' }}</div>
         <div class="table-cell">
           <div class="button-container d-flex flex-column flex-xl-row">
             <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup">Review</ReviewPopup>
-            <button v-if="quote.userId === uid && quote.status !== 'Completed'" :disabled="quote.repairerName != ''"
-              class="btn btn-warning btn-sm table-button mb-2 mb-xl-0" @click="openEditPopup(quote)">
-              Edit
-            </button>
-            <button v-if="quote.userId === uid && quote.status !== 'Completed'" :disabled="quote.repairerName != ''"
+            <QuotesPopup v-if="quote.userId === uid && quote.status !== 'Completed'" :disableStatus="quote.status == 'In Progress'" 
+            :show="showQuotesPopup" :btnName="'Edit'" :action="'Edit'" :editQuote="quote" @close="showQuotesPopup = false" />
+            <button v-if="quote.userId === uid && quote.status !== 'Completed'" :disabled="quote.status === 'In Progress'"
               class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" @click="deleteQuote(quote.id)">
-              Remove
+              Remove 
             </button>
             <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
               class="btn btn-success btn-sm table-button mb-2 mb-xl-0" @click="completeQuote(quote)">
@@ -93,6 +93,7 @@
         <div v-if="userType == 'user'" class="table-cell">Fixer</div>
         <div v-else class="table-cell">Customer</div>
         <div class="table-cell">Created</div>
+        <div class="table-cell">Status</div>
         <div class="table-cell">Actions</div>
       </div>
       <div v-if="completedQuotes && completedQuotes.length > 0" v-for="quote in completedQuotes" :key="quote.id"
@@ -107,6 +108,7 @@
         <div v-if="userType == 'user'" class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
         <div v-else class="table-cell">{{ quote.userName }}</div>
         <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
+        <div class="table-cell">{{ quote.status || '-' }}</div>
         <div class="table-cell">
           <div class="button-container d-flex flex-column flex-xl-row">
             <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup">Review</ReviewPopup>
@@ -167,6 +169,7 @@ export default {
       selectedQuote: {},
       showQuotesPopup: false,
       isDisabled: false,
+      showEditQuotesPopup: false,
     };
   },
   computed: {
@@ -179,6 +182,7 @@ export default {
       return this.quotes.filter(quote => quote.status !== 'Completed');
     },
     uid() {
+      console.log(Cookies.get('uid') || sessionStorage.getItem('uid'));
       return Cookies.get('uid') || sessionStorage.getItem('uid');
     },
     userType() {
@@ -516,4 +520,9 @@ img {
     padding: 8px;
   }
 }
+
+.modal-body{
+    color:black;
+}
+
 </style>

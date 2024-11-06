@@ -76,16 +76,22 @@
                                             <button type="button" class="btn-close" @click="closeQuoteDetails"></button>
                                         </div>
                                         <div class="modal-body">
-                                            <img :src="selectedQuote.picture" class="img-fluid mb-3"
+                                            <img :src="selectedQuote.picture" class="img-fluid mb-3 d-block mx-auto"
                                                 alt="Quote Image" />
                                             <p><strong>Category:</strong> {{ selectedQuote.category }}</p>
-                                            <p><strong>Description:</strong> {{ selectedQuote.description }}</p>
+                                            <p><strong>Description:</strong><textarea>{{ selectedQuote.description }}</textarea>
+                                            </p>
                                         </div>
-                                        <div class="modal-footer">
+                                        <div v-if="!selectedQuote.status" class="modal-footer">
                                             <button type="button" class="btn btn-success"
                                                 @click="acceptQuote">Accept</button>
                                             <button type="button" class="btn btn-danger"
                                                 @click="rejectQuote">Reject</button>
+                                            {{ selectedQuote.status }}
+                                        </div>
+                                        <div v-if="selectedQuote.status && selectedQuote.repairerId == uid"
+                                            class="modal-footer">
+                                            Quote have been accepted!
                                         </div>
                                     </div>
                                 </div>
@@ -193,11 +199,32 @@ async function acceptQuote() {
     try {
         // Update the quote in Firestore
         const quoteDocRef = doc(db, 'quotes', selectedQuote.value.id); // Assuming selectedQuote.value.id is the document ID
-
+        console.log(messageId.value);
         await updateDoc(quoteDocRef, {
             repairerId: uid, // Update repairerId with the current user's ID
             repairerName: username,
             status: 'In Progress',
+        });
+
+        const chatsRef = collection(db, 'chats');
+        // Query to find documents with the specified quoteId
+        const q = query(chatsRef, where("quoteId", "==", selectedQuote.value.id));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+            return;
+        }
+
+        // Update each document with the specified fields
+        querySnapshot.forEach(async (doc) => {
+            const chatDocRef = doc.ref;
+            // Update the fields in quoteData
+            await updateDoc(chatDocRef, {
+                "quoteData.repairerId": uid,
+                "quoteData.repairerName": username,
+                "quoteData.status": 'In Progress'
+            });
+
+            console.log("Updated chat with ID:", doc.id);
         });
 
         const pointCollection = collection(db, 'points');
@@ -739,5 +766,23 @@ const sendNotification = async (receiverId, message, name) => {
     align-items: center;
     justify-content: center;
     line-height: 1;
+}
+
+.modal-body {
+    p {
+        color: black;
+    }
+
+    img {
+        display: flex;
+        max-height: 40vh;
+        align-items: center;
+    }
+
+    textarea {
+        margin-top: 2%;
+        border: 2px solid black;
+        border-radius: 10px;
+    }
 }
 </style>
