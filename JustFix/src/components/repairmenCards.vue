@@ -5,6 +5,37 @@ import { defineProps } from 'vue';
 import { useRouter } from 'vue-router';
 import quoteListPopup from './quoteListPopup.vue';
 import Cookies from 'js-cookie';
+import { onMounted } from 'vue';
+
+// Load selected repairmen from localStorage when the component mounts
+onMounted(() => {
+    const savedRepairmen = localStorage.getItem('selectedRepairmen');
+    if (savedRepairmen) {
+        selectedRepairmen.value = JSON.parse(savedRepairmen);
+    }
+});
+
+// Update localStorage whenever the selectedRepairmen changes
+const updateLocalStorage = () => {
+    localStorage.setItem('selectedRepairmen', JSON.stringify(selectedRepairmen.value));
+};
+
+const selectedRepairmen = ref([]);
+const toggleSelection = (repairmanId) => {
+    if (selectedRepairmen.value.includes(repairmanId)) {
+        selectedRepairmen.value = selectedRepairmen.value.filter(id => id !== repairmanId);
+    } else {
+        selectedRepairmen.value.push(repairmanId);
+    }
+    updateLocalStorage(); // Save to localStorage
+    console.log("Selected repairmen:", selectedRepairmen.value);
+};
+
+const clearSelected = () => {
+    selectedRepairmen.value = []; // Clear the selected repairmen
+    updateLocalStorage(); // Clear from localStorage
+    console.log("Cleared selected repairmen");
+};
 
 const props = defineProps({
     repairmen: {
@@ -20,16 +51,6 @@ const router = useRouter();
 
 const userType = Cookies.get('userType') || sessionStorage.getItem('userType');
 
-// Toggle the selected repairman
-const selectedRepairmen = ref([]);
-const toggleSelection = (repairmanId) => {
-    if (selectedRepairmen.value.includes(repairmanId)) {
-        selectedRepairmen.value = selectedRepairmen.value.filter(id => id !== repairmanId);
-    } else {
-        selectedRepairmen.value.push(repairmanId);
-    }
-    console.log("Selected repairmen:", selectedRepairmen.value);
-};
 
 const isQuotesListPopupVisible = ref(false); // State for controlling visibility
 
@@ -50,10 +71,6 @@ const openQuotesListPopup = () => {
     }
 };
 
-const clearSelected = () => {
-    selectedRepairmen.value = []; // Clear the selected repairmen
-    console.log("Cleared selected repairmen");
-};
 
 // Computed property to get full repairman objects based on selected IDs
 const selectedRepairmenDetails = computed(() => {
@@ -143,7 +160,7 @@ const clearSelections = () => {
 <template>
     <!-- New Section for Selected Repairmen -->
     <div v-if="selectedRepairmen.length > 0" class="selected-repairmen-section">
-        <div class="container repairmen-container">
+        <div class="container">
             <p class="section-title">Your Selected Repairmen</p>
             <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
                 <button @click="openQuotesListPopup" :disabled="selectedRepairmen.length === 0" class="hero-button">Send
@@ -159,7 +176,8 @@ const clearSelections = () => {
         <div class="row justify-content-center mt-4">
             <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-3" v-for="repairman in selectedRepairmenDetails"
                 :key="repairman.id" data-aos="fade-up" data-aos-delay="100">
-                <div class="card text-center shadow-sm" style="padding: 0; border-radius: 20px;">
+                <div class="card text-center shadow-sm" style="padding: 0; border-radius: 20px;"
+                    @click="navigateToProfile(repairman.id)">
                     <div class="card-header d-flex align-items-center"
                         style="background-color: transparent; border: none;">
                         <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
@@ -182,56 +200,63 @@ const clearSelections = () => {
                 </div>
             </div>
         </div>
+
+
     </div>
 
-    <div class="container repairmen-container" id="fixer">
-        <p class="section-title" data-aos="fade-up">Browse Our Most Trusted Fixers</p>
-    </div>
-
-    <!-- Expertise Pills -->
-    <div class="expertise-pills py-4" data-aos="fade-up" data-aos-delay="100">
-        <button v-for="expertise in expertiseOptions" :key="expertise"
-            :class="['expertise-pill', { selected: selectedExpertise.includes(expertise) }]"
-            @click="toggleExpertise(expertise)">
-            {{ expertise }}
-        </button>
-        <button class="clear-button" @click="clearSelections">Clear</button>
-    </div>
-
-    <!-- Search Bar -->
-    <div class="mb-3" data-aos="fade-up" data-aos-delay="200">
-        <input type="text" v-model="searchQuery" placeholder="Search Repairers" class="form-control" />
-    </div>
-
-    <!-- Original Repairmen Listing -->
-    <div class="row justify-content-center gx-4" style="padding:0; margin:0;">
-
-        <div class="col-lg-3 col-md-4 col-sm-6 custom-col" v-for="repairman in filteredRepairmen" :key="repairman.id"
-            data-aos="fade-up" data-aos-delay="100">
-            <div class="card text-center shadow-sm clickable-card" style="padding: 0; border-radius: 20px;"
-                :class="{ selected: selectedRepairmen.includes(repairman.id) }">
-                <div class="card-header d-flex justify-content-end"
-                    style="border: none; background-color: transparent;">
-                    <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
-                        :checked="isSelected(repairman.id)" v-if="userType === 'user'" style="margin-left: auto;" />
-                </div>
-                <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top"
-                    alt="Profile Picture" height="200px" style="object-fit: cover; border-radius: 20px;">
-                <div class="card-body text-start" data-aos="fade-up" data-aos-delay="200">
-                    <h5 class="card-title" style="font-weight: bold;">{{ repairman.username || repairman.name }}</h5>
-                    <p class="text-muted mb-1"><span class="star-icon">★</span> 5.0 (123)</p>
-                    <p class="card-description">{{ truncateDescription(repairman.description) }}</p>
-                    <ul class="list-unstyled">
-                        <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill"
-                            data-aos="flip-right" data-aos-delay="300">
-                            {{ skill }}
-                        </li>
-                    </ul>
-                </div>
-            </div>
+    <div class="original-repairmen-container">
+        <div class="container" id="fixer">
+            <p class="section-title" data-aos="fade-up">Browse Our Most Trusted Fixers</p>
         </div>
 
+        <!-- Expertise Pills -->
+        <div class="expertise-pills py-4" data-aos="fade-up" data-aos-delay="100">
+            <button v-for="expertise in expertiseOptions" :key="expertise"
+                :class="['expertise-pill', { selected: selectedExpertise.includes(expertise) }]"
+                @click="toggleExpertise(expertise)">
+                {{ expertise }}
+            </button>
+            <button class="clear-button" @click="clearSelections">Clear</button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="mb-3" data-aos="fade-up" data-aos-delay="200">
+            <input type="text" v-model="searchQuery" placeholder="Search Repairers" class="form-control" />
+        </div>
+
+        <!-- Original Repairmen Listing -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-3" v-for="repairman in filteredRepairmen"
+                :key="repairman.id" data-aos="fade-up" data-aos-delay="100">
+
+                <div class="card text-center shadow-sm" style="padding: 0; border-radius: 20px;"
+                    @click="navigateToProfile(repairman.id)"
+                    :class="{ selected: selectedRepairmen.includes(repairman.id) }">
+                    <div class="card-header d-flex align-items-center"
+                        style="background-color: transparent; border: none;">
+                        <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
+                            :checked="isSelected(repairman.id)" v-if="userType === 'user'" style="margin-left: auto;" />
+                    </div>
+                    <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top"
+                        alt="Profile Picture" height="200px" style="object-fit: cover; border-radius: 20px;">
+                    <div class="card-body text-start" data-aos="fade-up" data-aos-delay="200">
+                        <h5 class="card-title" style="font-weight: bold;">{{ repairman.username || repairman.name }}
+                        </h5>
+                        <p class="text-muted mb-1"><span class="star-icon">★</span> 5.0 (123)</p>
+                        <p class="card-description">{{ truncateDescription(repairman.description) }}</p>
+                        <ul class="list-unstyled">
+                            <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill"
+                                data-aos="flip-right" data-aos-delay="300">
+                                {{ skill }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
+
 </template>
 
 
@@ -286,6 +311,8 @@ const clearSelections = () => {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border: 1px solid #e1e1e1;
     cursor: pointer;
+    width: auto;
+    height: 500px;
 }
 
 .card:hover {
@@ -301,7 +328,7 @@ const clearSelections = () => {
 
 .selected:hover {
     background-color: #f0f0f0;
-    /* Maintain selected color on hover */
+
 }
 
 .card-body {
@@ -311,7 +338,6 @@ const clearSelections = () => {
     height: 270px;
     overflow: hidden;
     text-align: left;
-    /* Ensure text is left-aligned */
 }
 
 .card-header {
@@ -320,11 +346,6 @@ const clearSelections = () => {
     border: none;
 }
 
-.card:hover .card-header,
-.card.selected .card-header {
-    background-color: #f0f0f0;
-    /* Ensure header stays white on hover and selected */
-}
 
 /* Additional styling for other elements */
 .card-title,
@@ -365,12 +386,6 @@ ul.list-unstyled {
     color: #085C44;
 }
 
-.repairmen-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
 .section-title {
     font-weight: bold;
     font-size: x-large;
@@ -394,19 +409,11 @@ ul.list-unstyled {
     background-color: #064830;
 }
 
-
-/* Styles for cards */
-.card {
-    /* Existing styles */
-    width: auto;
-    height: 500px;
-    /* Allow the card to fill the width */
-}
-
-/* For screens 575px and below */
+/* fill screen width when small screen */
 @media (max-width: 575px) {
     .custom-col {
         flex: 1 1 100%;
+
         display: flex;
         justify-content: center;
     }
@@ -414,24 +421,6 @@ ul.list-unstyled {
     .card {
         width: 90%;
         max-width: 600px;
-    }
-}
-
-/* For screens 575px and below */
-@media (max-width: 575px) {
-    .custom-col {
-        flex: 1 1 100%;
-        /* Make each card take full width */
-        display: flex;
-        justify-content: center;
-        /* Center the cards */
-    }
-
-    .card {
-        width: 90%;
-        /* Card width to fill most of the container */
-        max-width: 600px;
-        /* Optional: set a max-width for cards */
     }
 }
 
