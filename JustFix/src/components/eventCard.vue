@@ -7,6 +7,7 @@
       <h5 class="card-title">{{ event.title }}</h5>
       <p class="card-text">Registration Deadline: {{ formattedRegistrationDeadline }}</p>
       <p class="card-text">Event Date: {{ formattedEventDate }}</p>
+      <p class="card-text">Time: {{ formattedEventTime }}</p>
       <span class="badge" :class="badgeClass">
         {{ badgeText }}
       </span>
@@ -27,10 +28,29 @@ export default {
   computed: {
     // Convert Firebase Timestamp to readable date string for registrationDeadline
     formattedEventDate() {
-      return this.formatDate(this.convertTimestampToDate(this.event.eventDate));
+      const date = this.convertTimestampToDate(this.event.eventDate);
+      return date ? this.formatDate(date) : 'Date not available';
     },
     formattedRegistrationDeadline() {
-      return this.formatDate(this.convertTimestampToDate(this.event.registrationDeadline));
+      const date = this.convertTimestampToDate(this.event.registrationDeadline);
+      return date ? this.formatDate(date) : 'Date not available';
+    },
+    formattedEventTime() {
+      const startDate = this.convertTimestampToDate(this.event.eventDate);
+      if (!startDate) return 'Time not available';
+
+      // Format the start time
+      const startTime = startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+
+      // Check if duration is a valid number
+      const duration = Number(this.event.duration) || 0; // Ensure duration is a number 
+      if (duration <= 0) return `${startTime} - Invalid duration`;
+
+      // Calculate the end time by adding the duration in hours
+      const endDate = new Date(startDate.getTime() + duration * 60 * 60 * 1000);
+      const endTime = endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+
+      return `${startTime} - ${endTime}`;
     },
     // This computed property determines if the event is closing soon (within two weeks)
     isClosingSoon() {
@@ -87,7 +107,10 @@ export default {
     },
     formatDate(date) {
       if (!date) return 'Date not available';
-      return new Date(date).toLocaleDateString();
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
     }
   }
 }

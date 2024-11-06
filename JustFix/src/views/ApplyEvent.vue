@@ -29,7 +29,7 @@
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="other" v-model="form.otherChecked">
                 <label class="form-check-label" for="other">Others (please specify)</label>
-                <input v-if="form.otherChecked" type="text" v-model="form.otherCategory" class="form-control mt-2" placeholder="Enter your expertise">
+                <input v-if="form.otherChecked" type="text" v-model="form.otherCategory" class="form-control mt-2" placeholder="Enter the relevant category">
             </div>
           </div>
         </div>
@@ -39,47 +39,79 @@
         <input type="text" v-model="form.title" class="form-control" required />
       </div>
 
+      <div class="mb-3">
+          <label for="description">Event Description</label>
+          <textarea v-model="form.description" placeholder="Please state the outline of your event (with a timeline), duration (1/2 days, etc) and what the participants will learn." class="form-control"></textarea>
+        </div>
+
         <div class="mb-3">
           <label for="eventDate">Event Date and Time</label>
-          <input type="datetime-local" v-model="form.eventDate" class="form-control" required />
+          <input type="datetime-local" v-model="form.eventDate" class="form-control" :min="minDate" required />
         </div>
 
         <div class="mb-3">
           <label for="registrationDeadline">Registration Deadline</label>
-          <input type="date" v-model="form.registrationDeadline" class="form-control" required />
+          <input type="date" v-model="form.registrationDeadline" class="form-control" :max="maxRegistrationDate" required />
         </div>
 
         <div class="mb-3">
-          <label for="duration">Duration of event</label>
-          <input type="number" v-model="form.duration" class="form-control" required />
+          <label for="duration">Duration (hours)</label>
+s          <input type="number" v-model="form.duration" class="form-control" min="1" required />
         </div>
 
 
         <div class="mb-3">
-          <label for="price">Pricing</label>
-          <input type="number" v-model="form.price" class="form-control" required />
+          <label for="price">Pricing ($)</label>
+          <input type="number" v-model="form.price" class="form-control" min="0" required />
         </div>
 
         <div class="mb-3">
-          <label for="price">Number of pax</label>
-          <input type="number" v-model="form.totalPax" class="form-control" required />
+          <label for="price">Number of slots</label>
+          <input type="number" v-model="form.totalSlots" class="form-control"min="1" required />
         </div>
   
         <div class="mb-3">
-          <label for="location">Preferred Location</label>
-          <input
-            type="text"
-            v-model="form.locationDetails"
-            placeholder="Enter location details"
-            class="form-control"
-          />
-        </div>
-  
+        <label for="locationInput">Event Venue</label>
+        <input
+          id="locationInput"
+          ref="locationInput"
+          type="text"
+          class="form-control"
+          placeholder="Search for a location in Singapore"
+          @focus="initializeAutocomplete"
+        />
+      </div>
+
+      <!-- Read-only fields to display selected location details -->
+      <div class="mb-3">
+        <label for="locationName">Venue Name</label>
+        <input
+          id="locationName"
+          type="text"
+          class="form-control"
+          v-model="form.locationName"
+          readonly
+          placeholder="Selected venue name will appear here"
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="address">Full Address</label>
+        <input
+          id="address"
+          type="text"
+          class="form-control"
+          v-model="form.address"
+          readonly
+          placeholder="Selected address will appear here"
+        />
+      </div>
+
         <div class="mb-3">
-          <label for="additionalInfo">Additional Information</label>
-          <textarea v-model="form.additionalInfo" placeholder="Special equipment, age restrictions, etc." class="form-control"></textarea>
+          <label for="additionalComments">Additional Comments (Optional)</label>
+          <textarea id="additionalComments" v-model="form.additionalComments" class="form-control" placeholder="Any additional information you'd like to share"></textarea>
         </div>
-  
+
         <div class="mb-3">
             <input class="form-check-input" type="checkbox" id="terms" v-model="form.agreeToTerms"/>
             <label class="form-check-label" for="terms">I agree to the terms and conditions</label>
@@ -107,16 +139,17 @@
           email: "",
           selectedCategories:[],
           otherChecked: false,
-          otherExpertise: "",
+          otherCategory: "",
           title:"",
-          details: "",
+          description: "",
           eventDate: "",
+          registrationDeadline:"",
           duration: "",
           price: "",
-          totalPax: "",
+          totalSlots: "",
+          additionalComments: "",
           locationType: "",
           locationDetails: "",
-          additionalInfo: "",
           agreeToTerms: false,
         },
         formSubmitted: false,
@@ -132,27 +165,76 @@
         ],
       };
     },
+    computed: {
+      minDate() {
+        const today = new Date();
+        return today.toISOString().slice(0, 16);
+      },
+      maxRegistrationDate() {
+        return this.form.eventDate ? this.form.eventDate.split('T')[0] : null;
+      },
+      isFormValid() {
+        return (
+          this.form.selectedCategories.length > 0 || 
+          (this.form.otherChecked && this.form.otherCategory.trim() !== "")
+        ) && this.form.agreeToTerms;
+      }
+  },
     methods: {
+      initializeAutocomplete() {
+      // Only initialize once
+      if (this.autocomplete) return;
+
+      const input = this.$refs.locationInput;
+      this.autocomplete = new google.maps.places.Autocomplete(input, {
+        componentRestrictions: { country: 'SG' },
+        fields: ['name', 'formatted_address', 'geometry', 'place_id']
+      });
+
+      this.autocomplete.addListener('place_changed', () => {
+        const place = this.autocomplete.getPlace();
+        
+        if (!place.geometry || !place.geometry.location) {
+          console.error('No details available for input:', input.value);
+          return;
+        }
+
+        // Save location details to form
+        this.form.locationName = place.name || '';
+        this.form.address = place.formatted_address || '';
+        this.form.coordinates = {
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng()
+        };
+      });
+    },
       async submitForm() {
         try {
           // Clean up selected categories by removing text in parentheses
           const cleanedCategories = this.form.selectedCategories.map(category => {
             return category.replace(/\s*\(.*?\)/, '').trim();
           });
-
+          // Add other category if specified
+          if (this.form.otherChecked && this.form.otherCategory.trim()) {
+            cleanedCategories.push(this.form.otherCategory.trim());
+          }
           // Prepare the form data
           const formData = {
-            ...this.form,
-            categories: cleanedCategories, // Use the cleaned categories
+            name: this.form.name,
+            phone: this.form.phone,
+            email: this.form.email,
+            category: cleanedCategories, // Using 'category' as field name for the array
+            title: this.form.title,
+            description: this.form.description,
             eventDate: new Date(this.form.eventDate),
+            registrationDeadline: new Date(this.form.registrationDeadline),
+            duration: Number(this.form.duration),
+            price: Number(this.form.price),
+            totalSlots: Number(this.form.totalSlots),
+            additionalComments: this.form.additionalComments || "", // Optional field
             submittedAt: new Date(),
             status: 'pending'
           };
-
-          // Add other category if specified
-          if (this.form.otherChecked && this.form.otherCategory) {
-            formData.categories.push(this.form.otherCategory);
-          }
 
           // Send to Firestore
           await addDoc(collection(db, 'eventRequest'), formData);
@@ -173,21 +255,20 @@
       resetForm() {
       this.form = {
         name: "",
-          phone: "",
-          email: "",
-          selectedCategories:[],
-          otherChecked: false,
-          otherExpertise: "",
-          title:"",
-          details: "",
-          eventDate: "",
-          duration: "",
-          price: "",
-          totalPax: "",
-          locationType: "",
-          locationDetails: "",
-          additionalInfo: "",
-          agreeToTerms: false,
+        phone: "",
+        email: "",
+        selectedCategories: [],
+        otherChecked: false,
+        otherCategory: "",
+        title: "",
+        description: "",
+        eventDate: "",
+        registrationDeadline: "",
+        duration: "",
+        price: "",
+        totalSlots: "",
+        additionalComments: "",
+        agreeToTerms: false,
       };
       this.formSubmitted = false;
     }
