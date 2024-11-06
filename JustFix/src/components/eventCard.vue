@@ -7,6 +7,7 @@
       <h5 class="card-title">{{ event.title }}</h5>
       <p class="card-text">Registration Deadline: {{ formattedRegistrationDeadline }}</p>
       <p class="card-text">Event Date: {{ formattedEventDate }}</p>
+      <p class="card-text">Time: {{ formattedEventTime }}</p>
       <span class="badge" :class="badgeClass">
         {{ badgeText }}
       </span>
@@ -26,29 +27,56 @@ export default {
   },
   computed: {
     // Convert Firebase Timestamp to readable date string for registrationDeadline
-    formattedRegistrationDeadline() {
-      return this.event.registrationDeadline
-        ? this.convertTimestampToDate(this.event.registrationDeadline)
-        : "N/A";
-    },
-    // Convert Firebase Timestamp to readable date string for eventDate
     formattedEventDate() {
-      return this.event.eventDate
-        ? this.convertTimestampToDate(this.event.eventDate)
-        : "N/A";
+      const date = this.convertTimestampToDate(this.event.eventDate);
+      return date ? this.formatDate(date) : 'Date not available';
+    },
+    formattedRegistrationDeadline() {
+      const date = this.convertTimestampToDate(this.event.registrationDeadline);
+      return date ? this.formatDate(date) : 'Date not available';
+    },
+    formattedEventTime() {
+      const startDate = this.convertTimestampToDate(this.event.eventDate);
+      if (!startDate) return 'Time not available';
+
+      // Format the start time
+      const startTime = startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+
+      // Check if duration is a valid number
+      const duration = Number(this.event.duration) || 0; // Ensure duration is a number 
+      if (duration <= 0) return `${startTime} - Invalid duration`;
+
+      // Calculate the end time by adding the duration in hours
+      const endDate = new Date(startDate.getTime() + duration * 60 * 60 * 1000);
+      const endTime = endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+
+      return `${startTime} - ${endTime}`;
     },
     // This computed property determines if the event is closing soon (within two weeks)
     isClosingSoon() {
-      const today = new Date();
-      const registrationDeadline = this.event.registrationDeadline.toDate(); // Convert Firestore Timestamp to JS Date
-      const twoWeeksBeforeDeadline = new Date(registrationDeadline.getTime() - 14 * 24 * 60 * 60 * 1000);
-      return today >= twoWeeksBeforeDeadline && today < registrationDeadline;
-    },
+      const deadline = this.event.registrationDeadline;
+    const today = new Date();
+    
+    // Check if `registrationDeadline` is a Firestore Timestamp and convert if needed
+    const deadlineDate = deadline && typeof deadline.toDate === 'function' 
+      ? deadline.toDate()
+      : deadline; // If it's already a Date or another type, use it directly
+
+    if (!deadlineDate) {
+      return false; // Return false if there's no deadline
+    }
+
+    const twoWeeksLater = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days from now
+    return deadlineDate <= twoWeeksLater && deadlineDate > today;
+  },
+    
     // Check if the event is closed (past registration deadline)
     isClosed() {
       const today = new Date();
-      const registrationDeadline = this.event.registrationDeadline.toDate();
-      return today > registrationDeadline;
+      const deadline = this.event.registrationDeadline;
+      const deadlineDate = deadline && typeof deadline.toDate === 'function' ? deadline.toDate() : deadline;
+
+      return today > deadlineDate;
     },
     badgeText() {
       if (this.isClosed) return "Closed";
@@ -62,14 +90,31 @@ export default {
   methods:{
       // Helper method to convert Firebase Timestamp to 'YYYY-MM-DD' format
       convertTimestampToDate(timestamp) {
-      const date = timestamp.toDate(); // Convert Firebase Timestamp to JavaScript Date
+      // Check if timestamp is a Firebase Timestamp
+      if (timestamp && typeof timestamp.toDate === 'function') {
+        return timestamp.toDate();
+      }
+      // If it's already a Date object or a timestamp number
+      if (timestamp instanceof Date || typeof timestamp === 'number') {
+        return new Date(timestamp);
+      }
+      // If it's a string, try to parse it
+      if (typeof timestamp === 'string') {
+        return new Date(timestamp);
+      }
+      // Return null if invalid
+      return null;
+    },
+    formatDate(date) {
+      if (!date) return 'Date not available';
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`; // Format as 'YYYY-MM-DD'
+      return `${day}/${month}/${year}`;
     }
   }
-};
+}
+
 </script>
 
 <style scoped>

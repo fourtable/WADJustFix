@@ -24,7 +24,16 @@
             <td>{{ formatDate(user.lastLogin) }}</td>
             <td>
               <button class="btn btn-primary btn-sm me-2" @click="viewUser(user.id)">View</button>
-              <button class="btn btn-danger btn-sm" @click="deleteUser(user.id)">Delete</button>
+              <button
+                v-if="!user.blocked"
+                class="btn btn-warning btn-sm"
+                @click="blockUser(user.id)"
+              >Block</button>
+              <button
+                v-else
+                class="btn btn-secondary btn-sm"
+                @click="unblockUser(user.id)"
+              >Unblock</button>
             </td>
           </tr>
         </tbody>
@@ -36,9 +45,10 @@
   </div>
 </template>
 
+
 <script>
 import { db } from "../main";
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
 
 export default {
   data() {
@@ -56,8 +66,8 @@ export default {
         this.users = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-          createdAt: doc.data().createdAt, // Account creation date
-          lastLogin: doc.data().lastLogin, // Last login date
+          createdAt: doc.data().createdAt,
+          lastLogin: doc.data().lastLogin,
         }));
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -66,13 +76,30 @@ export default {
     viewUser(userId) {
       this.$router.push({ name: "viewProfile", params: { id: userId } });
     },
-    async deleteUser(userId) {
+    async blockUser(userId) {
       try {
-        await deleteDoc(doc(db, "users", userId));
-        this.users = this.users.filter((user) => user.id !== userId);
-        alert("User deleted successfully");
+        await updateDoc(doc(db, "users", userId), {
+          blocked: true,
+        });
+        this.users = this.users.map((user) =>
+          user.id === userId ? { ...user, blocked: true } : user
+        );
+        alert("User blocked successfully");
       } catch (error) {
-        console.error("Error deleting user:", error);
+        console.error("Error blocking user:", error);
+      }
+    },
+    async unblockUser(userId) {
+      try {
+        await updateDoc(doc(db, "users", userId), {
+          blocked: false,
+        });
+        this.users = this.users.map((user) =>
+          user.id === userId ? { ...user, blocked: false } : user
+        );
+        alert("User unblocked successfully");
+      } catch (error) {
+        console.error("Error unblocking user:", error);
       }
     },
     formatDate(timestamp) {

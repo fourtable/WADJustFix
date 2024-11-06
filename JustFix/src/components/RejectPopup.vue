@@ -209,7 +209,6 @@ export default {
 
   /* Padding for the body */
   p {
-    color: red;
     font-size: 20px;
   }
 }

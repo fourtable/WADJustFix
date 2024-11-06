@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Button to trigger modal -->
-    <button type="button" :class="buttonClass" @click="openModal">
+    <button type="button" :class="buttonClass" :disabled="disableStatus" @click="openModal">
       {{ btnName }}
     </button>
 
@@ -11,46 +11,37 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="popupFormLabel">{{ action }} Quote</h5>
+            <h5 class="modal-title" id="popupFormLabel">{{ localAction }} Quote</h5>
             <button type="button" class="btn-close" @click="closeModal" aria-label="Close"></button>
           </div>
           <div class="modal-body" style="text-align: left;">
             <form @submit.prevent="handleSubmit">
-              <!-- Item Name -->
+              <!-- Form fields -->
               <div class="mb-3">
                 <label for="item" class="form-label">Item</label>
-                <input type="text" class="form-control" id="item" v-model="formData.item" required />
+                <input type="text" v-model="formData.item" class="form-control" id="item">
               </div>
-
-              <!-- Item Category Dropdown -->
               <div class="mb-3">
                 <label for="category" class="form-label">Category</label>
-                <select id="category" class="form-select" v-model="formData.category" required>
-                  <option disabled value="">Select a category</option>
-                  <option v-for="category in categories" :key="category" :value="category">
-                    {{ category }}
-                  </option>
-                </select>
+                <input type="text" v-model="formData.category" class="form-control" id="category">
               </div>
-
-              <!-- Picture -->
               <div class="mb-3">
                 <label for="picture" class="form-label">Picture</label>
-                <!-- Display the current picture if it exists -->
-                <div v-if="formData.picture" class="mb-2">
-                  <img :src="formData.picture" alt="Current Picture" class="img-thumbnail" />
+                <!-- Display the image if it exists in formData.picture -->
+                <div v-if="formData.picture" class="mb-3">
+                  <img :src="formData.picture" alt="Quote Image" class="img-fluid"
+                    style="max-width: 100%; max-height: 200px;">
                 </div>
-                <input type="file" class="form-control" id="picture" @change="handleFileUpload" />
+                <!-- Input for updating picture -->
+                <input type="file" @change="onFileChange" class="form-control" id="picture">
               </div>
-
-              <!-- Description -->
               <div class="mb-3">
                 <label for="description" class="form-label">Description</label>
-                <textarea class="form-control" id="description" v-model="formData.description" rows="3"
-                  required></textarea>
+                <textarea v-model="formData.description" class="form-control" id="description"></textarea>
               </div>
-
-              <button type="submit" class="btn btn-primary">{{ editQuote ? 'Update Quote' : 'Save Quote' }}</button>
+              <button type="submit" class="btn btn-primary">
+                {{ localAction === 'Edit' ? 'Update Quote' : 'Create Quote' }}
+              </button>
             </form>
           </div>
         </div>
@@ -63,152 +54,110 @@
 </template>
 
 <script>
-import { db, storage } from '../main';
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import Cookies from 'js-cookie';
-import { ref, defineEmits } from 'vue';
+import { db } from '../main';
+import { doc, getDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
 
 export default {
   props: {
-    show: {
-      type: Boolean,
-      required: true,
-    },
-    btnName: {
-      type: String,
-      required: true,
-    },
-    action: {
-      type: String,
-      required: true,
-    },
+    show: Boolean,
+    btnName: String,
+    action: String, // 'Create' or 'Edit'
     editQuote: {
       type: Object,
       default: () => ({}),
     },
-  },
-  computed: {
-    uid() {
-      return Cookies.get('uid') || sessionStorage.getItem('uid');
-    },
-    userName() {
-      return Cookies.get('username') || sessionStorage.getItem('username');
-    },
+    disableStatus: Boolean,
   },
   data() {
     return {
-      showModal: this.show,
+      localAction: '', // Local property for handling action
       formData: {
         item: '',
         category: '',
         picture: null,
         description: '',
       },
-      categories: [
-        'Home Appliances',
-        'Electrical Fixtures',
-        'Plumbing',
-        'Air Conditioners',
-        'Electronics Repair',
-        'Furniture Assembly and Repair',
-        'Windows and Doors',
-        'Automotive Repairs',
-        'Miscellaneous Repairs',
-      ],
+      showModal: this.show,
     };
   },
+  created() {
+    this.localAction = this.action;
+  },
   watch: {
-    show(newValue) {
-      this.showModal = newValue; // Control modal visibility
+    show(newVal) {
+      this.showModal = newVal;
     },
     editQuote: {
       immediate: true,
       handler(newQuote) {
-        if (Object.keys(newQuote).length) {
-          // Populate form data if editing
-          this.formData = {
-            item: newQuote.item,
-            category: newQuote.category,
-            picture: newQuote.picture, // Handle picture separately
-            description: newQuote.description,
-          };
-        } else {
-          // Reset form data if not editing
-          this.resetFormData();
+        if (this.localAction === 'Edit' && newQuote.id) {
+          this.loadQuote(newQuote.id);
         }
       },
     },
   },
   methods: {
-    openModal() {
-      this.showModal = true; // Open modal
+    async loadQuote(id) {
+      try {
+        const quoteRef = doc(db, 'quotes', id);
+        const quoteSnapshot = await getDoc(quoteRef);
+        if (quoteSnapshot.exists()) {
+          this.formData = {
+            item: quoteSnapshot.data().item || '',
+            category: quoteSnapshot.data().category || '',
+            picture: quoteSnapshot.data().picture || null,
+            description: quoteSnapshot.data().description || '',
+          };
+          this.localAction = 'Edit';
+        } else {
+          console.error('No such document!');
+        }
+      } catch (error) {
+        console.error('Error fetching document:', error);
+      }
     },
-    handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        this.formData.picture = file;
+    openModal() {
+      this.showModal = true;
+      if (this.localAction === 'Edit' && this.editQuote.id) {
+        this.loadQuote(this.editQuote.id);
       }
     },
     async handleSubmit() {
       try {
-        let pictureUrl = null;
-
-        // Check if a picture was uploaded
-        if (this.formData.picture) {
-          const storagePath = `quotes/${uid}/${this.formData.picture.name}`;
-          const pictureRef = storageRef(storage, storagePath); // Correctly reference storage
-
-          // Upload the picture to Firebase Storage
-          await uploadBytes(pictureRef, this.formData.picture);
-
-          // Get the download URL of the uploaded picture
-          pictureUrl = await getDownloadURL(pictureRef);
-        }
-
-        if (Object.keys(this.editQuote).length) {
-          // Edit mode: Update the existing quote
-          const quoteDocRef = doc(db, 'quotes', this.editQuote.id); // Assuming editQuote contains an id
-          await updateDoc(quoteDocRef, {
+        if (this.localAction === 'Edit') {
+          // Update existing quote in Firestore
+          const quoteRef = doc(db, 'quotes', this.editQuote.id);
+          await updateDoc(quoteRef, {
             item: this.formData.item,
             category: this.formData.category,
-            picture: pictureUrl || this.editQuote.picture, // Keep old picture if no new one
+            picture: this.formData.picture, // Ensure picture is a URL or the required file format
             description: this.formData.description,
-            timestamp: serverTimestamp(),
           });
-
           console.log('Quote updated successfully');
         } else {
-          // Create mode: Add a new quote to the Firestore collection
-          const quotesCollection = collection(db, 'quotes');
-          await addDoc(quotesCollection, {
+          // Create a new quote in Firestore
+          await addDoc(collection(db, 'quotes'), {
             item: this.formData.item,
             category: this.formData.category,
-            picture: pictureUrl, // Store the URL of the uploaded image
+            picture: this.formData.picture, // Ensure picture is a URL or the required file format
             description: this.formData.description,
-            userId: this.uid,
-            userName: this.userName,
-            repairerId: '',
-            timestamp: serverTimestamp(),
+            createdAt: new Date(), // Adding a timestamp if needed
           });
-          const pointCollection = collection(db, 'points');
-          await addDoc(pointCollection, {
-            Date: serverTimestamp(),
-            userId: this.uid,
-            points: 2,
-          });
-          console.log('Quote saved successfully');
+          console.log('Quote created successfully');
         }
 
+        // Close the modal after saving
         this.closeModal();
+        this.$emit('saved'); // Emit an event to notify parent component if needed
+
       } catch (error) {
         console.error('Error saving quote:', error);
       }
     },
     closeModal() {
       this.showModal = false;
-      this.resetFormData(); // Reset form data on close
-      this.$emit('close'); // Emit close event to notify parent component
+      this.resetFormData();
+      this.$emit('close');
     },
     resetFormData() {
       this.formData = {
@@ -218,27 +167,15 @@ export default {
         description: '',
       };
     },
+    onFileChange(event) {
+      const file = event.target.files[0];
+      this.formData.picture = URL.createObjectURL(file); // For preview only
+    },
   },
   computed: {
     buttonClass() {
-      return this.btnName === 'Edit'
-        ? 'btn btn-warning btn-sm table-button'
-        : 'btn btn-primary';
+      return this.btnName === 'Edit' ? 'btn btn-warning btn-sm table-button' : 'btn btn-primary';
     },
   },
 };
 </script>
-
-<style scoped>
-.modal-backdrop {
-  z-index: 1040;
-}
-
-.modal {
-  z-index: 1050;
-}
-
-.btn {
-  gap: 10px;
-}
-</style>

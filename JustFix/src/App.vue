@@ -64,7 +64,16 @@ async function fetchUserData(uid) {
   try {
     const userDoc = await getDoc(doc(db, 'users', uid));
     if (userDoc.exists()) {
-      userData.value = userDoc.data(); // Update userData if it exists
+      const userData = userDoc.data();
+
+      // Check if the user is blocked
+      if (userData.blocked) {
+        await signOut(auth); // Sign out the user if they are blocked
+        alert("Your account has been blocked. Please contact support for more information.");
+        return; // Return immediately to prevent further execution
+      }
+
+      userData.value = userData; // Update userData if the user is not blocked
     }
   } catch (error) {
     console.error("Error fetching user data:", error);

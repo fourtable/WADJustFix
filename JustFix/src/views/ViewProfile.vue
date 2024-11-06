@@ -47,7 +47,7 @@
     <div v-if="userData.userType !== 'admin'">
     <div class="tabs" data-aos="fade-up" data-aos-duration="700">
       <button class="tab-button" :class="{ active: activeTab === 'reviews' }" @click="switchTab('reviews')">Reviews</button>
-      <button v-if="userData.userType === 'repairer' && isOwnProfile" class="tab-button" :class="{ active: activeTab === 'upcoming-events' }" @click="switchTab('upcoming-events')">Upcoming Events</button>
+      <button v-if="isOwnProfile" class="tab-button" :class="{ active: activeTab === 'upcoming-events' }" @click="switchTab('upcoming-events')">Upcoming Events</button>
       <button class="tab-button" :class="{ active: activeTab === 'past-events' }" @click="switchTab('past-events')">Past Events</button>
     </div>
 
@@ -72,9 +72,10 @@
         </div>
       </div>
 
+
       <!-- Upcoming Events Tab -->
-      <div id="upcoming-events" class="tab" v-if="userData.userType === 'repairer' && isOwnProfile" v-show="activeTab === 'upcoming-events'">
-        <h3>Upcoming Repair Events</h3>
+      <div id="upcoming-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'upcoming-events'">
+        <h3>Upcoming Events</h3>
         <div v-for="event in upcomingEvents" :key="event.id" class="event" data-aos="fade-up" data-aos-delay="200">
           <h4>{{ event.title }}</h4>
           <p>{{ event.date }}</p>
@@ -82,9 +83,10 @@
         </div>
       </div>
 
+
       <!-- Past Events Tab -->
-      <div id="past-events" class="tab" v-if="userData.userType === 'repairer'" v-show="activeTab === 'past-events'" data-aos="fade-up" data-aos-duration="700">
-        <h3>Past Repair Events</h3>
+      <div id="past-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'past-events'" data-aos="fade-up" data-aos-duration="700">
+        <h3>Past Events</h3>
         <div v-for="event in pastEvents" :key="event.id" class="event" data-aos="fade-up" data-aos-delay="200">
           <h4>{{ event.title }}</h4>
           <p>{{ event.date }}</p>
@@ -99,7 +101,7 @@
 <script>
 import { db, auth } from "../main";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 
 export default {
   data() {
@@ -111,36 +113,7 @@ export default {
         expertise: [],
         description: '',
         rating: 4.2, // Example rating
-        reviews: [
-          {
-            id: 1,
-            customer: "John Doe",
-            date: "2024-10-15",
-            stars: 5,
-            text: "Excellent service! Very knowledgeable and professional.",
-          },
-          {
-            id: 2,
-            customer: "Jane Smith",
-            date: "2024-09-20",
-            stars: 4,
-            text: "Good experience overall. Could improve on punctuality.",
-          },
-          {
-            id: 3,
-            customer: "Alex Johnson",
-            date: "2024-08-12",
-            stars: 3,
-            text: "Decent work but had to follow up a few times.",
-          },
-          {
-            id: 4,
-            customer: "Emily Davis",
-            date: "2024-07-05",
-            stars: 5,
-            text: "Outstanding! Fixed my issue in no time. Highly recommended!",
-          },
-        ]
+        reviews: []
       },
       activeTab: 'reviews',
       upcomingEvents: [],
@@ -150,18 +123,41 @@ export default {
   methods: {
     async fetchUserData(uid) {
       try {
+        // Fetch main user data
         const userDoc = await getDoc(doc(db, 'users', uid));
         if (userDoc.exists()) {
           const fetchedData = userDoc.data();
           this.userData = {
             ...fetchedData,
-            reviews: this.userData.reviews // Ensure hardcoded reviews stay if not fetched from Firebase
+            reviews: [] // Initialize empty array for reviews
           };
+          
+          // Fetch reviews for the user
+          await this.fetchUserReviews(uid);
         } else {
           console.error("No user data found!");
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+      }
+    },
+    async fetchUserReviews(uid) {
+      try {
+        const reviewsQuery = query(collection(db, "reviews"), where("revieweeID", "==", uid));
+        const querySnapshot = await getDocs(reviewsQuery);
+        const reviews = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            customer: data.reviewerName,
+            date: data.createdAt,
+            stars: data.rating,
+            text: data.comments
+          };
+        });
+        this.userData.reviews = reviews;
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
       }
     },
     calculateSkillLevel(experience) {
