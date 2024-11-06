@@ -1,14 +1,13 @@
 <template>
-  
   <div class="container-fluid p-5 mt-4">
     <!-- Header Section -->
     <h1 class="mb-4">Explore our events!</h1>
     <p class="subheader">Upskill, learn DIY skills, and become a better fixer!</p>
     
     <!-- Filters Section -->
-    <div class="d-flex align-items-center gap-4 mb-4">
+    <div class="d-flex align-items-center flex-wrap gap-4 mb-4">
       <!-- Region Filter -->
-      <div>
+      <div  class="filter-item col-12 col-md-6 col-lg-3">
         <label class="filter-title fw-bold d-block mb-1">Region</label>
         <select v-model="selectedRegion" @change="applyFilters" class="form-select">
           <option value="all">All</option>
@@ -25,7 +24,7 @@
       </div>
 
       <!-- Price Filter -->
-      <div class="col-12 col-sm-6 col-lg-3">
+      <div  class="filter-item col-12 col-md-6 col-lg-3">
         <label class="filter-title fw-bold d-block mb-1 ">Price</label>
         <div class="d-flex align-items-center input-group">
             <input 
@@ -43,13 +42,14 @@
               v-model="priceRange.max"
               placeholder="Max Price"
               :min="priceRange.min"
-               @input="applyFilters"
+              @input="applyFilters"
+              min="0"
             >
         </div>
       </div>
 
       <!-- Event Status Filter -->
-      <div class="col-12 col-sm-6 col-lg-3">
+      <div  class="filter-item col-12 col-md-6 col-lg-3">
         <label class="filter-title fw-bold d-block mb-1">Event Status:</label>
         <select v-model="selectedStatus" @change="applyFilters" class="form-select">
           <option value="all">All</option>
@@ -59,27 +59,57 @@
       </div>
 
       <!-- Event Date Filter -->
-      <div class="col-12 col-sm-6 col-lg-3">
+      <div  class="filter-item col-12 col-md-6 col-lg-3">
         <label for="eventDate" class="filter-title fw-bold d-block mb-1">Event Date:</label>
-        <input type="date" @change="applyFilters" v-model="eventDate" class="form-control" required />
+        <div class="d-flex align-items-center input-group">
+          <input
+            type="date"
+            v-model="startDate"
+            :min="today"
+            @change="applyFilters"
+            class="form-control"
+            placeholder="Start Date"
+          >
+          <span class="input-group-text">to</span>
+          <input
+            type="date"
+            v-model="endDate"
+            :min="today"
+            @change="applyFilters"
+            class="form-control"
+            placeholder="End Date"
+          >
+        </div>
       </div>
     </div>
 
     <!-- Events Display -->
-    <div class="row">
+    <div v-if="filteredEvents.length === 0" class="text-center py-4">
+      <p>No events found matching your criteria.</p>
+    </div>
+
+    <div v-else class="row">
       <div 
         v-for="event in filteredEvents" 
         :key="event.id" 
         class="col-12 col-sm-6 col-md-4 col-lg-3 d-flex justify-content-center mb-4"
       >
-        <EventCard :event="event"  @cardClicked="openModal"/>
+        <EventCard :event="event" @cardClicked="openModal(event)"/>
       </div>
     </div>
-    <EventPopup
-      v-if="isModalVisible"
-      :event="selectedEvent"
-      @close="isModalVisible = false"
-    />
+
+    <!--modal/popoup-->
+    <Teleport to="body">
+      <div v-if="isModalVisible && selectedEvent" class="modal-overlay">
+        <div class="modal-content">
+          <EventPopup
+            :event="selectedEvent"
+            @close="closeModal"
+          />
+        </div>
+      </div>
+    </Teleport>
+    
     <!-- Apply to Host an Event Section -->
   <div class="organise-info-section">
       <h3>Share Your Skills with the Community</h3>
@@ -98,6 +128,7 @@ import EventCard from "../components/eventCard.vue";
 import EventPopup from '../components/eventPopup.vue';
 import { useRouter } from 'vue-router';
 
+
 export default {
   components: {
     EventCard,
@@ -111,20 +142,34 @@ export default {
     return {
       isModalVisible: false,
       selectedEvent: null,
-      nearMe: false,
-      priceRange: { min: 0, max: 500 },
+      priceRange: { min: null, max: null },
       selectedStatus: "all",
       selectedRegion: "all", // Set default to "all"
-      eventDate:null,
+      startDate: null,
+      endDate: null,
       userLocation: null,
       events: [], // Stores all events fetched from Firebase
       filteredEvents: [] // Stores events filtered based on selected criteria
     };
   },
+  // async mounted() {
+  //   await this.fetchEvents();
+  //   this.applyFilters(); // Initial filter application
+  //   // this.initializeGeolocation(); // Fetches user's geolocation if available
+  // },
+  computed: {
+    today() {
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+      // const year = today.getFullYear();
+      // const month = String(today.getMonth() + 1).padStart(2, '0'); // Ensure two digits
+      // const day = String(today.getDate()).padStart(2, '0'); // Ensure two digits
+      // return `${year}-${month}-${day}`; // Format as "YYYY-MM-DD"
+    }
+  },
   async mounted() {
     await this.fetchEvents();
-    this.applyFilters(); // Initial filter application
-    // this.initializeGeolocation(); // Fetches user's geolocation if available
+    await this.applyFilters();
   },
   methods: {
     redirectToForm() {
@@ -142,8 +187,14 @@ export default {
       }
     },
     openModal(event) {
-      this.selectedEvent = event;
+      this.selectedEvent = { ...event };
       this.isModalVisible = true;
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    },
+    closeModal() {
+      this.isModalVisible = false;
+      this.selectedEvent = null;
+      document.body.style.overflow = 'auto'; // Restore scrolling
     },
     navigateToSignUp(eventId) {
       this.$router.push({ name: 'eventSignup', params: { eventId } });
@@ -152,66 +203,138 @@ export default {
       // Fetch all events from Firestore
       const eventsRef = collection(db, "events");
       const snapshot = await getDocs(eventsRef);
-      const geocodedEvents = await Promise.all(snapshot.docs.map(async doc => {
-      const event = { id: doc.id, ...doc.data() };
-      const coordinates = await this.getCoordinatesFromAddress(event.address);
-      event.coordinates = coordinates;
-      event.region = this.getRegionFromCoordinates(coordinates);
-      return event;
-    }));
+
+      const geocodedEvents = await Promise.all(
+        snapshot.docs.map(async doc => {
+        const event = { id: doc.id, ...doc.data() };
+        console.log(event.address);
+
+        try {
+          const coordinates = await this.getCoordinatesFromAddress(event.address); // Await here
+          if (coordinates) {
+            event.coordinates = coordinates;
+            event.region = await this.getRegionFromCoordinates(coordinates);
+            console.log(event.region);
+          } else {
+            console.error("No coordinates found for address:", event.address);
+          }
+        } catch (error) {
+          console.error("Error fetching coordinates:", error);
+        }
+
+        return event; // Return event regardless of whether geocoding succeeded
+      }));
       this.events = geocodedEvents;
       this.applyFilters();
       console.log("Loaded Events:", this.events);
     },
     async getCoordinatesFromAddress(address) {
-    const apiKey = 'AIzaSyAe51tIu9Mpq06AxiZRLbiziX_NH2X6cLw';
-    const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`);
-    const data = await response.json();
-    if (data.results && data.results.length > 0) {
-      const location = data.results[0].geometry.location;
-      return { lat: location.lat, lng: location.lng };
-    } else {
-      console.error("Geocoding failed for address:", address);
-      return null;
-    }
+      //check if address exists
+      if (!address) {
+        console.log("No address provided for event");
+        return null;
+      }
+      try {
+        const apiKey = 'AIzaSyAe51tIu9Mpq06AxiZRLbiziX_NH2X6cLw';
+        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`);
+        const data = await response.json();
+        if (data.results?.[0]?.geometry?.location) {
+          return data.results[0].geometry.location;
+        }
+        return null;
+        // if (data.results && data.results.length > 0) {
+        //   const location = data.results[0].geometry.location;
+        //   return { lat: location.lat, lng: location.lng };
+        // } else {
+        //   console.error("Geocoding failed for address:", address);
+        //   return null;
+        // }
+      } catch (error) {
+        console.error("Error geocoding address:", error);
+        return null;
+        //
+      }
   },
     applyFilters() {
       console.log("Applying Filters:", {
       priceRange: this.priceRange,
       selectedStatus: this.selectedStatus,
-      nearMe: this.nearMe,
-      eventDate: this.eventDate,
+      region: this.selectedRegion,
+      dates: { start: this.startDate, end: this.endDate }
    });
       // Filter based on price
       this.filteredEvents = this.events.filter(event => {
-        const matchesPrice = 
-          event.price >= this.priceRange.min && 
-          event.price <= this.priceRange.max;
+        const matchesPrice = this.filterByPrice(event);
         const matchesStatus = this.filterByStatus(event);
         const matchesRegion = this.filterByRegion(event);
-      const matchesDate = this.filterByDate(event);
+        const matchesDate = this.filterByDateRange(event);
 
 
         return matchesPrice && matchesStatus && matchesDate && matchesRegion;
       });
       console.log("Filtered Events:", this.filteredEvents);
     },
+    filterByPrice(event) {
+    const minPrice = this.priceRange.min || 0;
+    const maxPrice = this.priceRange.max || Infinity;
+    const eventPrice = Number(event.price) || 0;
+     
+    return eventPrice >= minPrice && eventPrice <= maxPrice;
+    },
     filterByStatus(event) {
-      const today = Timestamp.fromDate(new Date());
       if (this.selectedStatus === "all") return true;
-      if (this.selectedStatus === "Open") return event.registrationDeadline > today;
-      if (this.selectedStatus === "Closing Soon") {
-        const twoWeeksLater = Timestamp.fromDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000));
-        return event.registrationDeadline <= twoWeeksLater && event.registrationDeadline > today;
+
+      const deadline = event.registrationDeadline;
+      const now = new Date();
+      const deadlineDate = deadline && typeof deadline.toDate === 'function' 
+        ? deadline.toDate() 
+        : deadline; // Use it directly if it's already a Date or another type
+
+      if (!deadlineDate) return false;
+
+      if (this.selectedStatus === "Open") {
+        return deadlineDate > now;
       }
-      return true
+
+      if (this.selectedStatus === "Closing Soon") {
+        const twoWeeksFromNow = new Date();
+        twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
+        return deadlineDate <= twoWeeksFromNow && deadlineDate > now;
+      }
+
+      return false;
     },
     filterByRegion(event) {
       if (this.selectedRegion === "all") return true;
+      console.log("region assignment", event.region, this.selectedRegion)
       return event.region === this.selectedRegion;
     },
-    getRegionFromCoordinates(coordinates) {
-    const { lat, lng } = coordinates;
+    filterByDateRange(event) {
+      if (!this.startDate && !this.endDate) return true;
+      if (!event.eventDate) return false;
+
+      // Convert Firebase Timestamp to Date if necessary
+      const eventDate = event.eventDate.toDate ? event.eventDate.toDate() : new Date(event.eventDate);
+      const formattedEventDate = new Date(eventDate.toDateString());
+      const startDate = this.startDate ? new Date(new Date(this.startDate).toDateString()) : null;
+      const endDate = this.endDate ? new Date(new Date(this.endDate).toDateString()) : null;
+
+      console.log("Event Date:", formattedEventDate);
+      console.log("Start Date:", startDate);
+      console.log("End Date:", endDate);
+
+
+      if (startDate && !endDate) return formattedEventDate >= startDate;
+      if (!startDate && endDate) return formattedEventDate <= endDate;
+      return formattedEventDate >= startDate && formattedEventDate <= endDate;
+    },
+    async getRegionFromCoordinates(coordinates) {
+      // Check if coordinates exist
+      if (!coordinates || !coordinates.lat || !coordinates.lng) {
+        return "Unknown";
+      }
+      const { lat, lng } = coordinates;
+
 
     // Define approximate lat/lng ranges for each region in Singapore
     if (lat >= 1.35 && lat <= 1.45 && lng >= 103.75 && lng <= 103.85) return "North";
@@ -225,31 +348,46 @@ export default {
     if (lat >= 1.20 && lat <= 1.28 && lng >= 103.75 && lng <= 103.85) return "South";
     return "Unknown";
 },
-    filterByDate(event) {
-      if (!this.eventDate) return true;
-      
-      // Convert the selected date from input to Timestamp
-      const selectedDate = Timestamp.fromDate(new Date(this.eventDate));
-      
-      // Convert timestamps to Date objects for comparison
-      const eventDate = event.eventDate.toDate();
-      const inputDate = selectedDate.toDate();
-      
-      // Set time to start of day for both dates for comparison
-      eventDate.setHours(0, 0, 0, 0);
-      inputDate.setHours(0, 0, 0, 0);
-      
-      // Compare the dates
-      return eventDate.getTime() === inputDate.getTime();
-    }
-  }
+}
 };
 </script>
+
 <style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
 .filter-title {
   font-weight: bold;
   font-size: 1rem;
 }
+.filter-item {
+  max-width: 100%;
+}
+@media (min-width: 768px) {
+  .filter-item {
+    max-width: 250px; /* Consistent width across all filters on larger screens */
+  }
+}
+
 .btn {
   padding: 5px 10px;
   border: 1px solid #085c44;

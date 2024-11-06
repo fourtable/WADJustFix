@@ -26,29 +26,37 @@ export default {
   },
   computed: {
     // Convert Firebase Timestamp to readable date string for registrationDeadline
-    formattedRegistrationDeadline() {
-      return this.event.registrationDeadline
-        ? this.convertTimestampToDate(this.event.registrationDeadline)
-        : "N/A";
-    },
-    // Convert Firebase Timestamp to readable date string for eventDate
     formattedEventDate() {
-      return this.event.eventDate
-        ? this.convertTimestampToDate(this.event.eventDate)
-        : "N/A";
+      return this.formatDate(this.convertTimestampToDate(this.event.eventDate));
+    },
+    formattedRegistrationDeadline() {
+      return this.formatDate(this.convertTimestampToDate(this.event.registrationDeadline));
     },
     // This computed property determines if the event is closing soon (within two weeks)
     isClosingSoon() {
-      const today = new Date();
-      const registrationDeadline = this.event.registrationDeadline.toDate(); // Convert Firestore Timestamp to JS Date
-      const twoWeeksBeforeDeadline = new Date(registrationDeadline.getTime() - 14 * 24 * 60 * 60 * 1000);
-      return today >= twoWeeksBeforeDeadline && today < registrationDeadline;
-    },
+      const deadline = this.event.registrationDeadline;
+    const today = new Date();
+    
+    // Check if `registrationDeadline` is a Firestore Timestamp and convert if needed
+    const deadlineDate = deadline && typeof deadline.toDate === 'function' 
+      ? deadline.toDate()
+      : deadline; // If it's already a Date or another type, use it directly
+
+    if (!deadlineDate) {
+      return false; // Return false if there's no deadline
+    }
+
+    const twoWeeksLater = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days from now
+    return deadlineDate <= twoWeeksLater && deadlineDate > today;
+  },
+    
     // Check if the event is closed (past registration deadline)
     isClosed() {
       const today = new Date();
-      const registrationDeadline = this.event.registrationDeadline.toDate();
-      return today > registrationDeadline;
+      const deadline = this.event.registrationDeadline;
+      const deadlineDate = deadline && typeof deadline.toDate === 'function' ? deadline.toDate() : deadline;
+
+      return today > deadlineDate;
     },
     badgeText() {
       if (this.isClosed) return "Closed";
@@ -62,14 +70,28 @@ export default {
   methods:{
       // Helper method to convert Firebase Timestamp to 'YYYY-MM-DD' format
       convertTimestampToDate(timestamp) {
-      const date = timestamp.toDate(); // Convert Firebase Timestamp to JavaScript Date
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`; // Format as 'YYYY-MM-DD'
+      // Check if timestamp is a Firebase Timestamp
+      if (timestamp && typeof timestamp.toDate === 'function') {
+        return timestamp.toDate();
+      }
+      // If it's already a Date object or a timestamp number
+      if (timestamp instanceof Date || typeof timestamp === 'number') {
+        return new Date(timestamp);
+      }
+      // If it's a string, try to parse it
+      if (typeof timestamp === 'string') {
+        return new Date(timestamp);
+      }
+      // Return null if invalid
+      return null;
+    },
+    formatDate(date) {
+      if (!date) return 'Date not available';
+      return new Date(date).toLocaleDateString();
     }
   }
-};
+}
+
 </script>
 
 <style scoped>
