@@ -3,52 +3,133 @@
       <div class="modal-content">
         <button class="close-btn" @click="$emit('close')">✕</button>
         <img  src="https://placehold.co/130x70" class="card-img-top mb-2 mt-4 rounded-1" alt="Event Image" >
-        <h3>{{ event.title }}</h3>
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h3>{{ event.title }}</h3>  
+          <span class="badge" :class="badgeClass">{{ badgeText }}</span>
+        </div>
         <p>{{ event.description }}</p>
+        <p>Category: <span v-for="(category, index) in event.category" :key="index">{{ category }}<span v-if="index < event.category.length - 1">, </span></span></p>
         <p>Event Date: {{ formattedEventDate }}</p>
-        <p>Duration: {{ event.duration}}</p>
+        <p>Time: {{ formattedEventTime }}</p>
         <p>Price: ${{ event.price }}</p>
         <p>Location: {{ event.locationName }}</p>
         <p>Address: {{ event.address }}</p>
         <p>Vacant Slots: {{ event.vacantSlots }}</p>
+        <p>Registration Deadline: {{ formattedRegistrationDeadline }}</p>
+    
         <!-- More event details as needed -->
-  
+        <div class="d-flex justify-content-between mt-3">
         <button class="btn" @click="saveEvent">Save Event</button>
-        <button class="btn" @click="navigateToSignUp">Sign Up Here!</button>
-      </div>
+        <button class="btn" @click="navigateToSignUp">Sign Up!</button>
+        </div>
+    </div>
     </div>
   </template>
   
   <script>
   export default {
     props: {
-      event: Object,
-      isVisible: Boolean
+      event: {
+      type: Object,
+      required: true
+    },
+    isVisible: Boolean
     },
     computed:{
+       // Convert Firebase Timestamp to readable date string for eventDate
         formattedEventDate() {
-            return this.event.eventDate
-            ? this.convertTimestampToDate(this.event.eventDate)
-            : "N/A";
+          const date = this.convertTimestampToDate(this.event.eventDate);
+          return date ? this.formatDate(date) : 'Date not available';
         },
-        
+        formattedRegistrationDeadline() {
+          const date = this.convertTimestampToDate(this.event.registrationDeadline);
+          return date ? this.formatDate(date) : 'Date not available';
+        },
+        formattedEventTime() {
+          const startDate = this.convertTimestampToDate(this.event.eventDate);
+          if (!startDate) return 'Time not available';
+
+          // Format the start time
+          const startTime = startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+
+          // Calculate the end time by adding the duration in hours
+          const duration = Number(this.event.duration) || 0;
+          if (duration <= 0) return `${startTime} - Invalid duration`;
+
+          const endDate = new Date(startDate.getTime() + duration * 60 * 60 * 1000);
+          const endTime = endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+
+          return `${startTime} - ${endTime}`;
+        },
+        badgeText() {
+          return this.isClosed ? "Closed" : this.isClosingSoon ? "Closing soon" : "Open";
+        },
+        badgeClass() {
+          return this.isClosed ? "badge-secondary" : this.isClosingSoon ? "badge-danger" : "badge-success";
+        },
+        isClosingSoon() {
+          const deadline = this.event.registrationDeadline;
+          const today = new Date();
+          
+          const deadlineDate = deadline && typeof deadline.toDate === 'function' ? deadline.toDate() : deadline;
+          if (!deadlineDate) return false;
+
+          const twoWeeksLater = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+          return deadlineDate <= twoWeeksLater && deadlineDate > today;
+        },
+        isClosed() {
+          const today = new Date();
+          const deadline = this.event.registrationDeadline;
+          const deadlineDate = deadline && typeof deadline.toDate === 'function' ? deadline.toDate() : deadline;
+
+          return today > deadlineDate;
+        },
+        isUserLoggedIn() {
+          // Replace this with actual logic to check if the user is logged in
+          return !!this.$store.state.user;
+        }
     },
     methods: {
       saveEvent() {
         // Logic to save the event
       },
-      navigateToSignUp(eventId) {
-      this.$router.push({ name: 'eventSignup', params: { eventId } });
-    },
-      convertTimestampToDate(timestamp) {
-      const date = timestamp.toDate(); // Convert Firebase Timestamp to JavaScript Date
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`; // Format as 'YYYY-MM-DD'
+      navigateToSignUp() {
+       // Check if the user is logged in
+        if (!this.isUserLoggedIn) {
+          // Use a confirm dialog to prompt the user
+          const userAction = confirm("You need to log in to sign up. Would you like to log in or register?");
+          if (userAction) {
+            this.$router.push({ name: "login" });
+          } else {
+            this.$router.push({ name: "register" });
+          }
+        } else {
+          // If the user is logged in, navigate to the signup page for the event
+          this.$router.push({ name: "eventSignup", params: { eventId: this.event.id } });
         }
+      },
+      convertTimestampToDate(timestamp) {
+        if (timestamp && typeof timestamp.toDate === 'function') {
+          return timestamp.toDate();
+        }
+        if (timestamp instanceof Date || typeof timestamp === 'number') {
+          return new Date(timestamp);
+        }
+        if (typeof timestamp === 'string') {
+          return new Date(timestamp);
+        }
+        return null;
+      },
+      formatDate(date) {
+        if (!date) return 'Date not available';
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      }
+  },
     }
-  }
+  
   </script>
   
   <style scoped>
