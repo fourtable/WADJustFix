@@ -53,8 +53,13 @@ export default {
         message: message,
         timestamp: new Date().toISOString(),
         isVisible: true,
+        duration: 5000,
       };
       this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
+
+      setTimeout(() => {
+        removeNotification(notification.id); // Close the notification after 5 seconds
+      }, notification.duration);
     },
   },
   computed: {
