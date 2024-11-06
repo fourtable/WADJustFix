@@ -84,7 +84,7 @@ export default {
       router.push({ name: 'myQuotes' }); // Navigate to the Event route
     };
     const sendRequest = () => {
-      router.push({ name: 'myQuotes' }); // Navigate to the Event route
+      router.push({ name: 'home', hash: '#fixer' }); // Navigate to the Event route
     };
 
     const fetchUserPoints = async (userId) => {
@@ -179,9 +179,11 @@ export default {
 
 <style lang="scss" scoped>
 #points {
-  margin-top: 10vh;
+  margin-top: 5vh;
   border-radius: 10px;
   flex:1;
+  height: 92vh;
+  background-color: #cdf696;
 
   .dashboard-section {
     height: 100%;
