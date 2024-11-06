@@ -1,33 +1,40 @@
 <template>
-    <div class="container mt-5 pt-4">
-      <h2 class="mb-4">Admin - Approve Event Requests</h2>
-      <div v-if="getEventRequests.length === 0" class="text-center">
-        <p>No pending requests at the moment.</p>
-      </div>
-      <div class="row">
-        <div
-          v-for="event in getEventRequests"
-          :key="event.id"
-          class="col-lg-6 col-md-12 mb-4 d-flex align-items-stretch"
-        >
-          <div class="event-request p-4 rounded shadow-sm d-flex flex-column justify-content-between">
-            <div>
-              <p><strong>Name:</strong> {{ event.name }}</p>
-              <p><strong>Contact:</strong> {{ event.phone || "No contact provided" }}</p>
-              <p><strong>Email:</strong> {{ event.email }}</p>
-              <p><strong>Category:</strong> {{ event.selectedCategories ? event.selectedCategories.join(', ') : 'No categories specified' }}</p>
-              <p><strong>Details:</strong> {{ event.details }}</p>
-              <p><strong>Event Date:</strong> {{ formatDate(event.eventDate) }}</p>
-            </div>
-            <div class="d-flex justify-content-between mt-4">
-              <button @click="approveEvent(event)" class="btn btn-success">Approve</button>
-              <button @click="rejectEvent(event.id)" class="btn btn-danger">Reject</button>
-            </div>
+  <div class="container mt-5 pt-4">
+    <h2 class="mb-4">Admin - Approve Event Requests</h2>
+    <div v-if="getEventRequests.length === 0" class="text-center">
+      <p>No pending requests at the moment.</p>
+    </div>
+    <div class="row">
+      <div
+        v-for="event in getEventRequests"
+        :key="event.id"
+        class="col-lg-6 col-md-12 mb-4 d-flex align-items-stretch"
+      >
+        <div class="event-request p-4 rounded shadow-sm d-flex flex-column justify-content-between">
+          <div>
+            <p><strong>Title:</strong> {{ event.title || "Untitled Event" }}</p>
+            <p><strong>Name:</strong> {{ event.name }}</p>
+            <p><strong>Contact:</strong> {{ event.phone || "No contact provided" }}</p>
+            <p><strong>Email:</strong> {{ event.email }}</p>
+            <p><strong>Category:</strong> {{ event.category ? event.category.join(', ') : 'No categories specified' }}</p>
+            <p><strong>Description:</strong> {{ event.description || "No description provided" }}</p>
+            <p><strong>Event Date:</strong> {{ formatDate(event.eventDate) }}</p>
+            <p><strong>Registration Deadline:</strong> {{ formatDate(event.registrationDeadline) }}</p>
+            <p><strong>Duration:</strong> {{ event.duration || "Duration not specified" }} hours</p>
+            <p><strong>Price:</strong> ${{ event.price || 0 }}</p>
+            <p><strong>Total Slots:</strong> {{ event.totalSlots || 0 }}</p>
+            <p><strong>Status:</strong> {{ event.status || "pending" }}</p>
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <button @click="approveEvent(event)" class="btn btn-success">Approve</button>
+            <button @click="rejectEvent(event.id)" class="btn btn-danger">Reject</button>
           </div>
         </div>
       </div>
     </div>
-  </template>
+  </div>
+</template>
+
   
   <script>
   import { mapActions, mapGetters } from 'vuex';
@@ -45,37 +52,39 @@
       ...mapActions(['fetchEventRequests']), // Fetch real-time updates from Vuex store
       async approveEvent(event) {
         try {
-            // Convert Timestamp fields to Date objects if necessary
-            const eventDate = event.eventDate && event.eventDate.toDate ? event.eventDate.toDate() : event.eventDate;
-            const registrationDeadline = event.registrationDeadline && event.registrationDeadline.toDate ? event.registrationDeadline.toDate() : event.registrationDeadline;
+          // Convert Timestamp fields to Date objects if necessary
+          const eventDate = event.eventDate && event.eventDate.toDate ? event.eventDate.toDate() : event.eventDate;
+          const registrationDeadline = event.registrationDeadline && event.registrationDeadline.toDate ? event.registrationDeadline.toDate() : event.registrationDeadline;
 
-            // Add event to the events collection
-            const eventsCollection = collection(db, "events");
-            await addDoc(eventsCollection, {
+          // Add event to the events collection
+          const eventsCollection = collection(db, "events");
+          await addDoc(eventsCollection, {
             title: event.title || "Untitled Event",
-            description: event.details || "No description provided.",
+            description: event.description || "No description provided.",
             eventDate: eventDate || new Date(),
             registrationDeadline: registrationDeadline || new Date(),
-            locationName: event.locationName || "Location not specified",
-            address: event.address || "Address not provided",
-            expertise: event.expertise || "No expertise specified",
+            name: event.name || "No name provided",
+            email: event.email || "No email provided",
+            phone: event.phone || "No phone provided",
+            category: event.category || [], // Ensure it matches the Firebase data structure
             duration: event.duration || "Duration not specified",
             price: event.price || 0,
             totalSlots: event.totalSlots || 0,
-            vacantSlots: event.vacantSlots || 0,
+            status: "approved",
             createdAt: new Date()
-            });
+          });
 
-            // Update status to "approved" in eventRequest collection
-            await updateDoc(doc(db, "eventRequest", event.id), { status: "approved" });
-            console.log(`Event "${event.title}" approved and added to events collection.`);
-            
-            // Refresh the event requests list
-            this.fetchEventRequests(); // Refresh the list to remove approved event from view
+          // Update status to "approved" in eventRequest collection
+          await updateDoc(doc(db, "eventRequest", event.id), { status: "approved" });
+          console.log(`Event "${event.title}" approved and added to events collection.`);
+          
+          // Refresh the event requests list
+          this.fetchEventRequests(); // Refresh the list to remove approved event from view
         } catch (error) {
-            console.error("Error approving event:", error);
+          console.error("Error approving event:", error);
         }
-        },
+      }
+        ,
       async rejectEvent(id) {
         try {
           // Set the status to "rejected" in the eventRequest collection
