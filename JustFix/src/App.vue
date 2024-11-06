@@ -6,12 +6,35 @@ import { auth, db, realtimeDb } from './main'; // Firebase setup
 import { doc, getDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import { onMounted, ref } from 'vue';
-import { ref as dbRef, onValue } from 'firebase/database';
+import { ref as dbRef, onValue, getDatabase, set, onDisconnect } from 'firebase/database';
 
 // Reactive user data
 const userData = ref({
   imageUrl: '',
 });
+
+const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+
+if(uid){
+  setOnlineStatus(uid);
+}
+
+function setOnlineStatus(userId) {
+    const db = getDatabase();
+    const statusRef = dbRef(db, `status/${userId}`);
+
+    // Set the user's status to online
+    set(statusRef, {
+        state: "online",
+        lastChanged: Date.now()
+    });
+
+    // Automatically set the status to offline when the user disconnects
+    onDisconnect(statusRef).set({
+        state: "offline",
+        lastChanged: Date.now()
+    });
+}
 
 // Function to set up notifications listener
 const notificationsList = ref([]);
@@ -49,7 +72,6 @@ async function fetchUserData(uid) {
 }
 
 // Get uid from cookies or session storage
-const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 if (uid) {
   setupNotificationsListener(uid); // Set up listener for notifications
   fetchUserData(uid); // Fetch user data if logged in
