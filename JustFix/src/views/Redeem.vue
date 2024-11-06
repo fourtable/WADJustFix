@@ -4,8 +4,27 @@
       <div class="text-center mb-5 points-header">
         <h2>Your Points: {{ userPoints }}</h2>
       </div>
+
+      <!-- My Rewards List Section -->
+      <div v-if="myRewards.length" class="my-rewards-list mt-5">
+        <h3 class="text-center">My Rewards</h3>
+        <div class="row">
+          <div class="col-lg-4 col-md-6 col-sm-12 mb-4" v-for="myReward in myRewards" :key="myReward.id">
+            <div class="card h-100">
+              <img :src="myReward.imageURL" class="card-img-top" alt="My Reward Image"
+                style="object-fit: cover; border-radius: 15px 15px 0 0; height: 200px;">
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ myReward.name }}</h5>
+                <p class="card-text">{{ myReward.description }}</p>
+                <p class="card-text">Redeemed on: {{ myReward.redeemDate }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
   
-      <div class="rewards-list row">
+      <div class="rewards-list row mt-5 mb-2">
+        <h3 class="text-center">Redeemable Rewards</h3>
         <div class="col-lg-4 col-md-6 col-sm-12 mb-4" v-for="reward in rewards" :key="reward.id">
           <div class="card h-100">
             <img :src="reward.imageURL" class="card-img-top" alt="Reward Image" 
@@ -41,6 +60,7 @@ import { merge } from "chart.js/helpers";
       const userPoints = ref(0);
       const userId = ref(null);
       const redeeming = ref(false);
+      const myRewards = ref([]);
   
       // Fetch available rewards from Firestore
       const fetchRewards = async () => {
@@ -67,14 +87,14 @@ import { merge } from "chart.js/helpers";
           const querySnapshot = await getDocs(q);
 
           // Process the filtered results as before
-          const monthlyPoints = Array(12).fill(0);
+          // const monthlyPoints = Array(12).fill(0);
 
           querySnapshot.forEach((doc) => {
             const data = doc.data();
             // const date = parseTimestamp(data.timestamp);
             // console.log("Document ID:", doc.id, "UID:", data.UID, "Timestamp:", data.Date);
-            const date = new Date(data.Date.seconds * 1000)
-            const monthIndex = date.getMonth();
+            // const date = new Date(data.Date.seconds * 1000)
+            // const monthIndex = date.getMonth();
             const pointsValue = Number(data.points) || 0;
 
             // monthlyPoints[monthIndex] += pointsValue;
@@ -82,7 +102,7 @@ import { merge } from "chart.js/helpers";
               userPoints.value -= pointsValue;
             } else {
               userPoints.value += pointsValue;
-              monthlyPoints[monthIndex] += pointsValue;
+              // monthlyPoints[monthIndex] += pointsValue;
             }
           });
 
@@ -93,7 +113,22 @@ import { merge } from "chart.js/helpers";
         catch (error) {
           console.error("Error fetching points:", error);
         }
-        };
+      };
+
+      // Fetch redeemed rewards
+      const fetchMyRewards = async (userId) => {
+        try {
+          const myRewardsRef = collection(db, "myRewards");
+          const querySnapshot = await getDocs(query(myRewardsRef, where("UID", "==", userId)));
+          myRewards.value = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            redeemDate: new Date(doc.data().redeemDate.seconds * 1000).toLocaleDateString()
+          }));
+        } catch (error) {
+          console.error("Error fetching redeemed rewards:", error);
+        }
+      };
   
       // Redeem reward function
       const redeemReward = async (reward) => {
@@ -102,7 +137,18 @@ import { merge } from "chart.js/helpers";
           try {
             const userRef = doc(db, "users", userId.value);
             
-            await addDoc(collection(db,'points',), {
+            // Add redeemed reward to Firestore under "myRewards"
+            await addDoc(collection(db, "myRewards"), {
+              UID: userId.value,
+              name: reward.name,
+              description: reward.description,
+              imageURL: reward.imageURL,
+              redeemDate: Timestamp.now()
+            });
+
+
+            // update user's points
+            await addDoc(collection(db,'points'), {
               UID: userId.value,
               points: reward.cost,
               type: "redeem",
@@ -114,6 +160,10 @@ import { merge } from "chart.js/helpers";
             // });
   
             userPoints.value -= reward.cost; // Update locally after Firestore updates
+            myRewards.value.push({
+            ...reward,
+            redeemDate: new Date().toLocaleDateString()
+          });
             alert(`Successfully redeemed ${reward.name}!`);
           } catch (error) {
             console.error("Error redeeming reward:", error);
@@ -133,13 +183,14 @@ import { merge } from "chart.js/helpers";
             userId.value = user.uid;
             fetchUserPoints(user.uid);
             fetchRewards();
+            fetchMyRewards(user.uid)
           } else {
             console.log("User is not logged in.");
           }
         });
       });
   
-      return { rewards, userPoints, redeemReward, redeeming };
+      return { rewards, userPoints, redeemReward, redeeming, myRewards };
     },
   };
   </script>
