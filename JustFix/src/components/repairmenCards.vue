@@ -17,7 +17,8 @@ const props = defineProps({
 
 // Router instance
 const router = useRouter();
-// const isQuotesListPopupVisible = ref(false);
+
+const userType = Cookies.get('userType') || sessionStorage.getItem('userType');
 
 // Toggle the selected repairman
 const selectedRepairmen = ref([]);
@@ -53,6 +54,7 @@ const clearSelected = () => {
     selectedRepairmen.value = []; // Clear the selected repairmen
     console.log("Cleared selected repairmen");
 };
+
 // Computed property to get full repairman objects based on selected IDs
 const selectedRepairmenDetails = computed(() => {
     return props.repairmen.filter(repairman => selectedRepairmen.value.includes(repairman.id));
@@ -95,7 +97,7 @@ const filteredRepairmen = computed(() => {
     });
 });
 
-//select and filter Expertise logic
+// Select and filter Expertise logic
 const selectedExpertise = ref([]);
 
 // Available expertise options
@@ -132,7 +134,6 @@ const navigateToProfile = (userId) => {
     });
 };
 
-
 // Clear all selections
 const clearSelections = () => {
     selectedExpertise.value = [];
@@ -141,11 +142,7 @@ const clearSelections = () => {
 
 <template>
     <!-- New Section for Selected Repairmen -->
-
     <div v-if="selectedRepairmen.length > 0" class="selected-repairmen-section">
-        <!-- <h3>Selected Repairmen</h3> -->
-        <!-- <button @click="clearSelected" class="btn btn-danger">Clear Selected Repairmen</button> -->
-
         <div class="container repairmen-container">
             <p class="section-title">Your Selected Repairmen</p>
             <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
@@ -159,14 +156,14 @@ const clearSelections = () => {
                 </span>
             </div>
         </div>
-        <div class="row justify-content-center gx-4 mt-3 mb-3">
-            <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-0" v-for="repairman in selectedRepairmenDetails"
+        <div class="row justify-content-center mt-4">
+            <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-3" v-for="repairman in selectedRepairmenDetails"
                 :key="repairman.id" data-aos="fade-up" data-aos-delay="100">
                 <div class="card text-center shadow-sm" style="padding: 0; border-radius: 20px;">
                     <div class="card-header d-flex align-items-center"
                         style="background-color: transparent; border: none;">
                         <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
-                            :checked="isSelected(repairman.id)" style="margin-left: auto;" />
+                            :checked="isSelected(repairman.id)" v-if="userType === 'user'" style="margin-left: auto;" />
                     </div>
                     <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top"
                         alt="Profile Picture" height="200px" style="object-fit: cover; border-radius: 20px;">
@@ -186,7 +183,6 @@ const clearSelections = () => {
             </div>
         </div>
     </div>
-
 
     <div class="container repairmen-container" id="fixer">
         <p class="section-title" data-aos="fade-up">Browse Our Most Trusted Fixers</p>
@@ -209,31 +205,32 @@ const clearSelections = () => {
 
     <!-- Original Repairmen Listing -->
     <div class="row justify-content-center gx-4" style="padding:0; margin:0;">
-        <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-0" v-for="repairman in filteredRepairmen"
-            :key="repairman.id" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="col-lg-3 col-md-4 col-sm-6 custom-col" v-for="repairman in filteredRepairmen" :key="repairman.id"
+            data-aos="fade-up" data-aos-delay="100">
             <div class="card text-center shadow-sm clickable-card" style="padding: 0; border-radius: 20px;"
                 :class="{ selected: selectedRepairmen.includes(repairman.id) }">
                 <div class="card-header d-flex justify-content-end"
-                    style="border: none; border-radius: 20px 20px 0 0; margin: 0;">
-                    <input type="checkbox" class="custom-checkbox" @change="toggleSelection(repairman.id)"
-                        :checked="isSelected(repairman.id)" />
+                    style="border: none; background-color: transparent;">
+                    <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
+                        :checked="isSelected(repairman.id)" v-if="userType === 'user'" style="margin-left: auto;" />
                 </div>
                 <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top"
                     alt="Profile Picture" height="200px" style="object-fit: cover; border-radius: 20px;">
-                <div class="card-body text-start position-relative" @click="navigateToProfile(repairman.id)"
-                    data-aos="fade-up" data-aos-delay="300">
-                    <h5 class="card-title mb-1 text-start pb-2" style="font-weight:bold;">{{ repairman.username ||
-                        repairman.name }}</h5>
+                <div class="card-body text-start" data-aos="fade-up" data-aos-delay="200">
+                    <h5 class="card-title" style="font-weight: bold;">{{ repairman.username || repairman.name }}</h5>
                     <p class="text-muted mb-1"><span class="star-icon">★</span> 5.0 (123)</p>
-                    <p class="card-description text-muted" style="font-size: 0.9rem;">{{
-                        truncateDescription(repairman.description) }}</p>
+                    <p class="card-description">{{ truncateDescription(repairman.description) }}</p>
                     <ul class="list-unstyled">
-                        <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill">{{
-                            skill }}</li>
+                        <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill"
+                            data-aos="flip-right" data-aos-delay="300">
+                            {{ skill }}
+                        </li>
                     </ul>
                 </div>
             </div>
         </div>
+
     </div>
 </template>
 
@@ -270,8 +267,8 @@ const clearSelections = () => {
 
 /* Custom styled checkbox */
 .custom-checkbox {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 2rem;
+    height: 2rem;
     cursor: pointer;
     accent-color: #085C44;
     border: 2px solid #085C44;
@@ -280,8 +277,8 @@ const clearSelections = () => {
 
 .card {
     background: #ffffff;
-    padding: 20px;
     width: 100%;
+    height: 500px;
     max-width: 40vw;
     border: 0;
     transition: transform 0.3s, background-color 0.3s ease;
@@ -398,29 +395,6 @@ ul.list-unstyled {
 }
 
 
-/* Media query for screens 867px and wider */
-@media (min-width: 867px) {
-    .repairmen-container {
-        padding-top: 50px;
-        /* Increased padding for wider screens */
-    }
-}
-
-/* Additional media queries for further increases */
-@media (min-width: 1000px) {
-    .repairmen-container {
-        padding-top: 70px;
-        /* Further increased padding */
-    }
-}
-
-@media (min-width: 1200px) {
-    .repairmen-container {
-        padding-top: 70px;
-        /* Consistent padding for large screens */
-    }
-}
-
 /* Styles for cards */
 .card {
     /* Existing styles */
@@ -433,17 +407,13 @@ ul.list-unstyled {
 @media (max-width: 575px) {
     .custom-col {
         flex: 1 1 100%;
-        /* Make each card take full width */
         display: flex;
         justify-content: center;
-        /* Center the cards */
     }
 
     .card {
         width: 90%;
-        /* Card width to fill most of the container */
         max-width: 600px;
-        /* Optional: set a max-width for cards */
     }
 }
 
@@ -527,40 +497,9 @@ ul.list-unstyled {
     /* Darker shade on hover for feedback */
 }
 
-@media (min-width: 992px) {
-
-    /* Adjust as necessary */
-    .row {
-        height: 80%;
-        /* This applies for larger screens */
-    }
-}
-
-/* For smaller screens */
-@media (max-width: 991px) {
-
-    /* Target smaller screens */
-    .row {
-        height: 90%;
-        /* Change to auto for smaller screens */
-    }
-}
-
-@media (max-width: 576px) {
-
-    /* Target very small screens (like phones) */
-    .row {
-        height: 99%;
-        /* Keep it auto */
-    }
-
-}
 
 .popup {
     position: fixed;
-    /* or absolute depending on your layout */
     z-index: 9999;
-    /* ensure it's on top of other content */
-    /* Add other necessary styles */
 }
 </style>
