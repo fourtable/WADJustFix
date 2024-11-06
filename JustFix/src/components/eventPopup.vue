@@ -14,7 +14,7 @@
         <!-- More event details as needed -->
   
         <button class="btn" @click="saveEvent">Save Event</button>
-        <button class="btn" @click="signUpEvent">Sign Up Here!</button>
+        <button class="btn" @click="navigateToSignUp">Sign Up Here!</button>
       </div>
     </div>
   </template>
@@ -37,9 +37,9 @@
       saveEvent() {
         // Logic to save the event
       },
-      signUpEvent() {
-        this.$emit('signUp', this.event.eventId); // Emit event to parent for signup
-      },
+      navigateToSignUp(eventId) {
+      this.$router.push({ name: 'eventSignup', params: { eventId } });
+    },
       convertTimestampToDate(timestamp) {
       const date = timestamp.toDate(); // Convert Firebase Timestamp to JavaScript Date
       const year = date.getFullYear();
@@ -70,8 +70,9 @@
   padding: 25px;
   border-radius: 8px;
   max-width: 400px;
-  max-height: 900px;
+  max-height: 80vh;
   width: 100%;
+  overflow-y: auto;
   border: 2px solid #ccc;
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
   position: relative;

@@ -164,7 +164,6 @@ export default {
         this.username = Cookies.get('username') || sessionStorage.getItem('username');
         this.localProfileImage = Cookies.get('profilePic') || sessionStorage.getItem('profilePic');
         this.type = Cookies.get('userType') || sessionStorage.getItem('userType');
-        console.log(this.uid);
         this.fetchUserData(this.uid);
     },
     mounted() {
@@ -173,10 +172,6 @@ export default {
         this.username = Cookies.get('username') || sessionStorage.getItem('username');
         this.profilePic = Cookies.get('profilePic') || sessionStorage.getItem('profilePic');
         this.type = Cookies.get('userType') || sessionStorage.getItem('userType');
-        console.log(this.uid);
-        console.log(this.username);
-        console.log(this.profilePic);
-        console.log(this.type);
         if (!this.uid) {
             console.error("UID is not available");
         }
@@ -191,8 +186,6 @@ export default {
     methods: {
         async fetchUserData(uid) {
             try {
-                // const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
-                console.log(uid);
                 if (uid) {
                     const userRef = await getDoc(doc(db, 'users', uid));
                     if (userRef.exists()) {

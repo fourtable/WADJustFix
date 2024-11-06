@@ -1,15 +1,15 @@
 <template>
     <div class="container py-5" id="redeem-rewards">
   
-      <div class="text-center mb-5">
+      <div class="text-center mb-5 points-header">
         <h2>Your Points: {{ userPoints }}</h2>
       </div>
   
       <div class="rewards-list row">
         <div class="col-lg-4 col-md-6 col-sm-12 mb-4" v-for="reward in rewards" :key="reward.id">
-          <div class="card h-120">
+          <div class="card h-100">
             <img :src="reward.imageURL" class="card-img-top" alt="Reward Image" 
-            style="object-fit: cover; border-radius: 15px 15px 0 0;">
+            style="object-fit: cover; border-radius: 15px 15px 0 0; height: 200px;">
             <div class="card-body d-flex flex-column">
               <h5 class="card-title">{{ reward.name }}</h5>
               <p class="card-text">{{ reward.description }}</p>
@@ -31,8 +31,9 @@
   <script>
   import { ref, onMounted } from "vue";
   import { auth, db } from "../main";
-  import { collection, getDocs, doc, updateDoc, query, where, orderBy} from "firebase/firestore";
+  import { collection, getDocs, doc, updateDoc, query, where, orderBy, Timestamp, addDoc} from "firebase/firestore";
   import { onAuthStateChanged } from "firebase/auth";
+import { merge } from "chart.js/helpers";
   
   export default {
     setup() {
@@ -76,8 +77,13 @@
             const monthIndex = date.getMonth();
             const pointsValue = Number(data.points) || 0;
 
-            monthlyPoints[monthIndex] += pointsValue;
-            userPoints.value += pointsValue;
+            // monthlyPoints[monthIndex] += pointsValue;
+            if (data.type == "redeem") {
+              userPoints.value -= pointsValue;
+            } else {
+              userPoints.value += pointsValue;
+              monthlyPoints[monthIndex] += pointsValue;
+            }
           });
 
           // pointsData.value = [...monthlyPoints];
@@ -96,10 +102,16 @@
           try {
             const userRef = doc(db, "users", userId.value);
             
-            // Update user's points
-            await updateDoc(userRef, {
-              points: userPoints.value - reward.cost
+            await addDoc(collection(db,'points',), {
+              UID: userId.value,
+              points: reward.cost,
+              type: "redeem",
+              Date: Timestamp.now()
             });
+            // Update user's points
+            // await updateDoc(userRef, {
+            //   points: userPoints.value - reward.cost
+            // });
   
             userPoints.value -= reward.cost; // Update locally after Firestore updates
             alert(`Successfully redeemed ${reward.name}!`);
@@ -156,6 +168,11 @@
 .container {
   max-width: 900px;
   margin: auto;
+  padding-top: 80px;
+}
+
+.points-header{
+  margin-top: 30px
 }
 
 .rewards-list {
@@ -169,7 +186,7 @@
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s, box-shadow 0.3s;
-  height: 100%;
+  min-height: 100%;
 }
 
 .card:hover {
@@ -181,6 +198,8 @@
   display: flex;
   flex-direction: column;
   padding: 20px;
+  justify-content: space-between;
+  min-height: 250px;
 }
 
 .card-title {

@@ -149,7 +149,7 @@ const clearSelections = () => {
                 <button @click="openQuotesListPopup" :disabled="selectedRepairmen.length === 0" class="hero-button">Send
                     Quote</button>
                 <quoteListPopup v-if="isQuotesListPopupVisible" :selectedRepairmen="selectedRepairmen"
-                    @close="closeModal" />
+                    @close="closeModal" @quoteSent="clearSelectedRepairmen" />
                 <span @click="clearSelected" class="clear-link"
                     style="text-decoration: underline; cursor: pointer; margin-top: 8px; padding-right: 14px;">
                     Clear Selected Repairmen
