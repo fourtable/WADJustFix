@@ -96,6 +96,7 @@ export default {
         "Miscellaneous Repairs"
       ],
       uid: Cookies.get('uid') || sessionStorage.getItem('uid'),
+      userName : Cookies.get('username') || sessionStorage.getItem('username'),
     };
   },
   created() {
@@ -159,7 +160,10 @@ export default {
             category: this.formData.category,
             picture: this.formData.picture, // Ensure picture is a URL or the required file format
             description: this.formData.description,
-            createdAt: new Date(), // Adding a timestamp if needed
+            timestamp: new Date(), // Adding a timestamp if needed
+            userId: this.uid,
+            userName: this.userName,
+            repairerId: '',
           });
 
           await addDoc(collection(db, 'points'), {
