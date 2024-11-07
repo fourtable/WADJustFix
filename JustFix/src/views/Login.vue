@@ -25,20 +25,21 @@
                 </button>
                 <hr class="solid"> -->
                 <div class="card-divider">
-                    <h4>Login to JustFix</h4>
+                    <h4 style="font-weight:bold; font-size:xx-large;">Login</h4>
                 </div>
                 <div class="card-section">
-                    <form id="loginForm" @submit.prevent="login">
+
+                    <form id="loginForm" @submit.prevent="login" required>
                         <div class="form-group mb-2">
-                            <label for="email">Email</label>
-                            <input v-model="email" type="email" id="email" class="form-control"
-                                placeholder="Enter your email" required>
+                            <!-- <label for="email">Email</label> -->
+                            <input v-model="email" type="email" id="email" class="form-control p-3"
+                                placeholder="Email Address" required>
                         </div>
 
                         <div class="form-group mb-2">
-                            <label for="password">Password</label>
-                            <input v-model="password" type="password" id="password" class="form-control"
-                                placeholder="Enter your password" required>
+                            <!-- <label for="password">Password</label> -->
+                            <input v-model="password" type="password" id="password" class="form-control p-3"
+                                placeholder="Password" required>
                         </div>
 
                         <!-- Only for the "Remember me" checkbox -->
@@ -46,18 +47,24 @@
                             <div class="form-check d-inline-flex align-items-center">
                                 <input v-model="rememberMe" type="checkbox" id="rememberMe"
                                     class="form-check-input me-2">
-                                <label for="rememberMe" class="form-check-label mb-0" style="padding-top: 5px;">Remember
+                                <label for="rememberMe" class="form-check-label mb-0"
+                                    style="padding-top: 5px; font-weight:350; font-size: small;">Remember
                                     me</label>
                             </div>
                             <a href="#" id="forgotPassword" class="ms-auto d-inline-flex align-items-center"
-                                style="text-decoration: none; color: black; padding-top: 5px;">Forgot Password?</a>
+                                style="text-decoration: none; color: black; padding-top: 5px; font-size: smaller; padding-right:10px; font-weight:350;">Forgot
+                                Password?</a>
                         </div>
                         <br>
-                        <button type="submit" class="button">Login</button>
+                        <button type="submit" class="button hero-button pt-3 pt-3"
+                            :class="{ 'hero-button': true, 'invalid-button': !isFormValid }">Login</button>
                     </form>
+
+
                     <div style="text-align: center; padding-top: 10px;">
                         <span>Don't have an account? <router-link :to="{ name: 'register' }"
-                                style="text-decoration: none; color: black; font-weight: bolder;">Register</router-link></span>
+                                style="text-decoration: none; color: black; font-weight: bolder;"
+                                class="register">Register</router-link></span>
                     </div>
                     <p v-if="errorMessage" id="errorMessage" style="color: red;">{{ errorMessage }}</p>
                 </div>
@@ -186,8 +193,7 @@ export default {
 
 <style scoped>
 .full-height {
-    height: 100vh;
-    /* Full height of the viewport */
+    height: 97vh;
     display: flex;
     overflow: hidden;
 }
@@ -217,6 +223,7 @@ export default {
 
 .login-right-card {
     width: 500px;
+    border: 0px;
     /* Adjust the card width as needed */
 }
 
@@ -239,4 +246,11 @@ body {
     object-fit: cover;
     /* Maintain aspect ratio */
 }
+
+.hero-button:hover {
+    background-color: #085C44;
+    color: #ffffff;
+}
+
+/* Style the button with a smoother design */
 </style>

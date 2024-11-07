@@ -138,12 +138,9 @@ body {
 
     .register-section {
         background-color: $background-white;
-        /* width: 50vw; */
-        min-height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        /* height: 100vh; */
         padding-top: 50px;
     }
 }
@@ -241,18 +238,9 @@ input[type=email] {
 
 // Register
 #register {
-    body {
-        margin: 0;
-        padding: 0;
-        height: 100vh;
-    }
+    height: 97vh;
 
     .left-section {
-        background-color: #cdf696;
-        /* background-size: cover;
-        background-position: center;
-        width: 50vw; */
-        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -260,12 +248,9 @@ input[type=email] {
 
     .register-section {
         background-color: #ffffff;
-        /* width: 50vw; */
-        min-height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        /* height: 100vh; */
         padding-top: 50px;
     }
 
@@ -287,6 +272,7 @@ input[type=email] {
 
     .form-card {
         width: 100%;
+        height:auto;
         padding: 10px;
     }
 
@@ -299,17 +285,16 @@ input[type=email] {
     }
 
     .btn {
-        padding: 10px 25px;
         border-radius: 50px;
         background-color: black;
         color: white;
         display: block;
-        margin: 0 auto;
+
     }
 
     .btn:hover {
-        background-color: #cdf696;
-        color: black;
+        background-color: #085C44;
+        color: white;
     }
 }
 
