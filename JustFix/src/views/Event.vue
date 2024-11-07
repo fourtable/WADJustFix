@@ -3,7 +3,6 @@
     <!-- Header Section -->
     <h1 class="mb-4">Explore our events!</h1>
     <p class="subheader">Upskill, learn DIY skills, and become a better fixer!</p>
-    
     <!-- Filters Section -->
     <div class="d-flex align-items-center flex-wrap gap-4 mb-4">
       <!-- Region Filter -->
@@ -122,14 +121,15 @@
 </template>
 
 <script>
-import { db } from "../main"; // Import your Firebase instance
-import { collection, query, where, getDocs, addDoc, Timestamp } from "firebase/firestore";
+import { db,storage } from "../main"; // Import your Firebase instance
+import { collection, getDocs, updateDoc } from "firebase/firestore";
 import EventCard from "../components/eventCard.vue";
 import EventPopup from '../components/eventPopup.vue';
 import { useRouter } from 'vue-router';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ref, onMounted } from 'vue';
 import Cookies from 'js-cookie';
+import { ref as storageRef, getDownloadURL, uploadBytes } from "firebase/storage";
 
 export default {
   components: {
@@ -184,7 +184,8 @@ export default {
       endDate: null,
       userLocation: null,
       events: [], // Stores all events fetched from Firebase
-      filteredEvents: [] // Stores events filtered based on selected criteria
+      filteredEvents: [], // Stores events filtered based on selected criteria
+      imageUrl: ''
     };
   },
   computed: {

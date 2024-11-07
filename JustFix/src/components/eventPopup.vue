@@ -2,7 +2,7 @@
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-content">
       <button class="close-btn" @click="$emit('close')">✕</button>
-      <img src="https://placehold.co/130x70" class="card-img-top mb-2 mt-4 rounded-1" alt="Event Image">
+      <img :src="event.imageUrl" class="card-img-top mb-2 mt-4 rounded-1" alt="Event Image" v-if="event.imageUrl">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <h3>{{ event.title }}</h3>
         <span class="badge" :class="badgeClass">{{ badgeText }}</span>
@@ -240,7 +240,7 @@ export default {
   background: white;
   padding: 25px;
   border-radius: 8px;
-  max-width: 400px;
+  max-width: 500px;
   max-height: 80vh;
   width: 100%;
   overflow-y: auto;
