@@ -135,16 +135,16 @@ s          <input type="number" v-model="form.duration" class="form-control" min
   
   <script>
   import { db } from "../main"; // Import your Firebase instance
-  import { collection, addDoc, Timestamp } from "firebase/firestore";
+  import { collection, addDoc, Timestamp, doc, getDoc } from "firebase/firestore";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-
+  import Cookies from 'js-cookie';
 
   export default {
     data() {
       return {
         form: {
-          name: "",
-          phone: "",
+          name: '',
+          phone: '',
           email: "",
           selectedCategories:[],
           otherChecked: false,
@@ -176,6 +176,30 @@ s          <input type="number" v-model="form.duration" class="form-control" min
         ],
       };
     },
+    async created() {
+        // Auto-populate form with user data
+        const username = sessionStorage.getItem('username') || Cookies.get('username');
+        const userEmail = sessionStorage.getItem('email') || Cookies.get('email');
+        
+        if (username) {
+            this.form.name = username;
+        }
+        
+        // Get user details from Firestore
+        const uid = sessionStorage.getItem('uid') || Cookies.get('uid');
+        if (uid) {
+            try {
+                const userDoc = await this.getUserDetails(uid);
+                if (userDoc) {
+                    this.form.name = userDoc.name || this.form.name;
+                    this.form.email = userDoc.email || '';
+                    this.form.phone = userDoc.phone || '';
+                }
+            } catch (error) {
+                console.error("Error fetching user details:", error);
+            }
+        }
+    },
     computed: {
       minDate() {
         const today = new Date();
@@ -192,6 +216,19 @@ s          <input type="number" v-model="form.duration" class="form-control" min
       }
   },
     methods: {
+      async getUserDetails(uid) {
+            try {
+                const userDoc = doc(db, "users", uid);
+                const userSnapshot = await getDoc(userDoc);
+                if (userSnapshot.exists()) {
+                    return userSnapshot.data();
+                }
+                return null;
+            } catch (error) {
+                console.error("Error fetching user details:", error);
+                return null;
+            }
+        },
       initializeAutocomplete() {
       // Only initialize once
       if (this.autocomplete) return;

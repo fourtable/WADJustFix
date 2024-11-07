@@ -116,7 +116,7 @@
       <p>
         Are you an experienced repair expert passionate about teaching?
       </p>
-      <button @click="redirectToForm" class="btn">Apply to Host an Event</button>
+      <button @click="handleApplyClick" class="btn">Apply to Host an Event</button>
     </div>
   </div>
 </template>
@@ -127,7 +127,9 @@ import { collection, query, where, getDocs, addDoc, Timestamp } from "firebase/f
 import EventCard from "../components/eventCard.vue";
 import EventPopup from '../components/eventPopup.vue';
 import { useRouter } from 'vue-router';
-
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { ref, onMounted } from 'vue';
+import Cookies from 'js-cookie';
 
 export default {
   components: {
@@ -136,7 +138,40 @@ export default {
   },
   setup() {
     const router = useRouter();
-    return { router };
+    const auth = getAuth();
+
+    // Define a reactive variable to store login status
+    const isLoggedIn = ref(false);
+     // Check authentication state using both Firebase and stored credentials
+    const checkAuthState = () => {
+      const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+      const firebaseUser = auth.currentUser;
+      
+      isLoggedIn.value = !!(uid || firebaseUser);
+    };
+    // Listen to authentication state changes
+    onAuthStateChanged(auth, () => {
+      checkAuthState();
+    });
+    // Check auth state when component mounts
+    onMounted(() => {
+      checkAuthState();
+    });
+    const handleApplyClick = () => {
+      const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+      if (!uid) {
+          // Store current path for redirect after login
+          sessionStorage.setItem('intendedPath', '/ApplyEvent');
+          router.push('/login');
+      } else {
+          router.push('/ApplyEvent');
+      }
+    };
+    return {
+      handleApplyClick,
+      isLoggedIn
+    }
+
   },
   data() {
     return {
@@ -152,19 +187,10 @@ export default {
       filteredEvents: [] // Stores events filtered based on selected criteria
     };
   },
-  // async mounted() {
-  //   await this.fetchEvents();
-  //   this.applyFilters(); // Initial filter application
-  //   // this.initializeGeolocation(); // Fetches user's geolocation if available
-  // },
   computed: {
     today() {
       const today = new Date();
       return today.toISOString().split('T')[0];
-      // const year = today.getFullYear();
-      // const month = String(today.getMonth() + 1).padStart(2, '0'); // Ensure two digits
-      // const day = String(today.getDate()).padStart(2, '0'); // Ensure two digits
-      // return `${year}-${month}-${day}`; // Format as "YYYY-MM-DD"
     }
   },
   async mounted() {
@@ -172,20 +198,6 @@ export default {
     await this.applyFilters();
   },
   methods: {
-    redirectToForm() {
-      try {
-        // Try with the name first
-        this.router.push({ name: 'applyEvent' }).catch(err => {
-          // If name doesn't work, try with path
-          console.log('Trying alternative route...');
-          this.router.push('/ApplyEvent').catch(err => {
-            console.error('Navigation failed:', err);
-          });
-        });
-      } catch (error) {
-        console.error('Navigation error:', error);
-      }
-    },
     openModal(event) {
       this.selectedEvent = { ...event };
       this.isModalVisible = true;
@@ -195,9 +207,6 @@ export default {
       this.isModalVisible = false;
       this.selectedEvent = null;
       document.body.style.overflow = 'auto'; // Restore scrolling
-    },
-    navigateToSignUp(eventId) {
-      this.$router.push({ name: 'eventSignup', params: { eventId } });
     },
     async fetchEvents() {
       // Fetch all events from Firestore
