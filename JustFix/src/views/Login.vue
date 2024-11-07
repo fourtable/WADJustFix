@@ -106,7 +106,7 @@ export default {
                     Cookies.set('uid', userCredential.user.uid, { expires: 7 });
                 }
                 sessionStorage.setItem('uid', userCredential.user.uid);
-                // window.location.href = '/';
+                window.location.href = '/';
                 // Check if there's a stored intended path
                 const intendedPath = sessionStorage.getItem('intendedPath');
                 if (intendedPath) {
