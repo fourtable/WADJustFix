@@ -96,8 +96,6 @@ body {
     }
 }
 
-
-
 // Login
 .full-height {
     height:100vh;
@@ -240,20 +238,35 @@ input[type=email] {
 #register {
     height: 97vh;
 
-    .left-section {
+    .full-height {
         display: flex;
-        align-items: center;
-        justify-content: center;
-    }
 
-    .register-section {
-        background-color: #ffffff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding-top: 50px;
+        .left-section {
+            background-size: cover;
+            width: 50vw;
+            overflow: hidden;
+        }
+    
+        .right-section {
+            background-color: $background-white;
+            width: 50vw;
+            // height:100vh;
+            display: flex;
+            overflow-y: auto;
+        }
     }
-
+    
+    @media (max-width: 1000px) {
+        .full-height {
+            .left-section {
+                display: none; // Hide the left section
+            }
+            .right-section,
+            .register-section {
+                flex: 1; // Make the right section take up full width
+            }
+        }
+    }
     .choice-card {
         background: #ffffff;
         padding: 20px;

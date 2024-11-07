@@ -104,16 +104,20 @@ const isSelected = (repairmanId) => selectedRepairmen.value.includes(repairmanId
 // Search functionality
 const searchQuery = ref(''); // Step 1: Create a reactive search query
 
-// Computed property to filter repairmen based on selected expertise and search query
 const filteredRepairmen = computed(() => {
     return props.repairmen.filter(repairman => {
         const name = repairman.username || repairman.name;
-        const expertiseMatch = selectedExpertise.value.length === 0 || selectedExpertise.value.includes("All") || repairman.expertise.some(skill => selectedExpertise.value.includes(skill));
-        const searchMatch = name.toLowerCase().includes(searchQuery.value.toLowerCase()); // Step 2: Implement the search logic
+        const isOthersSelected = selectedExpertise.value.includes("Others");
+
+        const expertiseMatch = isOthersSelected
+            ? repairman.expertise.every(skill => !expertiseOptions.value.includes(skill)) // Filter for "Others"
+            : selectedExpertise.value.length === 0 || selectedExpertise.value.includes("All") ||
+            repairman.expertise.some(skill => selectedExpertise.value.includes(skill));
+
+        const searchMatch = name.toLowerCase().includes(searchQuery.value.toLowerCase()); // Search logic
         return expertiseMatch && searchMatch;
     });
 });
-
 // Select and filter Expertise logic
 const selectedExpertise = ref([]);
 
@@ -124,10 +128,10 @@ const expertiseOptions = ref([
     "Plumbing",
     "Air Conditioners",
     "Electronics Repair",
-    "Furniture Assembly and Repair",
+    "Furniture",
     "Windows and Doors",
     "Automotive Repairs",
-    "Miscellaneous Repairs"
+    "Others"
 ]);
 
 // Toggle expertise selection
@@ -210,6 +214,7 @@ const clearSelections = () => {
         </div>
 
         <!-- Expertise Pills -->
+
         <div class="expertise-pills py-4" data-aos="fade-up" data-aos-delay="100">
             <button v-for="expertise in expertiseOptions" :key="expertise"
                 :class="['expertise-pill', { selected: selectedExpertise.includes(expertise) }]"

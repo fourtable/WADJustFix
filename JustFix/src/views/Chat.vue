@@ -235,6 +235,14 @@ async function acceptQuote() {
             type: "earn",
         });
 
+        // update points earned by user
+        await addDoc(pointCollection, {
+          Date: serverTimestamp(),
+          UID: contactId.value,
+          points: 10,
+          type: "earn",
+        });
+
         console.log("Quote accepted and updated in Firestore:", selectedQuote.value);
 
         // Optionally, you can close the modal after acceptance

@@ -11,11 +11,8 @@
                     class="full-height-image">
             </div>
         </div>
-
         <!-- Right Section with the login form -->
         <div class="right-section">
-
-
             <div class="card login-right-card">
                 <!-- <button class="btn google-btn d-flex align-items-center mx-auto" id="googleSignInBtn"
                     style="padding: 8px 12px;">
@@ -204,14 +201,12 @@ export default {
     height: 97vh;
     display: flex;
     overflow: hidden;
+    width: 100vw;
 }
 
 .left-section,
 .right-section {
     height: 100%;
-    /* Full height for both sections */
-    overflow: hidden;
-    /* Prevent scroll inside each section */
 }
 
 .left-section {
@@ -221,12 +216,19 @@ export default {
 
 .right-section {
     width: 50%;
-    /* Right section takes 50% width */
     display: flex;
     justify-content: center;
-    /* Center the login form horizontally */
     align-items: center;
-    /* Center the login form vertically */
+}
+
+@media (max-width: 1000px) {
+    .full-height {
+
+        .right-section,
+        .register-section {
+            flex: 1;
+        }
+    }
 }
 
 .login-right-card {
@@ -249,16 +251,12 @@ body {
 
 .full-height-image {
     width: 100%;
-    /* Ensure the background image covers the full section */
     height: 100%;
     object-fit: cover;
-    /* Maintain aspect ratio */
 }
 
 .hero-button:hover {
     background-color: #085C44;
     color: #ffffff;
 }
-
-/* Style the button with a smoother design */
 </style>

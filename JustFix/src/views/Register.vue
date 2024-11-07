@@ -1,15 +1,18 @@
+<style lang="css">
+@import '../../src/styles.css';
+</style>
+
 <template>
-    <div class="container-fluid" id="register">
-        <div class="row full-height">
+    <div id="register">
+        <div class="full-height">
             <!-- Left Section with Background -->
-            <div class="col-lg-6 col-md-6 left-section">
+            <div class="left-section">
                 <img src="../assets/samsung-memory-fxKvHGDICcQ-unsplash.jpg" alt="image of aircon servicing"
                     class="full-height-image" />
             </div>
-
             <!-- Right Section with the register form -->
-            <div class="col-lg-6 col-md-6 register-section right-section ">
-                <div style="width: 100%; max-width: 400px;">
+            <div class="right-section">
+                <div style="width: 100%; max-width: 500px;">
                     <!-- Show options to choose registration type -->
                     <div v-if="!selectedType">
                         <h2>What type of user are you?</h2>
@@ -20,12 +23,11 @@
                             Client
                         </div>
                     </div>
-
                     <!-- Dynamic form content -->
-                    <div v-if="selectedType" style="margin-top: 350px; margin-bottom:20px;">
-                        <h4 v-if="selectedType === 'repairer'">Register as a Repairer</h4>
-                        <h4 v-if="selectedType === 'user'">Register as a User</h4>
-
+                    <div v-if="selectedType" style="margin-bottom:20px;">
+                        <h4 v-if="selectedType === 'repairer'">
+                            Register as a Repairer</h4>
+                        <h4 v-if="selectedType === 'user'" style="margin-top: 75px; ">Register as a User</h4>
                         <!-- Repairer Registration Form -->
                         <form v-if="selectedType === 'repairer'" class="form-wrapper" style="width: 100%;"
                             @submit.prevent="submitRepairerForm">
@@ -66,8 +68,7 @@
                                     <label for="otherExpertise">Please specify your expertise</label>
                                     <div style="display: flex; align-items: center;">
                                         <input type="text" id="otherExpertise" v-model="formData.otherExpertiseInput"
-                                            class="form-control" placeholder="Enter your expertise" required />
-                                        <!-- Tick button to confirm -->
+                                            class="form-control mb-3" placeholder="Enter your expertise" required />
                                         <button type="button" @click="addCustomExpertise"
                                             style="margin-left: 10px;">✔️</button>
                                     </div>
@@ -94,7 +95,7 @@
 
                             <button type="submit" class="btn px-5 py-3 mb-2">Register</button>
                         </form>
-
+                        
                         <!-- User Registration Form -->
                         <form v-if="selectedType === 'user'" class="form-wrapper" style="width: 100%;"
                             @submit.prevent="submitUserForm">
@@ -118,11 +119,14 @@
                                 <input type="password" id="cfmPassword" v-model="formData.cfmPassword"
                                     placeholder="Confirm your password" class="form-control" required />
                             </div>
-                            <button type="submit" class="btn px-5 py-3 mb-2 ">Register</button>
+                            <button type="submit" class="btn px-5 py-3 mb-2 mt-3">Register</button>
                         </form>
 
-                        <button @click="selectedType = ''" class="btn px-5 py-3 ">Go Back</button>
+                        <button @click="selectedType = ''" class="btn px-5 py-3">Go Back</button>
+                        <div v-if="selectedType === 'repairer'" class="mb-5"></div>
                     </div>
+
+
                 </div>
             </div>
         </div>
@@ -199,6 +203,18 @@ export default {
                 }
             }
         },
+        addCustomExpertise() {
+            console.log("addCustomExpertise called");
+
+            const expertiseInput = this.formData.otherExpertiseInput.trim();
+            if (expertiseInput) {
+                this.formData.expertise.push(expertiseInput);
+                this.formData.otherExpertiseInput = ''; // Clear the input field
+                this.showCustomInput = false; // Hide the input field
+                console.log('Input:', expertiseInput);
+                console.log('Expertise array before push:', this.formData.expertise);
+            }
+        },
         removeExpertise(index) {
             this.formData.expertise.splice(index, 1);
 
@@ -208,16 +224,7 @@ export default {
                 this.formData.otherExpertise = '';
             }
         },
-        addCustomExpertise() {
-            if (this.formData.otherExpertiseInput) {
-                // Add the custom expertise to the selected list
-                this.formData.expertise.push(this.formData.otherExpertiseInput);
-                // Clear the input after adding
-                this.formData.otherExpertiseInput = '';
-                // Optionally, uncheck the "Other" field if only a single custom expertise is expected
-                this.formData.otherChecked = false;
-            }
-        },
+
         selectType(type) {
             this.selectedType = type;
             // Ensure the autocomplete is initialized after the form is displayed
@@ -358,39 +365,17 @@ export default {
 </script>
 
 <style scoped>
-/* Your CSS styles from the original HTML can be placed here */
-
 .full-height {
     height: 97vh;
     display: flex;
     overflow: hidden;
-}
-
-.left-section {
-    width: 50%;
-    overflow: hidden;
-    height: 100vh;
-}
-
-.right-section {
-    width: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px;
-    overflow-y: auto;
+    width: 100vw;
 }
 
 .full-height-image {
     width: 110%;
     height: 97vh;
     object-fit: cover;
-}
-
-
-.container-fluid {
-    padding: 0;
-    margin: 0;
 }
 
 .form-card {
@@ -409,6 +394,27 @@ export default {
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease;
 }
+
+.extra-fixer-margin {
+    margin-top: 500px;
+}
+
+@media (max-width: 1478px) and (min-width: 768px) {
+    .extra-fixer-margin {
+        margin-top: 200px;
+    }
+} 
+@media (max-width: 996px) and (min-width: 768px) {
+    .extra-fixer-margin {
+        margin-top: 500px;
+    }
+}
+@media (max-width: 767px) and (min-width: 400px) {
+    .extra-fixer-margin {
+        margin-top: 250px;
+    }
+}
+
 
 .choice-card:hover {
     transform: scale(1.05);
