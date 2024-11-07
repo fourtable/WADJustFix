@@ -85,7 +85,10 @@ export default {
     badgeClass() {
       if (this.isClosed) return "badge-secondary";
       return this.isClosingSoon ? "badge-danger" : "badge-success";
-    }
+    },
+    uid(){
+      return Cookies.get('uid') || sessionStorage.getItem('uid');
+    },
   },
   methods:{
       // Helper method to convert Firebase Timestamp to 'YYYY-MM-DD' format

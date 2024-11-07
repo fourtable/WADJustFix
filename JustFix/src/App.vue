@@ -15,25 +15,25 @@ const userData = ref({
 
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 
-if(uid){
+if (uid) {
   setOnlineStatus(uid);
 }
 
 function setOnlineStatus(userId) {
-    const db = getDatabase();
-    const statusRef = dbRef(db, `status/${userId}`);
+  const db = getDatabase();
+  const statusRef = dbRef(db, `status/${userId}`);
 
-    // Set the user's status to online
-    set(statusRef, {
-        state: "online",
-        lastChanged: Date.now()
-    });
+  // Set the user's status to online
+  set(statusRef, {
+    state: "online",
+    lastChanged: Date.now()
+  });
 
-    // Automatically set the status to offline when the user disconnects
-    onDisconnect(statusRef).set({
-        state: "offline",
-        lastChanged: Date.now()
-    });
+  // Automatically set the status to offline when the user disconnects
+  onDisconnect(statusRef).set({
+    state: "offline",
+    lastChanged: Date.now()
+  });
 }
 
 // Function to set up notifications listener
@@ -64,7 +64,16 @@ async function fetchUserData(uid) {
   try {
     const userDoc = await getDoc(doc(db, 'users', uid));
     if (userDoc.exists()) {
-      userData.value = userDoc.data(); // Update userData if it exists
+      const userData = userDoc.data();
+
+      // Check if the user is blocked
+      if (userData.blocked) {
+        await signOut(auth); // Sign out the user if they are blocked
+        alert("Your account has been blocked. Please contact support for more information.");
+        return; // Return immediately to prevent further execution
+      }
+
+      userData.value = userData; // Update userData if the user is not blocked
     }
   } catch (error) {
     console.error("Error fetching user data:", error);
@@ -108,8 +117,7 @@ onMounted(() => {
 
 <style>
 .content {
-  padding-top: 3%;
-  margin-bottom: 5%;
-  /* Adjust padding and margin to account for the navbar */
+  padding-top: 3vh;
+  margin-bottom: 5vh;
 }
 </style>

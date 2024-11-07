@@ -31,15 +31,13 @@ const store = createStore({
       state.quotes = quotes; // Set quotes to the state
     },
     ADD_NOTIFICATION(state, notification) {
-      console.log('Current notifications:', state.notificationsList);
-      console.log('Adding notification:', notification);
       state.notificationsList.push(notification);
-      console.log('Current notifications:', state.notificationsList);
     },
     REMOVE_NOTIFICATION(state, id) {
-      state.notificationsList = state.notificationsList.filter(
-        (notification) => notification.id !== id
-      );
+      const notification = state.notificationsList.find(n => n.id === id);
+      if (notification) {
+        notification.isVisible = false;
+      }
     },
     setUsers(state, users) {
       state.users = users;
@@ -51,6 +49,9 @@ const store = createStore({
   actions: {
     notificationsList: (state) => state.notificationsList,
     addNotification({ commit }, notification) {
+      if (!notification.id) {
+        notification.id = Date.now(); // Add unique ID if missing
+      }
       commit('ADD_NOTIFICATION', notification);
     },
     updateUserName({ commit }, userName) {
@@ -67,7 +68,7 @@ const store = createStore({
             ...doc.data(),
           });
         });
-        // console.log('Fetched Repairmen:', repairmen); // Log fetched data
+        console.log('Fetched Repairmen:', repairmen); // Log fetched data
         commit("setRepairmen", repairmen);
       } catch (error) {
         console.error("Error fetching repairmen:", error); // Error handling
@@ -77,6 +78,8 @@ const store = createStore({
       let userQuotesQuery = '';
       const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
       const userType = Cookies.get('userType') || sessionStorage.getItem('userType'); // Directly reference userType
+      console.log(uid);
+      console.log(userType);
       if (uid) {
         const quotesCollection = collection(db, 'quotes');
         if (userType === "user") { // Use the local userType
@@ -88,6 +91,9 @@ const store = createStore({
         else {
           userQuotesQuery = quotesCollection; // Fetch all if no specific user type
         }
+
+        console.log(userQuotesQuery);
+
         // Use onSnapshot to listen for real-time updates
         onSnapshot(userQuotesQuery, (snapshot) => {
           const quotes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -98,13 +104,13 @@ const store = createStore({
       } else {
         console.log("User is not logged in");
       }
-    },    
+    },
     updateCurrentProfileId({ commit }, id) {
       commit('setCurrentProfileId', id);
     },
-    removeNotification({ commit }, index) {
+    removeNotification({ commit }, id) {
       console.log("Remove notification:");
-      commit('REMOVE_NOTIFICATION', index);
+      commit('REMOVE_NOTIFICATION', id);
     },
     async listenForNotifications({ dispatch }, uid) {
       const notificationsRef = collection(db, 'notifications');

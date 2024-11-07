@@ -23,7 +23,12 @@
               </div>
               <div class="mb-3">
                 <label for="category" class="form-label">Category</label>
-                <input type="text" v-model="formData.category" class="form-control" id="category">
+                <select v-model="formData.category" class="form-control" id="category">
+                  <option disabled value="">Select a category</option>
+                  <option v-for="option in expertiseOptions" :key="option" :value="option">
+                    {{ option }}
+                  </option>
+                </select>
               </div>
               <div class="mb-3">
                 <label for="picture" class="form-label">Picture</label>
@@ -56,6 +61,7 @@
 <script>
 import { db } from '../main';
 import { doc, getDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
+import Cookies from 'js-cookie';
 
 export default {
   props: {
@@ -78,6 +84,18 @@ export default {
         description: '',
       },
       showModal: this.show,
+      expertiseOptions: [
+        "Home Appliances",
+        "Electrical Fixtures",
+        "Plumbing",
+        "Air Conditioners",
+        "Electronics Repair",
+        "Furniture Assembly and Repair",
+        "Windows and Doors",
+        "Automotive Repairs",
+        "Miscellaneous Repairs"
+      ],
+      uid: Cookies.get('uid') || sessionStorage.getItem('uid'),
     };
   },
   created() {
@@ -143,7 +161,13 @@ export default {
             description: this.formData.description,
             createdAt: new Date(), // Adding a timestamp if needed
           });
-          console.log('Quote created successfully');
+
+          await addDoc(collection(db, 'points'), {
+            Date: new Date(), // Adding a timestamp if needed
+            UID: this.uid,
+            points: 2,
+          });
+          // console.log('Quote created successfully');
         }
 
         // Close the modal after saving

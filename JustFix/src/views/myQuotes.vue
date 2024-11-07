@@ -33,13 +33,15 @@
         <div class="table-cell">
           <div class="button-container d-flex flex-column flex-xl-row">
             <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup">Review</ReviewPopup>
-            <QuotesPopup v-if="quote.userId === uid && quote.status !== 'Completed'" :disableStatus="quote.status == 'In Progress'" 
-            :show="showQuotesPopup" :btnName="'Edit'" :action="'Edit'" :editQuote="quote" @close="showQuotesPopup = false" />
+            <QuotesPopup v-if="quote.userId === uid && quote.status !== 'Completed'"
+              :disableStatus="quote.status == 'In Progress'" :show="showQuotesPopup" :btnName="'Edit'" :action="'Edit'"
+              :editQuote="quote" @close="showQuotesPopup = false" />
             <!-- <button v-if="quote.userId === uid && quote.status !== 'Completed'" :disabled="quote.status === 'In Progress'"
               class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" @click="deleteQuote(quote.id)">
               Remove 
             </button> -->
-            <ConfirmationPopup v-if="quote.userId === uid && quote.status !== 'Completed'" :quote="quote" :disableStatus="quote.status == 'In Progress'"></ConfirmationPopup>
+            <ConfirmationPopup v-if="quote.userId === uid && quote.status !== 'Completed'" :quote="quote"
+              :disableStatus="quote.status == 'In Progress'"></ConfirmationPopup>
             <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
               class="btn btn-success btn-sm table-button mb-2 mb-xl-0" @click="completeQuote(quote)">
               Complete
@@ -261,7 +263,7 @@ export default {
           Date: serverTimestamp(),
           userId: this.uid,
           points: 10,
-          });
+        });
 
         // Update the document
         await updateDoc(quoteRef, {
@@ -524,8 +526,7 @@ img {
   }
 }
 
-.modal-body{
-    color:black;
+.modal-body {
+  color: black;
 }
-
 </style>

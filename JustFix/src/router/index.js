@@ -16,6 +16,7 @@ import Users from '../views/Users.vue'; // Import Users view
 
 import PointsDashboard from "../views/PointsDashboard.vue"; // Import PointsDashboard view
 import Redeem from "../views/Redeem.vue";
+import Leaderboard from "../views/Leaderboard.vue";
 
 
 const routes = [
@@ -97,6 +98,11 @@ const routes = [
         component: Users,
         meta: { requiresAdmin: true } // Add this to specify admin-only access
     },    
+    {
+        path: '/leaderboard',
+        name: 'leaderboard',
+        component: Leaderboard
+    },
 
 
 ];

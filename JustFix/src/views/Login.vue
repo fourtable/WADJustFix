@@ -6,12 +6,17 @@
     <div class="full-height">
         <!-- Left Section with Background -->
         <div class="left-section">
-            <!-- You can add content here if needed -->
+            <div class="left-section m-0">
+                <img src="../assets/aircon-servicing-home.png" alt="image of aircon servicing"
+                    class="full-height-image">
+            </div>
         </div>
 
         <!-- Right Section with the login form -->
         <div class="right-section">
-            <div class="card">
+
+
+            <div class="card login-right-card">
                 <!-- <button class="btn google-btn d-flex align-items-center mx-auto" id="googleSignInBtn"
                     style="padding: 8px 12px;">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo"
@@ -20,20 +25,21 @@
                 </button>
                 <hr class="solid"> -->
                 <div class="card-divider">
-                    <h4>Login to JustFix</h4>
+                    <h4 style="font-weight:bold; font-size:xx-large;">Login</h4>
                 </div>
                 <div class="card-section">
-                    <form id="loginForm" @submit.prevent="login">
+
+                    <form id="loginForm" @submit.prevent="login" required>
                         <div class="form-group mb-2">
-                            <label for="email">Email</label>
-                            <input v-model="email" type="email" id="email" class="form-control"
-                                placeholder="Enter your email" required>
+                            <!-- <label for="email">Email</label> -->
+                            <input v-model="email" type="email" id="email" class="form-control p-3"
+                                placeholder="Email Address" required>
                         </div>
 
                         <div class="form-group mb-2">
-                            <label for="password">Password</label>
-                            <input v-model="password" type="password" id="password" class="form-control"
-                                placeholder="Enter your password" required>
+                            <!-- <label for="password">Password</label> -->
+                            <input v-model="password" type="password" id="password" class="form-control p-3"
+                                placeholder="Password" required>
                         </div>
 
                         <!-- Only for the "Remember me" checkbox -->
@@ -41,24 +47,34 @@
                             <div class="form-check d-inline-flex align-items-center">
                                 <input v-model="rememberMe" type="checkbox" id="rememberMe"
                                     class="form-check-input me-2">
-                                <label for="rememberMe" class="form-check-label mb-0" style="padding-top: 5px;">Remember
+                                <label for="rememberMe" class="form-check-label mb-0"
+                                    style="padding-top: 5px; font-weight:350; font-size: small;">Remember
                                     me</label>
                             </div>
                             <a href="#" id="forgotPassword" class="ms-auto d-inline-flex align-items-center"
-                                style="text-decoration: none; color: black; padding-top: 5px;">Forgot Password?</a>
+                                style="text-decoration: none; color: black; padding-top: 5px; font-size: smaller; padding-right:10px; font-weight:350;">Forgot
+                                Password?</a>
                         </div>
                         <br>
-                        <button type="submit" class="button">Login</button>
+                        <button type="submit" class="button hero-button pt-3 pt-3"
+                            :class="{ 'hero-button': true, 'invalid-button': !isFormValid }">Login</button>
                     </form>
+
+
                     <div style="text-align: center; padding-top: 10px;">
                         <span>Don't have an account? <router-link :to="{ name: 'register' }"
-                                style="text-decoration: none; color: black; font-weight: bolder;">Register</router-link></span>
+                                style="text-decoration: none; color: black; font-weight: bolder;"
+                                class="register">Register</router-link></span>
                     </div>
                     <p v-if="errorMessage" id="errorMessage" style="color: red;">{{ errorMessage }}</p>
                 </div>
             </div>
+
+
         </div>
     </div>
+
+
 </template>
 <script>
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
@@ -173,3 +189,68 @@ export default {
     },
 };
 </script>
+
+
+<style scoped>
+.full-height {
+    height: 97vh;
+    display: flex;
+    overflow: hidden;
+}
+
+.left-section,
+.right-section {
+    height: 100%;
+    /* Full height for both sections */
+    overflow: hidden;
+    /* Prevent scroll inside each section */
+}
+
+.left-section {
+    width: 50%;
+    /* Left section takes 50% width */
+}
+
+.right-section {
+    width: 50%;
+    /* Right section takes 50% width */
+    display: flex;
+    justify-content: center;
+    /* Center the login form horizontally */
+    align-items: center;
+    /* Center the login form vertically */
+}
+
+.login-right-card {
+    width: 500px;
+    border: 0px;
+    /* Adjust the card width as needed */
+}
+
+/* Hide scrollbar for the entire page */
+body {
+    overflow: hidden;
+    /* Prevent any overflow */
+}
+
+/* Hide scrollbar even when content overflows */
+::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbars */
+}
+
+.full-height-image {
+    width: 100%;
+    /* Ensure the background image covers the full section */
+    height: 100%;
+    object-fit: cover;
+    /* Maintain aspect ratio */
+}
+
+.hero-button:hover {
+    background-color: #085C44;
+    color: #ffffff;
+}
+
+/* Style the button with a smoother design */
+</style>
