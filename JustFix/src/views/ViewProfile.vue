@@ -43,6 +43,7 @@
     <div v-if="isOwnProfile" class="edit-profile-btn" >
       <router-link :to="{ name: 'editProfile' }" class="btn btn-primary">Edit Profile</router-link>
     </div>
+    <div v-else class="edit-profile-btn"><router-link :to="{ name: 'chat', query: {repairerId: this.id, repairName: userData.name, repairerPic: userData.imageUrl} }" class="btn btn-success">Chat</router-link></div>
 
     <!-- Tabs -->
     <div v-if="userData.userType !== 'admin'">
