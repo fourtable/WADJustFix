@@ -11,7 +11,7 @@
             <p>Send your request now to your favorite repairer and watch the magic happen!</p>
             <a v-if="uid" class="button animate__animated animate__pulse" @click="openQuotesPopup">Create
               Request &rarr;</a>
-            <router-link v-else class="button animate__animated animate__pulse" :to="{ name: 'login' }">Create Request &rarr;</router-link>
+            <router-link v-else class="button animate__animated animate__pulse" :to="{ name: 'login' }">Create &rarr;</router-link>
           </div>
         </div>
         <!-- Second and Third Hero Boxes -->

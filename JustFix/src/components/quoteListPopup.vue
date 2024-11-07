@@ -81,7 +81,7 @@ function showNotification(message, type) {
 // Function to send selected quotes to repairers
 const sendQuotes = async () => {
     if (selectedQuoteIds.value.length === 0 || props.selectedRepairmen.length === 0) {
-        alert('Please select at least one quote and one repairer.');
+        showNotification('Please select at least one quote and one repairer.','alert');
         return;
     }
 
