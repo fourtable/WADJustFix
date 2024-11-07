@@ -230,8 +230,9 @@ async function acceptQuote() {
         const pointCollection = collection(db, 'points');
         await addDoc(pointCollection, {
             Date: serverTimestamp(),
-            userId: uid,
+            UID: uid,
             points: 10,
+            type: "earn",
         });
 
         console.log("Quote accepted and updated in Firestore:", selectedQuote.value);
