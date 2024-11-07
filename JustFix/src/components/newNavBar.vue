@@ -102,7 +102,8 @@
                         <router-link class="link" :to="{ name: 'points' }">My Points</router-link>
                     </li>
                     <li>
-                        <a class="link" @click="logout">Logout</a>
+                        <router-link class="link" :to="{ name: 'login' }" @click="logout">Logout</router-link>
+                        <!-- <a class="link" @click="logout">Logout</a> -->
                     </li>
                 </ul>
             </transition>
@@ -229,6 +230,10 @@ export default {
             const auth = getAuth();
             signOut(auth)
                 .then(() => {
+                    this.uid = '';
+                    this.username='';
+                    this.type = '';
+                    this.profilePic = '';
                     // Clear cookies after signout
                     Cookies.remove('username');
                     Cookies.remove('uid');
@@ -241,7 +246,8 @@ export default {
                     localStorage.removeItem('selectedRepairmen'); // Clear the selected repairmen from localStorage
 
                     // Redirect to login page
-                    window.location.href = '/login';
+                    // window.location.href = '/login';
+                    this.$router.push('/login');
                 })
                 .catch((error) => {
                     console.error('Error signing out:', error);

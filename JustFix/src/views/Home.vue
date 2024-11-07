@@ -9,8 +9,9 @@
           <div class="hero-box light-blue animate__animated animate__fadeInLeft animate__delay-1s">
             <h1>Need Something Fixed?</h1>
             <p>Send your request now to your favorite repairer and watch the magic happen!</p>
-            <a class="button animate__animated animate__pulse" @click="openQuotesPopup">Create
+            <a v-if="uid" class="button animate__animated animate__pulse" @click="openQuotesPopup">Create
               Request &rarr;</a>
+            <router-link v-else class="button animate__animated animate__pulse" :to="{ name: 'login' }">Create Request&rarr;</router-link>
           </div>
         </div>
         <!-- Second and Third Hero Boxes -->
@@ -23,7 +24,7 @@
           <div class="col-12 hero-box dark-green mt-4 animate__animated animate__fadeInLeft animate__delay-3s">
             <h2>Discover Our Repair Events</h2>
             <p>Attend our events to learn DIY repair techniques or upskill as a fixer.</p>
-            <router-link  class="button" :to="{ name: 'event' }">Learn More &rarr;</router-link>
+            <router-link class="button" :to="{ name: 'event' }">Learn More &rarr;</router-link>
           </div>
         </div>
 

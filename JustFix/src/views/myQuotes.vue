@@ -34,7 +34,7 @@
           <div class="button-container d-flex flex-column flex-xl-row">
             <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup">Review</ReviewPopup>
             <QuotesPopup v-if="quote.userId === uid && quote.status !== 'Completed'"
-              :disableStatus="quote.status == 'In Progress'" :show="showQuotesPopup" :btnName="'Edit'" :action="'Edit'"
+              :disableStatus="quote.status == 'In Progress'" :show="showEditQuotesPopup" :btnName="'Edit'" :action="'Edit'"
               :editQuote="quote" @close="showQuotesPopup = false" />
             <!-- <button v-if="quote.userId === uid && quote.status !== 'Completed'" :disabled="quote.status === 'In Progress'"
               class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" @click="deleteQuote(quote.id)">
@@ -152,7 +152,8 @@
 
 <script>
 import { ref, onMounted, computed, watch } from 'vue';
-import { db, realtimeDb } from '../main';
+import { db, realtimeDb, auth } from '../main';
+import { onAuthStateChanged } from 'firebase/auth';
 import { collection, onSnapshot, query, where, getDocs, getDoc, doc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref as dbRef, push } from 'firebase/database';
 import QuotesPopup from '../components/QuotesPopup.vue';
@@ -206,6 +207,12 @@ export default {
   mounted() {
     this.showQuotesPopup = this.$route.query.openPopup === 'true';
     this.fetchUserQuotes(); // Fetch quotes from Firestore
+
+    onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
+        window.location.href = './login';
+      } 
+    });
   },
   watch: {
     '$route.query.openPopup': {
@@ -259,10 +266,13 @@ export default {
         // Reference to the specific quote document
         const quoteRef = doc(db, 'quotes', quote.id);
         const pointCollection = collection(db, 'points');
+
+        // Update points earned by repairer
         await addDoc(pointCollection, {
           Date: serverTimestamp(),
-          userId: this.uid,
+          UID: this.uid,
           points: 10,
+          type: "earn",
         });
 
         // Update the document

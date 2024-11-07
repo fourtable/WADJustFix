@@ -104,6 +104,14 @@ export default {
                 }
                 sessionStorage.setItem('uid', userCredential.user.uid);
                 window.location.href = '/';
+                // Check if there's a stored intended path
+                const intendedPath = sessionStorage.getItem('intendedPath');
+                if (intendedPath) {
+                    sessionStorage.removeItem('intendedPath'); // Clear the stored path
+                    this.$router.push(intendedPath);
+                } else {
+                    this.$router.push('/');
+                }
             } catch (error) {
                 // this.errorMessage = error.message || 'Invalid login credentials';
                 // Call the method to show the toast notification

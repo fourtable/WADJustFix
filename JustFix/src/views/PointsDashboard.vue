@@ -1,11 +1,17 @@
 <template>
   <div class="container-fluid py-5" id="points">
-    <div class="row align-items-start" style="height: 50vh;">
-      <div class="col-md-6 col-lg-6 col-sm-8 dashboard-section">
-        <LineChart :labels="chartLabels" :data="pointsData" />
+    <!-- Line Chart and Points Box Side by Side on Larger Screens -->
+    <div class="row align-items-start mb-3" style="height: auto;">
+      <!-- Line Chart Section -->
+      <div class="col-lg-6 col-md-6 col-sm-12 col-12 dashboard-section">
+        <div class="line-graph-container">
+          <LineChart :labels="chartLabels" :data="pointsData" />
+        </div>
       </div>
-      <div class="col-md-6 col-lg-6 col-sm-4 dashboard-section">
-        <div class="points-box">
+
+      <!-- Points Box Section -->
+      <div class="col-lg-6 col-md-6 col-sm-12 col-12 dashboard-section">
+        <div class="points-box text-center">
           <span class="trophy-icon">🏆</span>
           <p class="total-points">{{ totalPoints }}</p>
           <p>Total Points</p>
@@ -14,44 +20,45 @@
       </div>
     </div>
 
+    <!-- Cards for Earning Points -->
     <div class="row mt-3" style="height: auto;">
-
       <!-- How to Earn More Points - Card 1 -->
-      <div class="col-12 col-md-4 dashboard-section">
+      <div class="col-lg-4 col-md-4 col-sm-6 col-12 mb-4 dashboard-section">
         <div class="earn-points-card h-100 d-flex flex-column">
           <h5>Join Events</h5>
           <p>Participate in events to get 20 bonus points!</p>
           <div class="card-footer mt-auto">
-            <button class="btn btn-primary" @click="joinEvents">Join Events</button>
+            <button class="btn btn-primary w-100" @click="joinEvents">Join Events</button>
           </div>
         </div>
       </div>
 
       <!-- How to Earn More Points - Card 2 -->
-      <div class="col-md-4 col-12 dashboard-section">
+      <div class="col-lg-4 col-md-4 col-sm-6 col-12 mb-4 dashboard-section">
         <div class="earn-points-card h-100 d-flex flex-column">
           <h5>Earn Points Through Repairs</h5>
-          <p>Complete/Request more repairs to earn  an additional 50 points!</p>
+          <p>Complete/Request more repairs to earn an additional 50 points!</p>
           <div class="card-footer mt-auto">
-            <button class="btn btn-primary" @click="sendRequest">Send Request</button>
+            <button class="btn btn-primary w-100" @click="sendRequest">Send Request</button>
           </div>
-              <!-- <button class="btn btn-primary" @click="joinEvents">Join Events</button> -->
         </div>
       </div>
 
       <!-- How to Earn More Points - Card 3 -->
-      <div class="col-md-4 col-12 dashboard-section">
+      <div class="col-lg-4 col-md-4 col-sm-6 col-12 mb-4 dashboard-section">
         <div class="earn-points-card h-100 d-flex flex-column">
-          <h5>Leave Reviews </h5>
+          <h5>Leave Reviews</h5>
           <p>Complete a review after every repair has been completed to earn 10 points!</p>
           <div class="card-footer mt-auto">
-            <button class="btn btn-primary" @click="leaveReview">Leave Review</button>
+            <button class="btn btn-primary w-100" @click="leaveReview">Leave Review</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+
 
 <script>
 import { onMounted, ref } from "vue";
@@ -181,9 +188,11 @@ export default {
 #points {
   margin-top: 5vh;
   border-radius: 10px;
-  flex:1;
-  height: 92vh;
+  flex: 1;
+  min-height: 92vh; /* Ensures the container fills most of the viewport height */
   background-color: #cdf696;
+  padding: 20px; /* Adjust padding as needed to keep internal spacing */
+}
 
   .dashboard-section {
     height: 100%;
@@ -219,7 +228,7 @@ export default {
     justify-content: center; // Centers content vertically and horizontally
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     // margin-top: 1rem;
-    height: 100%;
+    max-height: 342px;
     text-align: center; // Centers text within the box
   }
 
@@ -287,5 +296,4 @@ export default {
   //     flex-basis: auto;
   //   }
   // }
-}
 </style>

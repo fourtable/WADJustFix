@@ -1,7 +1,7 @@
 <template>
   <div class="card event-card"   @click="$emit('cardClicked', event)">
     <div class="img-container position-relative">
-      <img :src="event.image" class="card-img-top" alt="Event Image">
+      <img :src="event.imageUrl" class="card-img-top" alt="Event Image" v-if="event.imageUrl">
     </div>
     <div class="card-body">
       <h5 class="card-title">{{ event.title }}</h5>

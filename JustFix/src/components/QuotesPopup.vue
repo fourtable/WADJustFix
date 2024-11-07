@@ -59,7 +59,8 @@
 </template>
 
 <script>
-import { db } from '../main';
+import { db, storage } from '../main';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 
@@ -96,6 +97,7 @@ export default {
         "Miscellaneous Repairs"
       ],
       uid: Cookies.get('uid') || sessionStorage.getItem('uid'),
+      userName: Cookies.get('username') || sessionStorage.getItem('username'),
     };
   },
   created() {
@@ -151,7 +153,8 @@ export default {
             picture: this.formData.picture, // Ensure picture is a URL or the required file format
             description: this.formData.description,
           });
-          console.log('Quote updated successfully');
+          this.showNotification("Quote updated successfully",'alert');
+          // console.log('Quote updated successfully');
         } else {
           // Create a new quote in Firestore
           await addDoc(collection(db, 'quotes'), {
@@ -159,15 +162,12 @@ export default {
             category: this.formData.category,
             picture: this.formData.picture, // Ensure picture is a URL or the required file format
             description: this.formData.description,
-            createdAt: new Date(), // Adding a timestamp if needed
+            timestamp: new Date(), // Adding a timestamp if needed
+            userId: this.uid,
+            userName: this.userName,
+            repairerId: '',
           });
-
-          await addDoc(collection(db, 'points'), {
-            Date: new Date(), // Adding a timestamp if needed
-            UID: this.uid,
-            points: 2,
-          });
-          // console.log('Quote created successfully');
+          this.showNotification("Quote created!",'alert');
         }
 
         // Close the modal after saving
@@ -191,9 +191,33 @@ export default {
         description: '',
       };
     },
-    onFileChange(event) {
+    async uploadImageToFirebase(file) {
+      try {
+        // Create a storage reference
+        const storageRef = ref(storage, `images/${file.name}`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        return downloadURL; // This persistent URL can now be used
+      } catch (error) {
+        return null;
+      }
+    },
+    async onFileChange(event) {
       const file = event.target.files[0];
-      this.formData.picture = URL.createObjectURL(file); // For preview only
+      if (file) {
+        this.formData.picture = await this.uploadImageToFirebase(file);
+      }
+    },
+    showNotification(message, type) {
+      const notification = {
+        type: type,
+        message: message,
+        timestamp: new Date().toISOString(),
+        isVisible: true,
+      };
+      console.log('Dispatching notification:', notification);
+      this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
+
     },
   },
   computed: {

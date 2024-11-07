@@ -1,8 +1,9 @@
 <template>
     <div class="container-fluid mt-5 p-5">
+      <button @click="$router.push('/event')" class="back mb-3"><</button>
       <h2>Host Your Own Event</h2>
       <p>Are you a skilled repair expert? Want to share your expertise with others? Host your own event and inspire a community of learners! Click here to request to organize an event with us.</p>
-  
+      
       <form @submit.prevent="submitForm">
         <div class="mb-3">
             <label for="name">Name</label>
@@ -106,7 +107,13 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           placeholder="Selected address will appear here"
         />
       </div>
-
+      <div class="mb-3">
+        <label for="eventImage">Picture</label>
+        <input type="file" class="form-control" id="eventImage" @change="onFileChange" />
+        <div v-if="form.imageUrl">
+          <img :src="form.imageUrl" alt="Event Image" />
+        </div>
+      </div>
         <div class="mb-3">
           <label for="additionalComments">Additional Comments (Optional)</label>
           <textarea id="additionalComments" v-model="form.additionalComments" class="form-control" placeholder="Any additional information you'd like to share"></textarea>
@@ -117,7 +124,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
             <label class="form-check-label" for="terms">I agree to the terms and conditions</label>
         </div>
   
-        <button type="submit" class="btn">Submit</button>
+        <button type="submit" class="btn center-submit">Submit</button>
       </form>
   
       <div v-if="formSubmitted" class="success-message">
@@ -128,14 +135,16 @@ s          <input type="number" v-model="form.duration" class="form-control" min
   
   <script>
   import { db } from "../main"; // Import your Firebase instance
-  import { collection, addDoc, Timestamp } from "firebase/firestore";
+  import { collection, addDoc, Timestamp, doc, getDoc } from "firebase/firestore";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+  import Cookies from 'js-cookie';
 
   export default {
     data() {
       return {
         form: {
-          name: "",
-          phone: "",
+          name: '',
+          phone: '',
           email: "",
           selectedCategories:[],
           otherChecked: false,
@@ -151,8 +160,10 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           locationType: "",
           locationDetails: "",
           agreeToTerms: false,
+          imageUrl: ""
         },
         formSubmitted: false,
+        eventImage: null,
         categories: [
           "Home Appliances (e.g., Microwaves, Washing Machines, etc.)",
           "Electrical Systems & Fixtures (e.g., Lighting, Wiring, etc.)",
@@ -164,6 +175,30 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           "Automotive Repairs (e.g., Tires, Brakes, etc.)",
         ],
       };
+    },
+    async created() {
+        // Auto-populate form with user data
+        const username = sessionStorage.getItem('username') || Cookies.get('username');
+        const userEmail = sessionStorage.getItem('email') || Cookies.get('email');
+        
+        if (username) {
+            this.form.name = username;
+        }
+        
+        // Get user details from Firestore
+        const uid = sessionStorage.getItem('uid') || Cookies.get('uid');
+        if (uid) {
+            try {
+                const userDoc = await this.getUserDetails(uid);
+                if (userDoc) {
+                    this.form.name = userDoc.name || this.form.name;
+                    this.form.email = userDoc.email || '';
+                    this.form.phone = userDoc.phone || '';
+                }
+            } catch (error) {
+                console.error("Error fetching user details:", error);
+            }
+        }
     },
     computed: {
       minDate() {
@@ -181,6 +216,19 @@ s          <input type="number" v-model="form.duration" class="form-control" min
       }
   },
     methods: {
+      async getUserDetails(uid) {
+            try {
+                const userDoc = doc(db, "users", uid);
+                const userSnapshot = await getDoc(userDoc);
+                if (userSnapshot.exists()) {
+                    return userSnapshot.data();
+                }
+                return null;
+            } catch (error) {
+                console.error("Error fetching user details:", error);
+                return null;
+            }
+        },
       initializeAutocomplete() {
       // Only initialize once
       if (this.autocomplete) return;
@@ -207,8 +255,17 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           lng: place.geometry.location.lng()
         };
       });
-    },
+      },
+      onFileChange(event) {
+        const file = event.target.files[0];
+        if (file) {
+          this.eventImage = file;
+        }
+      },
       async submitForm() {
+        const tempImage = this.form.image;  // Preserve image field
+        this.form = {};  // Reset other fields
+        this.form.image = tempImage;  // Restore image
         try {
           // Clean up selected categories by removing text in parentheses
           const cleanedCategories = this.form.selectedCategories.map(category => {
@@ -217,6 +274,23 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           // Add other category if specified
           if (this.form.otherChecked && this.form.otherCategory.trim()) {
             cleanedCategories.push(this.form.otherCategory.trim());
+          }
+          // Upload image to Firebase Storage if a file is selected
+          let imageUrl = "";
+          if (this.eventImage) {
+            const storage = getStorage();
+             const storageRef = ref(storage, `eventImages/${this.eventImage.name}`);
+
+          // Upload the file to the storage reference
+          await uploadBytes(storageRef, this.eventImage)
+            .then(async (snapshot) => {
+              console.log("Uploaded image successfully");
+              imageUrl = await getDownloadURL(snapshot.ref);
+              console.log("Image URL:", imageUrl);
+            })
+            .catch((error) => {
+              console.error("Error uploading image:", error);
+            });
           }
           // Prepare the form data
           const formData = {
@@ -232,6 +306,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
             price: Number(this.form.price),
             totalSlots: Number(this.form.totalSlots),
             additionalComments: this.form.additionalComments || "", // Optional field
+            imageUrl: imageUrl, // Store image URL
             submittedAt: new Date(),
             status: 'pending'
           };
@@ -269,8 +344,10 @@ s          <input type="number" v-model="form.duration" class="form-control" min
         totalSlots: "",
         additionalComments: "",
         agreeToTerms: false,
+        imageUrl: "",
       };
       this.formSubmitted = false;
+      this.eventImage=null;
     }
     },
   };
@@ -313,6 +390,21 @@ s          <input type="number" v-model="form.duration" class="form-control" min
 .btn:hover {
   background-color: #085c44;
   color: white;
+}
+.center-submit {
+  display: flex;
+  justify-content: center;
+}
+.back{
+  padding: 5px 10px;
+  border: 1px solid #085c44;
+  border-radius: 30px;
+  color: #085c44;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+  cursor: pointer;
+  background-color: white;
 }
   </style>
   

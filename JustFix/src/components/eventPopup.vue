@@ -2,7 +2,7 @@
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-content">
       <button class="close-btn" @click="$emit('close')">✕</button>
-      <img src="https://placehold.co/130x70" class="card-img-top mb-2 mt-4 rounded-1" alt="Event Image">
+      <img :src="event.imageUrl" class="card-img-top mb-2 mt-4 rounded-1" alt="Event Image" v-if="event.imageUrl">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <h3>{{ event.title }}</h3>
         <span class="badge" :class="badgeClass">{{ badgeText }}</span>
@@ -21,7 +21,7 @@
       <!-- More event details as needed -->
       <div class="d-flex justify-content-between mt-3">
         <button class="btn" @click="saveEvent">Save Event</button>
-        <button class="btn" @click="navigateToSignUp">Sign Up!</button>
+        <button class="btn" @click="handleSignupClick">Sign Up!</button>
       </div>
     </div>
   </div>
@@ -31,6 +31,10 @@
 import Cookies from 'js-cookie';
 import { db } from '../main';
 import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore'
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+
 export default {
   props: {
     event: {
@@ -38,6 +42,32 @@ export default {
       required: true
     },
     isVisible: Boolean
+  },
+  setup() {
+    const router = useRouter();
+    const handleSignUpClick = () => {
+      const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+      if (!uid) {
+        // Store event ID for redirect after login
+        sessionStorage.setItem('pendingEventSignup', eventId);
+        router.push('/login');
+      } else {
+        try {
+          router.push({ 
+            name: 'eventSignup', 
+            params: { eventId: props.event.id }
+          }).catch(err => {
+            console.log('Trying alternative route...');
+            router.push(`/eventSignup/${props.event.id}`);
+          });
+        } catch (error) {
+          console.error('Navigation error:', error);
+        }
+      }
+    };
+      return {
+      handleSignUpClick
+    };
   },
   computed: {
     // Convert Firebase Timestamp to readable date string for eventDate
@@ -138,21 +168,21 @@ export default {
         console.error("Error saving event: ", error);
       }
     },
-    navigateToSignUp() {
-      // Check if the user is logged in
-      if (!this.isUserLoggedIn) {
-        // Use a confirm dialog to prompt the user
-        const userAction = confirm("You need to log in to sign up. Would you like to log in or register?");
-        if (userAction) {
-          this.$router.push({ name: "login" });
-        } else {
-          this.$router.push({ name: "register" });
-        }
-      } else {
-        // If the user is logged in, navigate to the signup page for the event
-        this.$router.push({ name: "eventSignup", params: { eventId: this.event.id } });
-      }
-    },
+    // navigateToSignUp() {
+    //   // Check if the user is logged in
+    //   if (!this.isUserLoggedIn) {
+    //     // Use a confirm dialog to prompt the user
+    //     const userAction = confirm("You need to log in to sign up. Would you like to log in or register?");
+    //     if (userAction) {
+    //       this.$router.push({ name: "login" });
+    //     } else {
+    //       this.$router.push({ name: "register" });
+    //     }
+    //   } else {
+    //     // If the user is logged in, navigate to the signup page for the event
+    //     this.$router.push({ name: "eventSignup", params: { eventId: this.event.id } });
+    //   }
+    // },
     convertTimestampToDate(timestamp) {
       if (timestamp && typeof timestamp.toDate === 'function') {
         return timestamp.toDate();
@@ -210,7 +240,7 @@ export default {
   background: white;
   padding: 25px;
   border-radius: 8px;
-  max-width: 400px;
+  max-width: 500px;
   max-height: 80vh;
   width: 100%;
   overflow-y: auto;
