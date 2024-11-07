@@ -1,17 +1,11 @@
 <template>
     <div class="container-fluid mt-5 p-5">
-      <h2>Sign up</h2>
-      <p>Are you a skilled repair expert? Want to share your expertise with others? Host your own event and inspire a community of learners! Click here to request to organize an event with us.</p>
+      <h2 v-if="event">Sign up for {{ event.title }}</h2>
   
       <form @submit.prevent="submitForm">
         <div class="mb-3">
             <label for="name">Name</label>
             <input type="text" id="name" v-model="form.name" placeholder="Enter your Name" class="form-control" required>
-        </div>
-
-        <div class="mb-3">
-          <label for="phone">Contact Number</label>
-          <input type="text" id="phone" v-model="form.phone" placeholder="Enter your contact number" class="form-control" required />
         </div>
   
         <div class="mb-3">
@@ -19,6 +13,11 @@
             <input type="email" id="email" v-model="form.email" placeholder="Enter your Email" class="form-control" required>
         </div>
   
+        <div class="mb-3">
+          <label for="phone">Contact Number</label>
+          <input type="text" id="phone" v-model="form.phone" placeholder="Enter your contact number" class="form-control" required />
+        </div>
+
         <div class="mb-3">
             <label for="experienceLevel">Experience Level</label>
             <select v-model="form.experienceLevel" class="form-control" required>
@@ -46,16 +45,24 @@
   
   <script>
   import { db } from "../main"; // Import your Firebase instance
-  import { collection, addDoc, Timestamp } from "firebase/firestore";
+  import { collection, addDoc, Timestamp ,doc, getDoc} from "firebase/firestore";
+  import Cookies from 'js-cookie';
 
   export default {
+    props: {
+    event: {
+      type: Object,
+      required: true
+    }
+  },
     data() {
       return {
+        event: null,//initialise event data
         form: {
           name: "",
           phone: "",
           email: "",
-          experienceLEvel:"",
+          experienceLevel:"",
           agreeToTerms: false,
         },
         formSubmitted: false,
@@ -71,7 +78,46 @@
         ],
       };
     },
+    async created() {
+        // Auto-populate form with user data
+        const username = sessionStorage.getItem('username') || Cookies.get('username');
+        const userEmail = sessionStorage.getItem('email') || Cookies.get('email');
+        
+        if (username) {
+            this.form.name = username;
+        }
+        if (userEmail) {
+            this.form.name = userEmail;
+        }
+        
+        // Get user details from Firestore
+        const uid = sessionStorage.getItem('uid') || Cookies.get('uid');
+        if (uid) {
+            try {
+                const userDoc = await this.getUserDetails(uid);
+                if (userDoc) {
+                    this.form.name = userDoc.name || this.form.name;
+                    this.form.email = userDoc.email || this.form.email;
+                }
+            } catch (error) {
+                console.error("Error fetching user details:", error);
+            }
+        }
+    },
     methods: {
+      async getUserDetails(uid) {
+            try {
+                const userDoc = doc(db, "users", uid);
+                const userSnapshot = await getDoc(userDoc);
+                if (userSnapshot.exists()) {
+                    return userSnapshot.data();
+                }
+                return null;
+            } catch (error) {
+                console.error("Error fetching user details:", error);
+                return null;
+            }
+        },
       async submitForm() {
         try {
           // Clean up selected categories by removing text in parentheses

@@ -20,7 +20,7 @@
 
       <!-- More event details as needed -->
       <div class="d-flex justify-content-between mt-3">
-        <button class="btn" @click="saveEvent">Save Event</button>
+        <button class="btn" @click="handleSaveClick">Save Event</button>
         <button class="btn" @click="handleSignupClick">Sign Up!</button>
       </div>
     </div>
@@ -34,6 +34,7 @@ import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore'
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 
 export default {
   props: {
@@ -43,30 +44,116 @@ export default {
     },
     isVisible: Boolean
   },
-  setup() {
+  setup(props) {
     const router = useRouter();
-    const handleSignUpClick = () => {
+    const auth = getAuth();
+    const store = useStore();// Access the Vuex store
+
+    // Define a reactive variable to store login status
+    const isLoggedIn = ref(false);
+
+     // Check authentication state using both Firebase and stored credentials
+    const checkAuthState = () => {
+      const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+      const firebaseUser = auth.currentUser;
+      isLoggedIn.value = !!(uid || firebaseUser);
+    };
+    // Listen to authentication state changes
+    onAuthStateChanged(auth, () => {
+      checkAuthState();
+    });
+    // Check auth state when component mounts
+    onMounted(() => {
+      checkAuthState();
+    });
+    const showNotification= async (message, type)=> {
+      try {
+        const notification = {
+          type: type,
+          message: message,
+          timestamp: new Date().toISOString(),
+          isVisible: true,
+        };
+        // console.log('Dispatching notification:', notification);
+        store.dispatch('addNotification', notification); // Dispatch the action to add notification
+      }
+      catch (error) {
+        console.error("Error showing notification:", error);
+      }
+    };
+    // Define saveEvent function
+    const saveEvent = async () => {
+    const userDocRef = doc(db, "users", Cookies.get('uid') || sessionStorage.getItem('uid'));
+    
+    try {
+      const docSnap = await getDoc(userDocRef);
+      const newEvent = { title: props.event.title,
+        date: props.event.eventDate,
+        description: props.event.description,
+        locationName: props.event.locationName,}; // Replace with actual event data
+
+      if (docSnap.exists()) {
+        const existingEvents = docSnap.data().savedEvents || [];
+        const eventExists = existingEvents.some(event =>
+          event.title === newEvent.title &&
+          event.date === newEvent.date &&
+          event.description === newEvent.description
+        );
+
+        if (!eventExists) {
+          await updateDoc(userDocRef, {
+            savedEvents: arrayUnion(newEvent)
+          });
+          console.log("New event added to the array.");
+          showNotification('Event added!', 'alert');
+        } else {
+          console.log("Event already exists, not adding duplicate.");
+          showNotification('Event already added!', 'alert');
+        }
+      } else {
+        await setDoc(userDocRef, {
+          savedEvents: [newEvent]
+        });
+        console.log("User document created with the new event.");
+        showNotification('Event added!', 'alert');
+      }
+    } catch (error) {
+      console.error("Error saving event:", error);
+    }
+  };
+
+    const handleSignupClick = async () => {
       const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
       if (!uid) {
-        // Store event ID for redirect after login
-        sessionStorage.setItem('pendingEventSignup', eventId);
+          // Store current path for redirect after login
+          sessionStorage.setItem('intendedPath', '/EventSignup');
+          router.push('/login');
+      } else {
+        router.push({ name: 'eventSignup', params: { event: props.event} });
+      }
+    };
+
+    // Handle Save Click with login check
+    const handleSaveClick = async () => {
+      const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+      if (!uid) {
+        // Redirect to login page if not logged in
+        sessionStorage.setItem('intendedPath', '/ViewProfile'); // Adjust path as needed
         router.push('/login');
       } else {
+        // User is logged in, call saveEvent function
         try {
-          router.push({ 
-            name: 'eventSignup', 
-            params: { eventId: props.event.id }
-          }).catch(err => {
-            console.log('Trying alternative route...');
-            router.push(`/eventSignup/${props.event.id}`);
-          });
+          await saveEvent();
+          console.log("Event saved successfully");
         } catch (error) {
-          console.error('Navigation error:', error);
+          console.error("Error saving event:", error);
         }
       }
     };
-      return {
-      handleSignUpClick
+    return {
+      handleSignupClick,
+      handleSaveClick,
+      isLoggedIn
     };
   },
   computed: {
@@ -127,62 +214,6 @@ export default {
     },
   },
   methods: {
-    async saveEvent() {
-      const userDocRef = doc(db, "users", this.uid);
-
-      try {
-        const docSnap = await getDoc(userDocRef);
-
-        // Define the new event object
-        const newEvent = this.event;
-
-        if (docSnap.exists()) {
-          const existingEvents = docSnap.data().event || [];
-
-          // Check if the new event already exists in the array
-          const eventExists = existingEvents.some(event =>
-            event.title === newEvent.title &&
-            event.date === newEvent.date &&
-            event.description === newEvent.description
-          );
-
-          if (!eventExists) {
-            // Add new event to the array if it doesn't already exist
-            await updateDoc(userDocRef, {
-              event: arrayUnion(newEvent)
-            });
-            console.log("New event added to the array.");
-            this.showNotification('Event added!', 'alert');
-          } else {
-            console.log("Event already exists, not adding duplicate.");
-            this.showNotification('Event already added!', 'alert');
-          }
-        } else {
-          // Document doesn't exist, create new one with the event
-          await setDoc(userDocRef, {
-            event: [newEvent]
-          });
-          console.log("User document created with the new event.");
-        }
-      } catch (error) {
-        console.error("Error saving event: ", error);
-      }
-    },
-    // navigateToSignUp() {
-    //   // Check if the user is logged in
-    //   if (!this.isUserLoggedIn) {
-    //     // Use a confirm dialog to prompt the user
-    //     const userAction = confirm("You need to log in to sign up. Would you like to log in or register?");
-    //     if (userAction) {
-    //       this.$router.push({ name: "login" });
-    //     } else {
-    //       this.$router.push({ name: "register" });
-    //     }
-    //   } else {
-    //     // If the user is logged in, navigate to the signup page for the event
-    //     this.$router.push({ name: "eventSignup", params: { eventId: this.event.id } });
-    //   }
-    // },
     convertTimestampToDate(timestamp) {
       if (timestamp && typeof timestamp.toDate === 'function') {
         return timestamp.toDate();
@@ -202,21 +233,21 @@ export default {
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     },
-    async showNotification(message, type) {
-      try {
-        const notification = {
-          type: type,
-          message: message,
-          timestamp: new Date().toISOString(),
-          isVisible: true,
-        };
-        // console.log('Dispatching notification:', notification);
-        this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
-      }
-      catch (error) {
+    // async showNotification(message, type) {
+    //   try {
+    //     const notification = {
+    //       type: type,
+    //       message: message,
+    //       timestamp: new Date().toISOString(),
+    //       isVisible: true,
+    //     };
+    //     // console.log('Dispatching notification:', notification);
+    //     this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
+    //   }
+    //   catch (error) {
 
-      }
-    },
+    //   }
+    // },
   },
 }
 
