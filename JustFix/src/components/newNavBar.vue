@@ -35,7 +35,7 @@
                         role="button">Register</router-link>
                 </li>
             </ul>
-            <div v-if="username && !mobile" class="dropdown" ref="dropdownContainer">
+            <div v-if="username !== '' && !mobile" class="dropdown" ref="dropdownContainer">
                 <button class="btn btn-secondary dropdown-toggle" type="button" @click="toggleDropdown">
                     {{ username }}
                     <img v-if="localProfileImage" :src="localProfileImage" alt="Profile"
@@ -53,7 +53,8 @@
                         <router-link class="dropdown-item" :to="{ name: 'points' }">My Points</router-link>
                     </li>
                     <li>
-                        <a class="dropdown-item btn" @click="logout">Logout</a>
+                        <router-link class="dropdown-item" :to="{ name: 'login' }"  @click="logout">Logout</router-link>
+                        <!-- <a class="dropdown-item btn" @click="logout">Logout</a> -->
                     </li>
                 </ul>
             </div>
@@ -177,6 +178,7 @@ export default {
             console.error("UID is not available");
         }
         window.addEventListener("scroll", this.updateScroll);
+        document.addEventListener("click", this.closeDropdown);
 
         // Listen for 'profileUpdated' event
         window.addEventListener('profileUpdated', (event) => {
@@ -230,6 +232,10 @@ export default {
             signOut(auth)
                 .then(() => {
                     // Clear cookies after signout
+                    this.username = '';
+                    this.profilePic = '';
+                    this.uid = '';
+                    this.type = '';
                     Cookies.remove('username');
                     Cookies.remove('uid');
                     Cookies.remove('profilePic');
@@ -241,15 +247,12 @@ export default {
                     localStorage.removeItem('selectedRepairmen'); // Clear the selected repairmen from localStorage
 
                     // Redirect to login page
-                    window.location.href = '/login';
+                    // window.location.href = '/login';
                 })
                 .catch((error) => {
                     console.error('Error signing out:', error);
                 });
         }
-    },
-    mounted() {
-        document.addEventListener("click", this.closeDropdown);
     },
     beforeDestroy() {
         document.removeEventListener("click", this.closeDropdown);
