@@ -105,7 +105,7 @@
         <div id="saved-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'saved-events'" >
           <div v-if="savedEvents.length > 0" v-for="event in savedEvents" :key="event.id" class="event"
             >
-            <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
+            <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.date) }}</h4>
             <p class="event-description">{{ event.description }}</p>
             <div class="event-actions">
               <button class="btn btn-remove" @click="openConfirmRemoveModal(event.id)">Remove</button>
@@ -217,13 +217,13 @@ export default {
     },
     async fetchSavedEvents(uid) {
       try {
-        console.log("Fetched events:", this.savedEvents);
+        console.log("Fetched saved events....");
         const userDocRef = doc(db, "users", uid); // Reference to the Firestore user document
         const docSnap = await getDoc(userDocRef); // Fetch the document
 
         if (docSnap.exists()) {
           // Check if events exist in the document
-          this.savedEvents = docSnap.data().event || []; // Assign events or empty array if none exist
+          this.savedEvents = docSnap.data().savedEvents || []; // Assign events or empty array if none exist
           console.log("Fetched saved events:", this.savedEvents);
         } else {
           console.log("No such document found for this user.");

@@ -9,15 +9,15 @@
             <label for="name">Name</label>
             <input type="text" id="name" v-model="form.name" placeholder="Enter your Name" class="form-control" required>
         </div>
-
-        <div class="mb-3">
-          <label for="phone">Contact Number</label>
-          <input type="text" id="phone" v-model="form.phone" placeholder="Enter your contact number" class="form-control" required />
-        </div>
   
         <div class="mb-3">
             <label for="email">Email</label>
             <input type="email" id="email" v-model="form.email" placeholder="Enter your Email" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="phone">Contact Number</label>
+          <input type="text" id="phone" v-model="form.phone" placeholder="Enter your contact number" class="form-control" required />
         </div>
         
         <div class="mb-3">
@@ -184,6 +184,9 @@ s          <input type="number" v-model="form.duration" class="form-control" min
         if (username) {
             this.form.name = username;
         }
+        if (userEmail) {
+            this.form.name = userEmail;
+        }
         
         // Get user details from Firestore
         const uid = sessionStorage.getItem('uid') || Cookies.get('uid');
@@ -192,8 +195,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
                 const userDoc = await this.getUserDetails(uid);
                 if (userDoc) {
                     this.form.name = userDoc.name || this.form.name;
-                    this.form.email = userDoc.email || '';
-                    this.form.phone = userDoc.phone || '';
+                    this.form.email = userDoc.email || this.form.email;
                 }
             } catch (error) {
                 console.error("Error fetching user details:", error);
