@@ -11,10 +11,10 @@
                     class="full-height-image" />
             </div>
             <!-- Right Section with the register form -->
-            <div class="right-section">
-                <div style="width: 100%; max-width: 500px;">
+            <div class="right-section" style="margin-bottom: 30%;">
+                <div style="width: 100%; height:80%; max-width: 500px;">
                     <!-- Show options to choose registration type -->
-                    <div v-if="!selectedType">
+                    <div v-if="!selectedType" style="margin-top: 220px; ">
                         <h2>What type of user are you?</h2>
                         <div class="choice-card btn" @click="selectType('repairer')">
                             Fixer
@@ -24,7 +24,7 @@
                         </div>
                     </div>
                     <!-- Dynamic form content -->
-                    <div v-if="selectedType" style="margin-bottom:20px;">
+                    <div v-if="selectedType">
                         <h4 v-if="selectedType === 'repairer'">
                             Register as a Repairer</h4>
                         <h4 v-if="selectedType === 'user'" style="margin-top: 75px; ">Register as a User</h4>
@@ -123,9 +123,10 @@
                         </form>
 
                         <button @click="selectedType = ''" class="btn px-5 py-3">Go Back</button>
-                        <div v-if="selectedType === 'repairer'" class="mb-5"></div>
+                        <!-- <div v-if="selectedType === 'repairer'" class="mb-5"></div> -->
+                        <br>
+                        <br>
                     </div>
-
 
                 </div>
             </div>
