@@ -166,11 +166,11 @@ export default {
             repairerId: '',
           });
 
-          await addDoc(collection(db, 'points'), {
-            Date: new Date(), // Adding a timestamp if needed
-            UID: this.uid,
-            points: 2,
-          });
+          // await addDoc(collection(db, 'points'), {
+          //   Date: new Date(), // Adding a timestamp if needed
+          //   UID: this.uid,
+          //   points: 2,
+          // });
           // console.log('Quote created successfully');
         }
 
