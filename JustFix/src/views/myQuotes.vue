@@ -266,6 +266,8 @@ export default {
         // Reference to the specific quote document
         const quoteRef = doc(db, 'quotes', quote.id);
         const pointCollection = collection(db, 'points');
+
+        // Update points earned by repairer
         await addDoc(pointCollection, {
           Date: serverTimestamp(),
           UID: this.uid,
