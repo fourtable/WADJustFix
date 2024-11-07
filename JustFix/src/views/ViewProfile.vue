@@ -1,5 +1,6 @@
 <template>
-  <div class="profile-container" v-if="userData">
+  <div v-if="loading" class="loading-indicator">Loading profile...</div>
+    <div class="profile-container" v-else-if="userData">
     <div class="profile-info">
       <div class="profile-pic">
         <img v-if="userData.imageUrl" :src="imagePath" alt="Profile Picture" />
@@ -12,15 +13,14 @@
         <p class="skill-level">Skill Level: {{ calculateSkillLevel(userData.experience) }}</p>
         <h4 v-if="userData.expertise && userData.expertise.length">Areas of Expertise:</h4>
         <div v-if="userData.expertise && userData.expertise.length">
-          <span v-for="expertise in userData.expertise" :key="expertise" class="expertise-badge" data-aos="flip-right"
-            data-aos-duration="600">
+          <span v-for="expertise in userData.expertise" :key="expertise" class="expertise-badge">
             {{ expertise }}
           </span>
         </div>
         <div v-else>
           <p>No areas of expertise provided.</p>
         </div>
-        <div v-if="userData.description" data-aos="fade-up" data-aos-duration="800">
+        <div v-if="userData.description" >
           <h4>About Me:</h4>
           <p>{{ userData.description }}</p>
         </div>
@@ -31,7 +31,7 @@
       <div class="profile-details" v-else>
         <h2 class="profile-name">{{ userData.name }}</h2>
         <p>User</p>
-        <div v-if="userData.description" data-aos="fade-up" data-aos-duration="800">
+        <div v-if="userData.description" >
           <h4>About Me:</h4>
           <p>{{ userData.description }}</p>
         </div>
@@ -40,13 +40,13 @@
     </div>
 
     <!-- Edit Profile Button for Profile Owner -->
-    <div v-if="isOwnProfile" class="edit-profile-btn" data-aos="fade-up" data-aos-duration="600">
+    <div v-if="isOwnProfile" class="edit-profile-btn" >
       <router-link :to="{ name: 'editProfile' }" class="btn btn-primary">Edit Profile</router-link>
     </div>
 
     <!-- Tabs -->
     <div v-if="userData.userType !== 'admin'">
-      <div class="tabs" data-aos="fade-up" data-aos-duration="700">
+      <div class="tabs" >
         <button class="tab-button" :class="{ active: activeTab === 'reviews' }"
           @click="switchTab('reviews')">Reviews</button>
         <button v-if="isOwnProfile" class="tab-button" :class="{ active: activeTab === 'upcoming-events' }"
@@ -59,11 +59,10 @@
 
       <div class="tab-content">
         <!-- Reviews Tab -->
-        <div id="reviews" class="tab" v-show="activeTab === 'reviews'" data-aos="fade-up" data-aos-duration="700">
+        <div id="reviews" class="tab" v-show="activeTab === 'reviews'" >
           <h3>Ratings: {{ averageRating || 'N/A' }} / 5 ⭐</h3>
           <div v-if="userData.reviews && userData.reviews.length">
-            <div v-for="review in userData.reviews" :key="review.id" class="review" data-aos="fade-up"
-              data-aos-delay="200">
+            <div v-for="review in userData.reviews" :key="review.id" class="review" >
               <div class="review-header">
                 <strong>{{ review.customer }}</strong> - {{ review.date }}
               </div>
@@ -84,20 +83,17 @@
         <div id="upcoming-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'upcoming-events'">
           <h3>Upcoming Events</h3>
           <div v-if="upcomingEvents.length > 0" v-for="event in upcomingEvents" :key="event.id" class="event"
-            data-aos="fade-up" data-aos-delay="200">
+            >
             <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
             <p class="event-description">{{ event.description }}</p>
           </div>
           <div v-else class="no-events">No Saved Events</div>
         </div>
-
 
         <!-- Past Events Tab -->
-        <div id="past-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'past-events'" data-aos="fade-up"
-          data-aos-duration="700">
+        <div id="past-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'past-events'" >
           <h3>Past Events</h3>
-          <div v-if="pastEvents.length > 0" v-for="event in pastEvents" :key="event.id" class="event" data-aos="fade-up"
-            data-aos-delay="200">
+          <div v-if="pastEvents.length > 0" v-for="event in pastEvents" :key="event.id" class="event" >
             <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
             <p class="event-description">{{ event.description }}</p>
           </div>
@@ -105,10 +101,9 @@
         </div>
 
 
-        <div id="saved-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'saved-events'" data-aos="fade-up"
-          data-aos-duration="700">
+        <div id="saved-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'saved-events'" >
           <div v-if="savedEvents.length > 0" v-for="event in savedEvents" :key="event.id" class="event"
-            data-aos="fade-up" data-aos-delay="200">
+            >
             <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
             <p class="event-description">{{ event.description }}</p>
             <div class="event-actions">
@@ -162,6 +157,7 @@ import { doc, getDoc, collection, query, where, getDocs } from "firebase/firesto
 export default {
   data() {
     return {
+      loading: true, // Initialize as true
       userData: {
         imageUrl: '',
         userType: '',
@@ -181,28 +177,26 @@ export default {
   },
   methods: {
     async fetchUserData(uid) {
-      try {
-        // Fetch main user data
+      this.loading = true; // Start loading
+    try {
         const userDoc = await getDoc(doc(db, 'users', uid));
         if (userDoc.exists()) {
-          const fetchedData = userDoc.data();
-          this.userData = {
-            ...fetchedData,
-            reviews: [] // Initialize empty array for reviews
-          };
-
-          // Fetch reviews for the user
-          await this.fetchUserReviews(uid);
-          await this.fetchSavedEvents(uid);
+            const fetchedData = userDoc.data();
+            this.userData = { ...fetchedData, reviews: [] };
+            await this.fetchUserReviews(uid);
+            await this.fetchSavedEvents(uid);
         } else {
-          console.error("No user data found!");
+            console.error("No user data found!");
         }
-      } catch (error) {
+    } catch (error) {
         console.error("Error fetching user data:", error);
-      }
-    },
+    } finally {
+        this.loading = false; // End loading
+    }
+},
     async fetchUserReviews(uid) {
       try {
+        console.log("Fetched reviews:", this.userData.reviews);
         const reviewsQuery = query(collection(db, "reviews"), where("revieweeID", "==", uid));
         const querySnapshot = await getDocs(reviewsQuery);
         const reviews = querySnapshot.docs.map(doc => {
@@ -222,6 +216,7 @@ export default {
     },
     async fetchSavedEvents(uid) {
       try {
+        console.log("Fetched events:", this.savedEvents);
         const userDocRef = doc(db, "users", uid); // Reference to the Firestore user document
         const docSnap = await getDoc(userDocRef); // Fetch the document
 
@@ -308,11 +303,18 @@ export default {
     }
 
     onAuthStateChanged(auth, (user) => {
-      if (user) {
-        this.loggedInUserId = user.uid;
-      } else {
-        console.error("User is not logged in");
-      }
+        if (user) {
+            this.loggedInUserId = user.uid;
+            const userId = this.id || this.$route.params.id;
+            if (userId) {
+                this.fetchUserData(userId); // Call fetch after user is authenticated
+            } else {
+                console.error('No user ID found in route params');
+            }
+        } else {
+            console.error("User is not logged in");
+            this.$router.push({ name: 'Home' }); // Redirect to Home if not authenticated
+        }
     });
   },
   computed: {
