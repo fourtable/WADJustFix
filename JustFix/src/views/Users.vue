@@ -84,7 +84,7 @@ export default {
         this.users = this.users.map((user) =>
           user.id === userId ? { ...user, blocked: true } : user
         );
-        alert("User blocked successfully");
+        this.showNotification("User blocked successfully", "alert");
       } catch (error) {
         console.error("Error blocking user:", error);
       }
@@ -97,7 +97,7 @@ export default {
         this.users = this.users.map((user) =>
           user.id === userId ? { ...user, blocked: false } : user
         );
-        alert("User unblocked successfully");
+        this.showNotification("User unblocked successfully", "alert");
       } catch (error) {
         console.error("Error unblocking user:", error);
       }
@@ -106,6 +106,15 @@ export default {
       if (!timestamp) return "N/A";
       const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
       return date.toLocaleDateString();
+    },
+    showNotification(message, type) {
+      const notification = {
+        type: type,
+        message: message,
+        timestamp: new Date().toISOString(),
+        isVisible: true,
+      };
+      this.$store.dispatch('addNotification', notification);
     },
   },
 };

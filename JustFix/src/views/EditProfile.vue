@@ -159,7 +159,7 @@ export default {
         await updateDoc(userRef, updatedProfile);
 
         console.log('Profile updated successfully');
-        alert('Profile updated');
+        this.showNotification('Profile updated', 'alert'); // Use toaster notification
         await this.fetchUserProfile(userId);
 
         // Emit the updated profile info to other components
@@ -207,6 +207,15 @@ export default {
         console.error('No user data found!');
       }
     },
+    showNotification(message, type) {
+    const notification = {
+      type: type,
+      message: message,
+      timestamp: new Date().toISOString(),
+      isVisible: true,
+    };
+    this.$store.dispatch('addNotification', notification);
+  },
   },
   mounted() {
     onAuthStateChanged(auth, (user) => {
