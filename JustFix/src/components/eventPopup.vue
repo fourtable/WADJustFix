@@ -19,10 +19,11 @@
       <p>Registration Deadline: {{ formattedRegistrationDeadline }}</p>
 
       <!-- More event details as needed -->
-      <div class="d-flex justify-content-between mt-3">
+      <div class="d-flex justify-content-between mt-3" v-if="userType !== 'admin'">
         <button class="btn" @click="handleSaveClick">Save Event</button>
         <button class="btn" @click="handleSignupClick">Sign Up!</button>
       </div>
+
     </div>
   </div>
 </template>
@@ -51,13 +52,28 @@ export default {
 
     // Define a reactive variable to store login status
     const isLoggedIn = ref(false);
+    const userType = ref(null); // Add a reactive variable for userType
 
      // Check authentication state using both Firebase and stored credentials
     const checkAuthState = () => {
       const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
       const firebaseUser = auth.currentUser;
       isLoggedIn.value = !!(uid || firebaseUser);
+      if (uid) fetchUserType(uid);
     };
+    const fetchUserType = async (uid) => {
+    try {
+      const userDocRef = doc(db, "users", uid);
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        userType.value = docSnap.data().userType;
+      } else {
+        console.error("No user data found!");
+      }
+    } catch (error) {
+      console.error("Error fetching user type:", error);
+    }
+  };
     // Listen to authentication state changes
     onAuthStateChanged(auth, () => {
       checkAuthState();
@@ -153,7 +169,8 @@ export default {
     return {
       handleSignupClick,
       handleSaveClick,
-      isLoggedIn
+      isLoggedIn,
+      userType, // Make userType accessible in the template
     };
   },
   computed: {
