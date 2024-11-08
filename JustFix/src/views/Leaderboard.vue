@@ -1,34 +1,34 @@
 <template>
-    <div class="container py-5" id="leaderboard">
+    <div class="container-box py-5" id="leaderboard">
       <h2 class="text-center mb-5">Leaderboard</h2>
   
       <!-- Podium Section for Top 3 Repairers -->
       <div class="podium text-center mb-5">
-        <div class="podium-place" v-if="topRepairers.length > 1">
-          <div class="podium-item">
+        <div class="podium-place second-place" v-if="topRepairers.length > 1">
+          <!-- <div class="podium-item"> -->
             <img :src="topRepairers[1].profilePicURL" alt="2nd Place" class="profile-pic podium-2">
             <div class="place">2</div>
             <div class="name">{{ topRepairers[1].displayName }}</div>
             <div class="points">{{ topRepairers[1].monthlyPoints }} Points</div>
-          </div>
+          <!-- </div> -->
         </div>
-        <div class="podium-place" v-if="topRepairers.length > 0">
-          <div class="podium-item podium-winner">
+        <div class="podium-place first-place" v-if="topRepairers.length > 0">
+          <!-- <div class="podium-item"> -->
             <img :src="topRepairers[0].profilePicURL" alt="1st Place" class="profile-pic podium-1">
             <!-- <img src="crown.png" alt="Crown" class="crown"> -->
             <span class="crown-icon">👑</span> <!-- Add crown icon here -->
             <div class="place">1</div>
             <div class="name">{{ topRepairers[0].displayName }}</div>
             <div class="points">{{ topRepairers[0].monthlyPoints }} Points</div>
-          </div>
+          <!-- </div> -->
         </div>
-        <div class="podium-place" v-if="topRepairers.length > 2">
-          <div class="podium-item">
+        <div class="podium-place third-place" v-if="topRepairers.length > 2">
+          <!-- <div class="podium-item"> -->
             <img :src="topRepairers[2].profilePicURL" alt="3rd Place" class="profile-pic podium-3">
             <div class="place">3</div>
             <div class="name">{{ topRepairers[2].displayName }}</div>
             <div class="points">{{ topRepairers[2].monthlyPoints }} Points</div>
-          </div>
+          <!-- </div> -->
         </div>
       </div>
   
@@ -138,47 +138,91 @@
   </script>
   
   <style scoped>
-  .container {
+  .container-box {
     max-width: 800px;
     margin: auto;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    background-color: #e0e4e8;
   }
   
   .podium {
     display: flex;
     justify-content: center;
     align-items: flex-end;
+    gap: 20px;
+  }
+
+  .podium-place{
+    /* text-align: center;
+    position: relative; */
+    position: relative;
+    width: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-top: 60px;
+    padding-bottom: 20px;
+    border-radius: 10px;
+    color: #fff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
   }
   
-  .podium-item {
+  /* .podium-item {
     text-align: center;
     position: relative;
-  }
+  } */
   
-  .podium-winner {
-    position: relative;
+  .first-place {
+    background-color: gold;
+    height: 200px;
+    width: 130px;
+    z-index: 3;
+  }
+
+  .second-place {
+    background-color: #b0b0b0;
+    height: 170px;
+    width: 130px;
+    z-index: 2;
+    border: 2px solid #888;
+  }
+
+  .third-place {
+    background-color: #cd7f32;
+    height: 150px;
+    width: 130px;
+    z-index: 1;
   }
   
   .crown-icon {
-    width: 40px;
+    font-size: 30px;
     position: absolute;
-    top: -30px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: -70px;
+    /* left: 50%;
+    transform: translateX(-50%); */
   }
   
   .profile-pic {
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     object-fit: cover;
+    position: absolute;
+    top: -40px;
+    border: 3px solid #fff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
   }
   
-  .podium-1 {
-    width: 130px;
-    height: 130px;
+  .place {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 20px;
   }
   
-  .podium-2, .podium-3 {
+  /* .podium-2, .podium-3 {
     width: 90px;
     height: 90px;
   }
@@ -190,14 +234,14 @@
   .place {
     font-size: 1.5rem;
     font-weight: bold;
-  }
+  } */
   
   .name {
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
   
   .points {
-    color: #555;
+    color: #333;
   }
   
   .leaderboard-list {
