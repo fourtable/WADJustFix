@@ -56,64 +56,83 @@
       // Fetch monthly points and top repairers
       const fetchTopRepairers = async () => {
         try {
-          // Get points from Firestore
-          const pointsRef = collection(db, "points");
-          const querySnapshot = await getDocs(query(pointsRef, where("type", "==", "earn"), orderBy("Date", "asc")));
+
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            // Get points from Firestore
+            const pointsRef = collection(db, "points");
+            const querySnapshot = await getDocs(query(pointsRef, where("type", "==", "earn"), orderBy("Date", "asc")));
   
-          const monthlyPointsMap = {};
+            const monthlyPointsMap = {};
   
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const date = new Date(data.Date.seconds * 1000);
-            const monthIndex = date.getMonth();
-            const userId = data.UID;
-            const pointsValue = Number(data.points) || 0;
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const date = new Date(data.Date.seconds * 1000);
+
+                // Check if the date is in the current month and year
+                if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+                    const userId = data.UID;
+                    const pointsValue = Number(data.points) || 0;
+                // const monthIndex = date.getMonth();
+                // const userId = data.UID;
+                // const pointsValue = Number(data.points) || 0;
   
             // Initialize user entry if not exist
-            if (!monthlyPointsMap[userId]) {
-              monthlyPointsMap[userId] = { monthlyPoints: 0, UID: userId };
-            }
-            monthlyPointsMap[userId].monthlyPoints += pointsValue;
-          });
+                    if (!monthlyPointsMap[userId]) {
+                    monthlyPointsMap[userId] = { monthlyPoints: 0, UID: userId };
+                    }
+                    if (data.Date.toDate() <= currentDate){
+                    monthlyPointsMap[userId].monthlyPoints += pointsValue;
+                    }
+                }
+            });
   
-          // Fetch user profiles and combine data
-          const usersRef = collection(db, "users");
-          const userSnapshot = await getDocs(usersRef);
-          const usersMap = {};
+            // Fetch user profiles and combine data
+            const usersRef = collection(db, "users");
+            const userSnapshot = await getDocs(query(usersRef, where("userType", "==", "repairer")));
+            const usersMap = {};
         //   const repairers = Object.values(monthlyPointsMap).map((repairer) => ({
         //     ...repairer,
         //     profilePicURL: usersMap[repairer.UID]?.imageUrl || "default-profile.png",
         //     displayName: usersMap[repairer.UID]?.name || "Unknown",
         //   }));
   
-          userSnapshot.forEach((doc) => {
-            usersMap[doc.id] = doc.data();
-            
+            userSnapshot.forEach((doc) => {
+                usersMap[doc.id] = doc.data();
+            });
 
-          });
-          console.log(usersMap);
-          const repairers = Object.values(monthlyPointsMap).map((repairer) => ({
-            ...repairer,
-            profilePicURL: usersMap[repairer.UID]?.imageUrl || "default-profile.png",
-            displayName: usersMap[repairer.UID]?.name || "Unknown",
-          }));
+        //   console.log(usersMap);
+            // Map points to repairers with profile data, filtering only for repairers
+            // const repairers = Object.values(monthlyPointsMap).map((repairer) => ({
+            //     ...repairer,
+            //     profilePicURL: usersMap[repairer.UID]?.imageUrl || "default-profile.png",
+            //     displayName: usersMap[repairer.UID]?.name || "Unknown",
+            // }));
+            const repairers = Object.values(monthlyPointsMap)
+            .filter(repairer => usersMap[repairer.UID]) // Only include repairers in usersMap
+            .map(repairer => ({
+                ...repairer,
+                profilePicURL: usersMap[repairer.UID]?.imageUrl || "default-profile.png",
+                displayName: usersMap[repairer.UID]?.name || "Unknown",
+            }));
           
-          console.log(repairers)
+        //   console.log(repairers)
   
-          // Sort by monthly points in descending order
-          repairers.sort((a, b) => b.monthlyPoints - a.monthlyPoints);
+            // Sort by monthly points in descending order
+            repairers.sort((a, b) => b.monthlyPoints - a.monthlyPoints);
   
-          topRepairers.value = repairers;
+            topRepairers.value = repairers;
         } catch (error) {
-          console.error("Error fetching leaderboard data:", error);
+            console.error("Error fetching leaderboard data:", error);
         }
-      };
+    };
   
-      onMounted(() => {
+    onMounted(() => {
         fetchTopRepairers();
-      });
+        });
   
-      return { topRepairers };
+    return { topRepairers };
     },
   };
   </script>
