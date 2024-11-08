@@ -1,6 +1,6 @@
 <template>
     <div class="container-fluid mt-5 p-5">
-      <button @click="$router.push('/event')" class="back mb-3"><</button>
+      <button @click="$router.push('/event')" class="back mb-3"></button>
       <h2>Host Your Own Event</h2>
       <p>Are you a skilled repair expert? Want to share your expertise with others? Host your own event and inspire a community of learners! Click here to request to organize an event with us.</p>
       
@@ -68,7 +68,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
 
         <div class="mb-3">
           <label for="price">Number of slots</label>
-          <input type="number" v-model="form.totalSlots" class="form-control"min="1" required />
+          <input type="number" v-model="form.totalSlots" class="form-control" min="1" required />
         </div>
   
         <div class="mb-3">
@@ -265,54 +265,51 @@ s          <input type="number" v-model="form.duration" class="form-control" min
         }
       },
       async submitForm() {
-        const tempImage = this.form.image;  // Preserve image field
-        this.form = {};  // Reset other fields
-        this.form.image = tempImage;  // Restore image
         try {
           // Clean up selected categories by removing text in parentheses
-          const cleanedCategories = this.form.selectedCategories.map(category => {
+          const cleanedCategories = (this.form.selectedCategories || []).map(category => {
             return category.replace(/\s*\(.*?\)/, '').trim();
           });
+          
           // Add other category if specified
           if (this.form.otherChecked && this.form.otherCategory.trim()) {
             cleanedCategories.push(this.form.otherCategory.trim());
           }
+          
           // Upload image to Firebase Storage if a file is selected
           let imageUrl = "";
           if (this.eventImage) {
             const storage = getStorage();
-             const storageRef = ref(storage, `eventImages/${this.eventImage.name}`);
-
-          // Upload the file to the storage reference
-          await uploadBytes(storageRef, this.eventImage)
-            .then(async (snapshot) => {
-              console.log("Uploaded image successfully");
-              imageUrl = await getDownloadURL(snapshot.ref);
-              console.log("Image URL:", imageUrl);
-            })
-            .catch((error) => {
-              console.error("Error uploading image:", error);
-            });
+            const storageRef = ref(storage, `eventImages/${this.eventImage.name}`);
+            await uploadBytes(storageRef, this.eventImage)
+              .then(async (snapshot) => {
+                console.log("Uploaded image successfully");
+                imageUrl = await getDownloadURL(snapshot.ref);
+              })
+              .catch((error) => {
+                console.error("Error uploading image:", error);
+              });
           }
+          
           // Prepare the form data
           const formData = {
-            name: this.form.name,
-            phone: this.form.phone,
-            email: this.form.email,
-            category: cleanedCategories, // Using 'category' as field name for the array
-            title: this.form.title,
-            description: this.form.description,
-            eventDate: new Date(this.form.eventDate),
-            registrationDeadline: new Date(this.form.registrationDeadline),
-            duration: Number(this.form.duration),
-            price: Number(this.form.price),
-            totalSlots: Number(this.form.totalSlots),
-            additionalComments: this.form.additionalComments || "", // Optional field
-            imageUrl: imageUrl, // Store image URL
+            name: this.form.name || "",
+            phone: this.form.phone || "",
+            email: this.form.email || "",
+            category: cleanedCategories || [],
+            title: this.form.title || "",
+            description: this.form.description || "",
+            eventDate: this.form.eventDate ? new Date(this.form.eventDate) : null,
+            registrationDeadline: this.form.registrationDeadline ? new Date(this.form.registrationDeadline) : null,
+            duration: this.form.duration ? Number(this.form.duration) : 0,
+            price: this.form.price ? Number(this.form.price) : 0,
+            totalSlots: this.form.totalSlots ? Number(this.form.totalSlots) : 0,
+            additionalComments: this.form.additionalComments || "",
+            imageUrl: imageUrl || "",
             submittedAt: new Date(),
             status: 'pending'
           };
-
+          
           // Send to Firestore
           await addDoc(collection(db, 'eventRequest'), formData);
           
@@ -328,7 +325,9 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           console.error("Error submitting form:", error);
           alert("There was an error submitting your application. Please try again.");
         }
-      },
+      }
+
+,
       resetForm() {
       this.form = {
         name: "",
