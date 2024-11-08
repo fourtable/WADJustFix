@@ -6,7 +6,7 @@
       <div class="podium text-center mb-5">
         <div class="podium-place second-place" v-if="topRepairers.length > 1">
           <!-- <div class="podium-item"> -->
-            <img :src="topRepairers[1].profilePicURL" alt="2nd Place" class="profile-pic podium-2">
+            <img :src="topRepairers[1].profilePicURL" alt="2nd Place" class="profile-pic podium-2" @click="navigateToProfile(topRepairers[1].UID)">
             <div class="place">2</div>
             <div class="name">{{ topRepairers[1].displayName }}</div>
             <div class="points">{{ topRepairers[1].monthlyPoints }} Points</div>
@@ -14,7 +14,7 @@
         </div>
         <div class="podium-place first-place" v-if="topRepairers.length > 0">
           <!-- <div class="podium-item"> -->
-            <img :src="topRepairers[0].profilePicURL" alt="1st Place" class="profile-pic podium-1">
+            <img :src="topRepairers[0].profilePicURL" alt="1st Place" class="profile-pic podium-1" @click="navigateToProfile(topRepairers[0].UID)">
             <!-- <img src="crown.png" alt="Crown" class="crown"> -->
             <span class="crown-icon">👑</span> <!-- Add crown icon here -->
             <div class="place">1</div>
@@ -24,7 +24,7 @@
         </div>
         <div class="podium-place third-place" v-if="topRepairers.length > 2">
           <!-- <div class="podium-item"> -->
-            <img :src="topRepairers[2].profilePicURL" alt="3rd Place" class="profile-pic podium-3">
+            <img :src="topRepairers[2].profilePicURL" alt="3rd Place" class="profile-pic podium-3" @click="navigateToProfile(topRepairers[2].UID)">
             <div class="place">3</div>
             <div class="name">{{ topRepairers[2].displayName }}</div>
             <div class="points">{{ topRepairers[2].monthlyPoints }} Points</div>
@@ -36,7 +36,7 @@
       <div class="leaderboard-list">
         <div v-for="(repairer, index) in topRepairers.slice(3)" :key="repairer.UID" class="leaderboard-item">
           <div class="rank">{{ index + 4 }}</div>
-          <img :src="repairer.profilePicURL" alt="Profile Picture" class="profile-pic">
+          <img :src="repairer.profilePicURL" alt="Profile Picture" class="profile-pic" @click="navigateToProfile(repairer.UID)">
           <div class="name">{{ repairer.displayName }}</div>
           <div class="points">{{ repairer.monthlyPoints }} Points</div>
         </div>
@@ -48,10 +48,12 @@
   import { ref, onMounted } from "vue";
   import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
   import { db } from "../main";
+  import { useRouter } from "vue-router";
   
   export default {
     setup() {
       const topRepairers = ref([]);
+      const router = useRouter(); 
   
       // Fetch monthly points and top repairers
       const fetchTopRepairers = async () => {
@@ -127,12 +129,20 @@
             console.error("Error fetching leaderboard data:", error);
         }
     };
+
+    const navigateToProfile = (userId) => {
+    console.log('Navigating to profile with ID:', userId); // Debug line
+    router.push({
+        name: 'viewProfile', // Make sure this matches the name of your route
+        params: { id: userId } // Pass the repairman ID as a parameter
+    });
+};
   
     onMounted(() => {
         fetchTopRepairers();
         });
   
-    return { topRepairers };
+    return { topRepairers, navigateToProfile };
     },
   };
   </script>
