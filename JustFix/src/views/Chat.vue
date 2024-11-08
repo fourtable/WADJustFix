@@ -423,7 +423,7 @@ const selectContact = async (contact) => {
             }
         });
 
-        if (receiverId) {
+        if (receiverId || route.query.repairerId) {
             // If receiverId is found, load the repairer data
             const contactDocRef = doc(db, 'users', contact.otherUserId);
             const contactDoc = await getDoc(contactDocRef);
