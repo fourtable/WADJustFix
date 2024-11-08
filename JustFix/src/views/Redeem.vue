@@ -96,13 +96,16 @@ import { merge } from "chart.js/helpers";
             // const date = new Date(data.Date.seconds * 1000)
             // const monthIndex = date.getMonth();
             const pointsValue = Number(data.points) || 0;
+            const currentDate = new Date();
 
             // monthlyPoints[monthIndex] += pointsValue;
-            if (data.type == "redeem") {
-              userPoints.value -= pointsValue;
-            } else {
-              userPoints.value += pointsValue;
-              // monthlyPoints[monthIndex] += pointsValue;
+            if (data.Date.toDate() <= currentDate){
+              if (data.type == "redeem") {
+                userPoints.value -= pointsValue;
+              } else {
+                userPoints.value += pointsValue;
+                // monthlyPoints[monthIndex] += pointsValue;
+              }
             }
           });
 
