@@ -28,6 +28,9 @@
           </div>
         </div>
 
+        <!-- Leaderboard Section -->
+        <Leaderboard />
+
         <!-- Map Section -->
 
         <div class="row mt-5">
@@ -63,6 +66,8 @@ import RepairmenCards from "../components/repairmenCards.vue";
 import { mapActions } from 'vuex';
 import Cookies from 'js-cookie';
 import router from '../router/index.js';
+import Leaderboard from "../components/Leaderboard.vue";
+
 
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 

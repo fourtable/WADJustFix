@@ -16,7 +16,7 @@ import Users from '../views/Users.vue'; // Import Users view
 
 import PointsDashboard from "../views/PointsDashboard.vue"; // Import PointsDashboard view
 import Redeem from "../views/Redeem.vue";
-import Leaderboard from "../views/Leaderboard.vue";
+import Leaderboard from "../components/Leaderboard.vue";
 
 
 const routes = [
