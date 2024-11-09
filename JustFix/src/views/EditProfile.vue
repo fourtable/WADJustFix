@@ -90,14 +90,15 @@ export default {
       },
       profilePicFile: null,
       expertiseList: [
-                "Home Appliances (e.g Microwaves, Washing Machines, etc.)",
-                "Electrical Systems and Fixtures (e.g Lighting, Wiring, etc.)",
-                "Electronics Repair (e.g Devices, TVs, etc.)",
-                "Plumbing (e.g Toilets, Heaters, etc.)",
-                "Air Conditioners (e.g Repairing, Maintaining, etc.)",
-                "Furnitures (e.g Shelves, Tables, etc.)",
-                "Windows and Doors (e.g Locks, Window Frames, etc.)",
-                "Automative Repairs (e.g Tires, Brakes, etc.)"
+                "Home Appliances (e.g Microwaves, Standing Fans)",
+                "Electrical Fixtures (e.g Lighting, Wiring)",
+                "Electronics Repair (e.g Devices, TVs)",
+                "Plumbing (e.g Toilets, Heaters)",
+                "Air Conditioners (e.g Repairing, Maintaining)",
+                "Furnitures (e.g Shelves, Tables)",
+                "Windows and Doors (e.g Locks, Window Frames)",
+                "Automative Repairs (e.g Tires, Brakes)",
+                "Others"
             ]
     };
   },
