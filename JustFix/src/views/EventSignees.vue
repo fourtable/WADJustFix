@@ -13,7 +13,6 @@
             <th>Name</th>
             <th>Email</th>
             <th>User Type</th>
-            <th>Signup Date</th>
           </tr>
         </thead>
         <tbody>
@@ -21,7 +20,6 @@
             <td>{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.userType }}</td>
-            <td>{{ formatDate(user.createdAt) }}</td> <!-- Format the date -->
           </tr>
         </tbody>
       </table>
