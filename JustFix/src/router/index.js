@@ -17,6 +17,7 @@ import Users from '../views/Users.vue'; // Import Users view
 import PointsDashboard from "../views/PointsDashboard.vue"; // Import PointsDashboard view
 import Redeem from "../views/Redeem.vue";
 import Leaderboard from "../components/Leaderboard.vue";
+import EventSignees from "../views/EventSignees.vue"
 
 
 const routes = [
@@ -103,6 +104,11 @@ const routes = [
         path: '/leaderboard',
         name: 'leaderboard',
         component: Leaderboard
+    },
+    {
+        path: '/eventSignees',
+        name: 'eventSignees',
+        component: EventSignees,
     },
 
 

@@ -89,7 +89,8 @@ export default {
           eventDate: event.eventDate || new Date(),
           description: event.description || "No description provided.",
           // Add other necessary fields as required, for example:
-          location: event.location || "Not provided"
+          location: event.location || "Not provided",
+          organiserId: event.organiserId,
         };
 
         // Step 4: Update the user's document to add the new event to their signedUpEvents array
