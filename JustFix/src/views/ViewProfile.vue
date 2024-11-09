@@ -24,7 +24,7 @@
           <h4>About Me:</h4>
           <p>{{ userData.description }}</p>
         </div>
-        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }} ago</p>
+        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }}<span v-if="calculateJoinedDate(userData.createdAt) !== 'Today'"> ago</span></p>
       </div>
 
       <!-- Basic Profile Details for Non-Repairers -->
@@ -35,7 +35,7 @@
           <h4>About Me:</h4>
           <p>{{ userData.description }}</p>
         </div>
-        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }} ago</p>
+        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }}<span v-if="calculateJoinedDate(userData.createdAt) !== 'Today'"> ago</span></p>
       </div>
     </div>
 
@@ -255,9 +255,11 @@ export default {
 
       const createdDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
       const currentDate = new Date();
-      const diffTime = Math.abs(currentDate - createdDate);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const diffTime = currentDate - createdDate; // Difference in milliseconds
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
+      if (diffDays === 0) return 'Today';
+      
       let years = Math.floor(diffDays / 365);
       let remainingDays = diffDays % 365;
       let months = Math.floor(remainingDays / 30);
