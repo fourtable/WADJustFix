@@ -8,7 +8,6 @@
             <th>Name</th>
             <th>Email</th>
             <th>User Type</th>
-            <th>UID</th>
             <th>Account Created</th>
             <th>Last Login</th>
             <th>Actions</th>
@@ -19,7 +18,6 @@
             <td>{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.userType }}</td>
-            <td>{{ user.uid }}</td>
             <td>{{ formatDate(user.createdAt) }}</td>
             <td>{{ formatDate(user.lastLogin) }}</td>
             <td>
