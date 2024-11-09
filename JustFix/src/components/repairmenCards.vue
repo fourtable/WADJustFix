@@ -78,8 +78,6 @@ const openQuotesListPopup = () => {
     }
 };
 
-
-// Computed property to get full repairman objects based on selected IDs
 const selectedRepairmenDetails = computed(() => {
     return props.repairmen.filter(repairman => selectedRepairmen.value.includes(repairman.id));
 });
@@ -308,10 +306,10 @@ watch(filteredRepairmen, async () => {
                 <div class="card text-center shadow-sm" style="padding: 0; border-radius: 20px;"
                     @click="navigateToProfile(repairman.id)"
                     :class="{ selected: selectedRepairmen.includes(repairman.id) }">
-                    <div class="card-header d-flex align-items-center"
+                    <div class="card-header d-flex align-items-center" v-if="userType === 'user'"
                         style="background-color: transparent; border: none;">
                         <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
-                            :checked="isSelected(repairman.id)" v-if="userType === 'user'" style="margin-left: auto;" />
+                            :checked="isSelected(repairman.id)" style="margin-left: auto;" />
                     </div>
                     <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top"
                         alt="Profile Picture" height="200px" style="object-fit: cover; border-radius: 20px;">
