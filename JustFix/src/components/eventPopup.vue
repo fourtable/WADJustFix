@@ -108,20 +108,26 @@ export default {
     
     try {
       const docSnap = await getDoc(userDocRef);
-      const newEvent = { title: props.event.title,
-        date: props.event.eventDate,
+      const newEvent = { 
+        duration: props.event.duration,
+        address: props.event.address || '',
+        eventId: props.event.id,
+        title: props.event.title,
+        eventDate: props.event.eventDate,
         description: props.event.description,
-        locationName: props.event.locationName,}; // Replace with actual event data
+        locationName: props.event.locationName || '',}; // Replace with actual event data
 
       if (docSnap.exists()) {
         const existingEvents = docSnap.data().savedEvents || [];
         const eventExists = existingEvents.some(event =>
           event.title === newEvent.title &&
-          event.date.seconds === newEvent.date.seconds &&
-          event.date.nanoseconds === newEvent.date.nanoseconds &&
+          event.eventDate.seconds === newEvent.eventDate.seconds &&
+          event.eventDate.nanoseconds === newEvent.eventDate.nanoseconds &&
           event.description === newEvent.description
         );
-
+        console.log(eventExists);
+        console.log(newEvent.eventId === props.event.id);
+        console.log(newEvent.eventId);
         if (!eventExists) {
           await updateDoc(userDocRef, {
             savedEvents: arrayUnion(newEvent)
