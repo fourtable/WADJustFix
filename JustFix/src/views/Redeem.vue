@@ -45,6 +45,34 @@
         </div>
       </div>
     </div>
+
+    <div
+      class="toast-container position-fixed bottom-0 end-0 p-3"
+      style="z-index: 1055;"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+    <div
+      id="redeemToast"
+      class="toast align-items-center text-white bg-success border-0"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      data-bs-delay="3000"
+    >
+      <div class="d-flex">
+        <div class="toast-body">
+          Successfully redeemed reward!
+        </div>
+        <button
+          type="button"
+          class="btn-close btn-close-white me-2 m-auto"
+          data-bs-dismiss="toast"
+          aria-label="Close"
+        ></button>
+      </div>
+    </div>
+  </div>
   </template>
   
   <script>
@@ -52,7 +80,8 @@
   import { auth, db } from "../main";
   import { collection, getDocs, doc, updateDoc, query, where, orderBy, Timestamp, addDoc} from "firebase/firestore";
   import { onAuthStateChanged } from "firebase/auth";
-import { merge } from "chart.js/helpers";
+  import { merge } from "chart.js/helpers";
+  // import { useToast } from "vue-toastification";
   
   export default {
     setup() {
@@ -167,7 +196,11 @@ import { merge } from "chart.js/helpers";
             ...reward,
             redeemDate: new Date().toLocaleDateString()
           });
-            alert(`Successfully redeemed ${reward.name}!`);
+            // alert(`Successfully redeemed ${reward.name}!`);
+          // Show the Bootstrap toast
+          const toastElement = document.getElementById("redeemToast");
+          const toast = new bootstrap.Toast(toastElement);
+          toast.show();
           } catch (error) {
             console.error("Error redeeming reward:", error);
             alert("There was an error redeeming your reward. Please try again.");
