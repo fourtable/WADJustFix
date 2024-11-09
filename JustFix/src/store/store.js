@@ -13,8 +13,9 @@ const store = createStore({
       notificationsList: [], // Array to hold notifications
       quotes: [], // Store quotes for the user
       users: [], // Add users to state
-      eventRequests: [] // Store event requests here
-
+      eventRequests: [], // Store event requests here
+      eventData: null,
+      userData:null
     };
   },
   mutations: {
@@ -45,6 +46,12 @@ const store = createStore({
     setEventRequests(state, eventRequests) {
       state.eventRequests = eventRequests;
     },
+    setEventData(state, event) {
+      state.eventData = event;
+    },
+    setUserData(state, user) {
+      state.userData = user;
+    }
   },
   actions: {
     notificationsList: (state) => state.notificationsList,
@@ -158,6 +165,14 @@ const store = createStore({
         console.error(`Error updating event status to ${status}:`, error);
       }
     },
+    initializeUserData({ commit }) {
+      const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+      if (uid) {
+        // Fetch and commit user data to Vuex
+        // Add Firebase fetch logic if necessary to populate more details
+        commit('setUserData', { uid });
+      }
+    }
   },
   getters: {
     getUserName(state) {

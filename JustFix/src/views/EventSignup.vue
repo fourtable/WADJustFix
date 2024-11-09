@@ -1,8 +1,9 @@
 <template>
     <div class="container-fluid mt-5 p-5">
-      <h2 v-if="event">Sign up for {{ event.title }}</h2>
+      <button @click="$router.push('/event')" class="back mb-3"><</button>
+     <h2 v-if="eventData">Sign up for {{ eventData.title }}</h2> 
   
-      <form @submit.prevent="submitForm">
+      <form @submit.prevent="submitForm" v-if="!formSubmitted">
         <div class="mb-3">
             <label for="name">Name</label>
             <input type="text" id="name" v-model="form.name" placeholder="Enter your Name" class="form-control" required>
@@ -45,16 +46,10 @@
   
   <script>
   import { db } from "../main"; // Import your Firebase instance
-  import { collection, addDoc, Timestamp ,doc, getDoc} from "firebase/firestore";
+  import { collection, addDoc, arrayUnion ,doc, getDoc,setDoc,updateDoc,increment} from "firebase/firestore";
   import Cookies from 'js-cookie';
 
   export default {
-    props: {
-    event: {
-      type: Object,
-      required: true
-    }
-  },
     data() {
       return {
         event: null,//initialise event data
@@ -66,43 +61,45 @@
           agreeToTerms: false,
         },
         formSubmitted: false,
-        categories: [
-          "Home Appliances (e.g., Microwaves, Washing Machines, etc.)",
-          "Electrical Systems & Fixtures (e.g., Lighting, Wiring, etc.)",
-          "Electronics Repair (e.g., Devices, TVs, etc.)",
-          "Plumbing (e.g., Toilets, Heaters, etc.)",
-          "Air Conditioning Systems (e.g., Repairing, Maintaining, etc.)",
-          "Furniture Repair (e.g., Shelves, Tables, etc.)",
-          "Windows & Doors (e.g., Locks, Window Frames, etc.)",
-          "Automotive Repairs (e.g., Tires, Brakes, etc.)",
-        ],
       };
+    },
+    computed: {
+      // Access event and user data from Vuex
+      eventData() {
+        return this.$store.state.eventData;
+      },
+      userData() {
+        return this.$store.state.userData;
+      }
     },
     async created() {
         // Auto-populate form with user data
-        const username = sessionStorage.getItem('username') || Cookies.get('username');
-        const userEmail = sessionStorage.getItem('email') || Cookies.get('email');
-        
-        if (username) {
-            this.form.name = username;
-        }
-        if (userEmail) {
-            this.form.name = userEmail;
-        }
-        
-        // Get user details from Firestore
-        const uid = sessionStorage.getItem('uid') || Cookies.get('uid');
-        if (uid) {
+        if (this.userData) {
+          this.form.name = this.userData.name || "";
+          this.form.email = this.userData.email || "";
+        } else {
+          // Fallback: Retrieve from session storage or cookies
+          const username = sessionStorage.getItem('username') || Cookies.get('username');
+          const userEmail = sessionStorage.getItem('email') || Cookies.get('email');
+          if (username) this.form.name = username;
+          if (userEmail) this.form.email = userEmail;
+
+          // Fetch additional details from Firestore if needed
+          const uid = sessionStorage.getItem('uid') || Cookies.get('uid');
+          if (uid) {
             try {
-                const userDoc = await this.getUserDetails(uid);
-                if (userDoc) {
-                    this.form.name = userDoc.name || this.form.name;
-                    this.form.email = userDoc.email || this.form.email;
-                }
+              const userDoc = await this.getUserDetails(uid);
+              if (userDoc) {
+                this.form.name = userDoc.name || this.form.name;
+                this.form.email = userDoc.email || this.form.email;
+              }
             } catch (error) {
-                console.error("Error fetching user details:", error);
+              console.error("Error fetching user details:", error);
             }
+          }
         }
+        console.log("Event data in EventSignup.vue after fallback:", this.eventData);
+        console.log("User data in EventSignup.vue after fallback:", this.userData);
     },
     methods: {
       async getUserDetails(uid) {
@@ -119,40 +116,80 @@
             }
         },
       async submitForm() {
-        try {
-          // Clean up selected categories by removing text in parentheses
-          const cleanedCategories = this.form.selectedCategories.map(category => {
-            return category.replace(/\s*\(.*?\)/, '').trim();
-          });
+        if (!this.eventData) {
+          alert("Event data is not available.");
+          return;
+        }
+       // Fallback to session storage if `user` data is not in Vuex
+      const uid = this.user?.uid || sessionStorage.getItem('uid');
+      if (!uid) {
+        alert("User data not available. Please log in.");
+        return;
+      }
 
-          // Prepare the form data
-          const formData = {
-            ...this.form,
-            categories: cleanedCategories, // Use the cleaned categories
-            eventDate: new Date(this.form.eventDate),
-            submittedAt: new Date(),
-            status: 'pending'
+      // Proceed with the existing submit logic
+      const eventId = this.eventData.id;
+        try {
+          const userDocRef = doc(db, "users", uid);
+          const userDocSnap = await getDoc(userDocRef);
+
+          const eventDocRef = doc(db, "events", eventId);
+          const eventDocSnap = await getDoc(eventDocRef);
+
+          if (!eventDocSnap.exists()) {
+            alert("Event not found.");
+            return;
+          }
+          //move this logic to when they press signup button at popup
+          const eventData = eventDocSnap.data();
+          if (eventData.vacantSlots <= 0) {
+            alert("No vacant slots available.");
+            return;
+          }
+          // // Define the event object to be saved in `signedupevents`
+          const eventToSave = {
+            eventId,
+            title: this.eventData.title,
+            description: this.eventData.description,
+            eventDate: this.eventData.eventDate,
+            locationName: this.eventData.locationName,
+            address: this.eventData.address,
+            duration: this.eventData.duration,
+            // vacantSlots: this.event.vacantSlots,
+            // totalSlots: this.event.totalSlots,
           };
 
-          // Add other category if specified
-          if (this.form.otherChecked && this.form.otherCategory) {
-            formData.categories.push(this.form.otherCategory);
-          }
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            const existingEvents = userData.signedUpEvents || [];
+            const alreadySignedUp = existingEvents.some(event => event.eventId === eventId);
 
-          // Send to Firestore
-          await addDoc(collection(db, 'eventRequest'), formData);
+            if (alreadySignedUp) {
+              alert("You are already signed up for this event.");
+              return;
+            }
+            // Update user's signedUpEvents by adding the new event
+            await updateDoc(userDocRef, {
+              signedUpEvents: arrayUnion(eventToSave)
+            });
+          } else {
+            // If user document doesn't exist, create it with `signedupevents` field
+            await setDoc(userDocRef, {
+              signedUpEvents: [eventToSave]
+            });
+          }
           
-          // Show success message
+          // Decrement the `vacantSlots` count in the event document
+          await updateDoc(eventDocRef, {
+            vacantSlots: increment(-1)
+          });
+
+          alert("You have successfully signed up for the event!");
+          // Optionally, reset form or navigate as needed
           this.formSubmitted = true;
-          
-          // Reset form after successful submission
-          setTimeout(() => {
-            this.resetForm();
-          }, 5000);
-          
         } catch (error) {
           console.error("Error submitting form:", error);
-          alert("There was an error submitting your application. Please try again.");
+          alert("There was an error during the signup process. Please try again.");
         }
       },
       resetForm() {
@@ -160,14 +197,7 @@
         name: "",
         phone: "",
         email: "",
-        selectedCategories: [],
-        otherChecked: false,
-        otherExpertise: "",
-        details: "",
-        price: "",
-        totalPax: "",
-        locationDetails: "",
-        additionalInfo: "",
+        experienceLevel: "",
         agreeToTerms: false,
       };
       this.formSubmitted = false;
@@ -182,6 +212,9 @@
   width: 90%; /* Responsive width for smaller screens */
   margin: 0 auto; /* Centers the container */
   padding: 20px;
+  /* min-height: 100vh;
+  display: flex;
+  flex-direction: column; */
 }
   .organize-event-form {
     max-width: 600px;
@@ -213,6 +246,17 @@
 .btn:hover {
   background-color: #085c44;
   color: white;
+}
+.back{
+  padding: 5px 10px;
+  border: 1px solid #085c44;
+  border-radius: 30px;
+  color: #085c44;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+  cursor: pointer;
+  background-color: white;
 }
   </style>
   

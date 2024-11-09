@@ -31,9 +31,10 @@ const routes = [
         component: Event
     },
     {
-        path: '/eventSignup',
+        path: '/eventSignup/:eventId',
         name: 'eventSignup',
-        component: EventSignup
+        component: EventSignup,
+        props: true
     },
     {
         path: '/applyEvent',
