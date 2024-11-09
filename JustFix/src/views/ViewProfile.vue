@@ -105,11 +105,11 @@
         <div id="saved-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'saved-events'" >
           <div v-if="savedEvents.length > 0" v-for="event in savedEvents" :key="event.id" class="event"
             >
-            <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.date) }}</h4>
+            <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
             <p class="event-description">{{ event.description }}</p>
             <div class="event-actions">
-              <button class="btn btn-remove" @click="openConfirmRemoveModal(event.id)">Remove</button>
-              <button class="btn btn-signup" @click="signUpForEvent(event.id)">Sign Up</button>
+              <button class="btn btn-remove" @click="openConfirmRemoveModal(event.eventId)">Remove</button>
+              <button class="btn btn-signup" @click="signUpForEvent(event )">Sign Up</button>
             </div>
           </div>
           <div v-else class="no-events">No Saved Events</div>
@@ -153,7 +153,7 @@
 <script>
 import { db, auth } from "../main";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, arrayRemove, increment } from "firebase/firestore";
 
 export default {
   data() {
@@ -272,7 +272,7 @@ export default {
     openConfirmRemoveModal(eventId) {
       this.confirmEventId = eventId;
       this.openPopup = true;
-      console.log("showConfirmModal:", this.openPopup); // Debug log 
+      // console.log("showConfirmModal:", this.openPopup); // Debug log 
     },
     // Close confirmation modal
     closeConfirmModal() {
@@ -280,19 +280,63 @@ export default {
       this.confirmEventId = null;
     },
     // Remove the event if user confirms
-    removeEvent(eventId) {
-      // Find the event to remove
-      this.savedEvents = this.savedEvents.filter(event => event.id !== eventId);
-      // Optionally, call an API to delete the event from the database
-      console.log(`Event with ID: ${eventId} removed.`);
-      // Close modal after removal
-      this.closeConfirmModal();
+    async removeEvent(eventId) {
+      try {
+        // Find the event to remove locally by filtering out the event with the specified eventId
+        console.log(eventId);
+        this.savedEvents = this.savedEvents.filter(event => event.eventId !== eventId);
+        // Get the current user ID from the route params or fallback if needed
+        const uid = this.$route.params.id;
+        // Reference to the user's document in Firestore
+        const userDocRef = doc(db, "users", uid);
+        // Fetch the user's document to get the savedEvents array
+        const userDocSnap = await getDoc(userDocRef);
+        if (!userDocSnap.exists()) {
+          console.error("User document not found.");
+          return;
+        }
+        const userData = userDocSnap.data();
+        // Find the event in the user's savedEvents array
+        const eventToRemove = userData.savedEvents?.find(event => event.eventId === eventId);
+
+        console.log(eventToRemove);
+        if (!eventToRemove) {
+          console.log("Event not found in user's saved events.");
+          return;
+        }
+        // Remove the event from the user's savedEvents array in Firestore
+        await updateDoc(userDocRef, {
+          savedEvents: arrayRemove(eventToRemove)  // Remove the exact event object from savedEvents
+        });
+        const eventDocRef = doc(db, "events", eventId);
+        await updateDoc(eventDocRef, {
+          vacantSlots: increment(1)  // Increase the vacant slots since the user is unsubscribed
+        });
+        // console.log(`Event with ID: ${eventId} removed successfully from Firestore.`);
+        this.showNotification("Event removed", "alert");
+        // Close modal after removal
+        this.closeConfirmModal();
+      } catch (error) {
+        console.log(error);
+        this.showNotification("There was an error removing the event. Please try again.", "alert");
+      }
     },
+
     // Sign up for an event (stubbed out for now)
-    signUpForEvent(eventId) {
+    signUpForEvent(event) {
       // console.log(`Signed up for event with ID: ${eventId}`);
       // Additional logic for signing up for the event
-      this.$router.push({ name: "eventSignup", params: { eventId: eventId } });
+      this.$router.push({ name: "eventSignup", params: { eventId: event.eventId } });
+    },
+    showNotification(message, type) {
+      const notification = {
+        type: type,
+        message: message,
+        timestamp: new Date().toISOString(),
+        isVisible: true,
+      };
+      console.log('Dispatching notification:', notification);
+      this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
     },
   },
   props: ['id'],
