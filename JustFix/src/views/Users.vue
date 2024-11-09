@@ -17,7 +17,7 @@
           <tr v-for="user in users" :key="user.id">
             <td>{{ user.name }}</td>
             <td>{{ user.email }}</td>
-            <td>{{ user.userType }}</td>
+            <td>{{ user.userType === 'repairer' ? 'fixer' : user.userType }}</td>
             <td>{{ formatDate(user.createdAt) }}</td>
             <td>{{ formatDate(user.lastLogin) }}</td>
             <td>
