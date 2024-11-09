@@ -143,6 +143,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
     data() {
       return {
         form: {
+          userId:'',
           name: '',
           phone: '',
           email: "",
@@ -194,6 +195,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
             try {
                 const userDoc = await this.getUserDetails(uid);
                 if (userDoc) {
+                    this.form.userId = uid;
                     this.form.name = userDoc.name || this.form.name;
                     this.form.email = userDoc.email || this.form.email;
                 }
@@ -293,6 +295,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           
           // Prepare the form data
           const formData = {
+            userId: this.form.userId,
             name: this.form.name || "",
             phone: this.form.phone || "",
             email: this.form.email || "",
@@ -330,6 +333,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
 ,
       resetForm() {
       this.form = {
+        userId:'',
         name: "",
         phone: "",
         email: "",

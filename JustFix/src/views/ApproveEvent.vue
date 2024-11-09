@@ -5,26 +5,18 @@
       <p>No pending requests at the moment.</p>
     </div>
     <div class="row">
-      <div
-        v-for="event in getEventRequests"
-        :key="event.id"
-        class="col-lg-6 col-md-12 mb-4 d-flex align-items-stretch"
-      >
+      <div v-for="event in getEventRequests" :key="event.id" class="col-lg-6 col-md-12 mb-4 d-flex align-items-stretch">
         <div class="event-request p-4 rounded shadow-sm d-flex flex-column justify-content-between">
           <div class="image-container">
-            <img
-              v-if="event.imageUrl"
-              :src="event.imageUrl"
-              alt="Event Image"
-              class="event-image"
-            />
+            <img v-if="event.imageUrl" :src="event.imageUrl" alt="Event Image" class="event-image" />
           </div>
           <div class="event-details">
             <p><strong>Title:</strong> {{ event.title || "Untitled Event" }}</p>
             <p><strong>Name:</strong> {{ event.name || "No name provided" }}</p>
             <p><strong>Contact:</strong> {{ event.phone || "No contact provided" }}</p>
             <p><strong>Email:</strong> {{ event.email || "No email provided" }}</p>
-            <p><strong>Category:</strong> {{ event.category ? event.category.join(', ') : 'No categories specified' }}</p>
+            <p><strong>Category:</strong> {{ event.category ? event.category.join(', ') : 'No categories specified' }}
+            </p>
             <p><strong>Description:</strong> {{ event.description || "No description provided" }}</p>
             <p><strong>Event Date:</strong> {{ formatDate(event.eventDate) }}</p>
             <p><strong>Registration Deadline:</strong> {{ formatDate(event.registrationDeadline) }}</p>
@@ -46,7 +38,7 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import { db } from "../main";
-import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, arrayUnion } from "firebase/firestore";
 
 export default {
   computed: {
@@ -63,11 +55,13 @@ export default {
         const registrationDeadline = event.registrationDeadline && event.registrationDeadline.toDate ? event.registrationDeadline.toDate() : event.registrationDeadline;
 
         const eventsCollection = collection(db, "events");
-        await addDoc(eventsCollection, {
+        const docRef = await addDoc(eventsCollection, {
+          userId: event.userId,
           title: event.title || "Untitled Event",
           description: event.description || "No description provided.",
           eventDate: eventDate || new Date(),
           registrationDeadline: registrationDeadline || new Date(),
+          address: event.address || '',
           name: event.name || "No name provided",
           email: event.email || "No email provided",
           phone: event.phone || "No phone provided",
@@ -80,9 +74,29 @@ export default {
           createdAt: new Date()
         });
 
-        await updateDoc(doc(db, "eventRequest", event.id), { status: "approved" });
+        // await updateDoc(doc(db, "eventRequest", event.id), { status: "approved" });
         console.log(`Event "${event.title}" approved and added to events collection.`);
-        
+
+        const newEventId = docRef.id;
+
+        const userDocRef = doc(db, "users", event.userId); // Assuming `userId` is provided in the event object
+
+        // Create an event object with minimal data to store in the user's signedUpEvents array
+        const eventToSave = {
+          address: event.address,
+          eventId: newEventId,
+          title: event.title || "Untitled Event",
+          eventDate: event.eventDate || new Date(),
+          description: event.description || "No description provided.",
+          // Add other necessary fields as required, for example:
+          location: event.location || "Not provided"
+        };
+
+        // Step 4: Update the user's document to add the new event to their signedUpEvents array
+        await updateDoc(userDocRef, {
+          signedUpEvents: arrayUnion(eventToSave) // Add the new event to the array
+        });
+
         this.fetchEventRequests(); // Refresh the list to remove approved event from view
       } catch (error) {
         console.error("Error approving event:", error);
@@ -91,7 +105,7 @@ export default {
     async rejectEvent(id) {
       try {
         await updateDoc(doc(db, "eventRequest", id), { status: "rejected" });
-  
+
         this.fetchEventRequests(); // Refresh the list to remove rejected event from view
         console.log(`Event request with ID ${id} has been rejected.`);
       } catch (error) {
@@ -116,22 +130,27 @@ export default {
 
 .image-container {
   width: 100%;
-  height: 200px; /* Adjust the height as needed */
+  height: 200px;
+  /* Adjust the height as needed */
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
   border-radius: 8px;
   margin-bottom: 15px;
-  background-color: #f1f1f1; /* Optional: Adds a background color if images have transparent areas */
+  background-color: #f1f1f1;
+  /* Optional: Adds a background color if images have transparent areas */
 }
 
 .event-image {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Change to 'contain' to avoid cropping */
+  object-fit: contain;
+  /* Change to 'contain' to avoid cropping */
   object-position: center;
-};
+}
+
+;
 
 .event-details {
   text-align: left;
