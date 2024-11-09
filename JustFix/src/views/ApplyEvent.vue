@@ -14,11 +14,6 @@
             <label for="email">Email</label>
             <input type="email" id="email" v-model="form.email" placeholder="Enter your Email" class="form-control" required>
         </div>
-
-        <div class="mb-3">
-          <label for="phone">Contact Number</label>
-          <input type="text" id="phone" v-model="form.phone" placeholder="Enter your contact number" class="form-control" required />
-        </div>
         
         <div class="mb-3">
           <label for="category">Repair Category</label>
@@ -58,12 +53,6 @@
         <div class="mb-3">
           <label for="duration">Duration (hours)</label>
 s          <input type="number" v-model="form.duration" class="form-control" min="1" required />
-        </div>
-
-
-        <div class="mb-3">
-          <label for="price">Pricing ($)</label>
-          <input type="number" v-model="form.price" class="form-control" min="0" required />
         </div>
 
         <div class="mb-3">
@@ -114,10 +103,6 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           <img :src="form.imageUrl" alt="Event Image" />
         </div>
       </div>
-        <div class="mb-3">
-          <label for="additionalComments">Additional Comments (Optional)</label>
-          <textarea id="additionalComments" v-model="form.additionalComments" class="form-control" placeholder="Any additional information you'd like to share"></textarea>
-        </div>
 
         <div class="mb-3">
             <input class="form-check-input" type="checkbox" id="terms" v-model="form.agreeToTerms"/>
@@ -143,9 +128,8 @@ s          <input type="number" v-model="form.duration" class="form-control" min
     data() {
       return {
         form: {
-          userId:'',
+          uid:'',
           name: '',
-          phone: '',
           email: "",
           selectedCategories:[],
           otherChecked: false,
@@ -155,9 +139,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           eventDate: "",
           registrationDeadline:"",
           duration: "",
-          price: "",
           totalSlots: "",
-          additionalComments: "",
           locationType: "",
           locationDetails: "",
           agreeToTerms: false,
@@ -195,7 +177,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
             try {
                 const userDoc = await this.getUserDetails(uid);
                 if (userDoc) {
-                    this.form.userId = uid;
+                    this.form.uid = uid; // Store uid directly in this.form.uid
                     this.form.name = userDoc.name || this.form.name;
                     this.form.email = userDoc.email || this.form.email;
                 }
@@ -295,9 +277,8 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           
           // Prepare the form data
           const formData = {
-            userId: this.form.userId,
+            uid: this.form.uid, // Use uid directly here
             name: this.form.name || "",
-            phone: this.form.phone || "",
             email: this.form.email || "",
             category: cleanedCategories || [],
             title: this.form.title || "",
@@ -305,9 +286,10 @@ s          <input type="number" v-model="form.duration" class="form-control" min
             eventDate: this.form.eventDate ? new Date(this.form.eventDate) : null,
             registrationDeadline: this.form.registrationDeadline ? new Date(this.form.registrationDeadline) : null,
             duration: this.form.duration ? Number(this.form.duration) : 0,
-            price: this.form.price ? Number(this.form.price) : 0,
             totalSlots: this.form.totalSlots ? Number(this.form.totalSlots) : 0,
-            additionalComments: this.form.additionalComments || "",
+            locationName: this.form.locationName || "",
+            address: this.form.address || "",
+            coordinates: this.form.coordinates || {}, // Ensures coordinates are stored as an object with lat and lng
             imageUrl: imageUrl || "",
             submittedAt: new Date(),
             status: 'pending'
@@ -335,7 +317,6 @@ s          <input type="number" v-model="form.duration" class="form-control" min
       this.form = {
         userId:'',
         name: "",
-        phone: "",
         email: "",
         selectedCategories: [],
         otherChecked: false,
@@ -345,9 +326,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
         eventDate: "",
         registrationDeadline: "",
         duration: "",
-        price: "",
         totalSlots: "",
-        additionalComments: "",
         agreeToTerms: false,
         imageUrl: "",
       };
