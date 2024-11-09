@@ -6,6 +6,12 @@ import { useRouter } from 'vue-router';
 import quoteListPopup from './quoteListPopup.vue';
 import Cookies from 'js-cookie';
 import { onMounted } from 'vue';
+import { db } from "../plugins/firebaseManager";
+import { collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js";
+import { watch } from 'vue';
+import { useAttrs } from 'vue';
+
+const attrs = useAttrs(); // Access all attributes passed to the component
 
 // Load selected repairmen from localStorage when the component mounts
 onMounted(() => {
@@ -13,8 +19,8 @@ onMounted(() => {
     if (savedRepairmen) {
         selectedRepairmen.value = JSON.parse(savedRepairmen);
     }
+    fetchRatingsForRepairmen();
 });
-
 // Update localStorage whenever the selectedRepairmen changes
 const updateLocalStorage = () => {
     localStorage.setItem('selectedRepairmen', JSON.stringify(selectedRepairmen.value));
@@ -28,7 +34,7 @@ const toggleSelection = (repairmanId) => {
         selectedRepairmen.value.push(repairmanId);
     }
     updateLocalStorage(); // Save to localStorage
-    console.log("Selected repairmen:", selectedRepairmen.value);
+    // console.log("Selected repairmen:", selectedRepairmen.value);
 };
 
 const clearSelected = () => {
@@ -43,9 +49,10 @@ const props = defineProps({
         required: true
     },
     repairName: '',
-    repairerPic: ''
-});
+    repairerPic: '',
+    revieweeID: String, // Pass the revieweeID as a prop if needed
 
+});
 // Router instance
 const router = useRouter();
 
@@ -71,11 +78,10 @@ const openQuotesListPopup = () => {
     }
 };
 
-
-// Computed property to get full repairman objects based on selected IDs
 const selectedRepairmenDetails = computed(() => {
     return props.repairmen.filter(repairman => selectedRepairmen.value.includes(repairman.id));
 });
+
 
 const topSkills = (expertise) => expertise.slice(0, 3);
 
@@ -159,11 +165,69 @@ const navigateToProfile = (userId) => {
 const clearSelections = () => {
     selectedExpertise.value = [];
 };
+
+
+const repairmanRatings = ref({});
+
+
+async function fetchReviews(revieweeID) {
+    try {
+        // Query to get reviews for the specified revieweeID
+        const reviewsQuery = query(
+            collection(db, "reviews"),
+            where("revieweeID", "==", revieweeID)
+        );
+
+        const querySnapshot = await getDocs(reviewsQuery);
+        let totalRating = 0;
+        let reviewCount = 0;
+
+        // Map through documents to structure the reviews and calculate total ratings
+        const reviews = querySnapshot.docs.map((doc) => {
+            const data = doc.data();
+            totalRating += data.rating || 0;
+            reviewCount += 1;
+
+            return {
+                comments: data.comments || "",
+                createdAt: data.createdAt || "",
+                quoteId: data.quoteId || "",
+                rating: data.rating || 0,
+                revieweeID: data.revieweeID || "",
+                revieweeName: data.revieweeName || "",
+                reviewerID: data.reviewerID || "",
+                reviewerName: data.reviewerName || "",
+            };
+        });
+
+        // Calculate the average rating
+        const averageRating = reviewCount > 0 ? (totalRating / reviewCount).toFixed(2) : "New Fixer";
+        // console.log("avg rating: " + averageRating);
+        const totalReviews = reviews.length;
+
+        // Return both the reviews array and the average rating
+        return { reviews, averageRating, totalReviews };
+    } catch (error) {
+        console.error("Error fetching reviews:", error);
+        return { reviews: [], averageRating: "Error", totalReviews: "Error" };
+    }
+};
+const fetchRatingsForRepairmen = async () => {
+    for (const repairman of filteredRepairmen.value) {
+        const rating = await fetchReviews(repairman.id);
+        repairmanRatings.value[repairman.id] = rating;
+    }
+
+};
+
+watch(filteredRepairmen, async () => {
+    await fetchRatingsForRepairmen();
+}, { immediate: true });
 </script>
 
 <template>
     <!-- New Section for Selected Repairmen -->
-    <div v-if="selectedRepairmen.length > 0" class="selected-repairmen-section">
+    <div v-bind="attrs" v-if="selectedRepairmen.length > 0" class="selected-repairmen-section">
         <div class="container">
             <p class="section-title">Your Selected Repairmen</p>
             <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
@@ -192,7 +256,12 @@ const clearSelections = () => {
                     <div class="card-body text-start" data-aos="fade-up" data-aos-delay="200">
                         <h5 class="card-title" style="font-weight: bold;">{{ repairman.username || repairman.name }}
                         </h5>
-                        <p class="text-muted mb-1"><span class="star-icon">★</span> 5.0 (123)</p>
+                        <p class="text-muted mb-1">
+                            <span class="star-icon">★</span>
+                            {{ repairmanRatings[repairman.id]?.averageRating || "0" }}
+                            ({{ repairmanRatings[repairman.id]?.totalReviews || "0" }})
+                        </p>
+
                         <p class="card-description">{{ truncateDescription(repairman.description) }}</p>
                         <ul class="list-unstyled">
                             <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill"
@@ -237,17 +306,22 @@ const clearSelections = () => {
                 <div class="card text-center shadow-sm" style="padding: 0; border-radius: 20px;"
                     @click="navigateToProfile(repairman.id)"
                     :class="{ selected: selectedRepairmen.includes(repairman.id) }">
-                    <div class="card-header d-flex align-items-center"
+                    <div class="card-header d-flex align-items-center" v-if="userType === 'user'"
                         style="background-color: transparent; border: none;">
                         <input type="checkbox" class="custom-checkbox" @click.stop="toggleSelection(repairman.id)"
-                            :checked="isSelected(repairman.id)" v-if="userType === 'user'" style="margin-left: auto;" />
+                            :checked="isSelected(repairman.id)" style="margin-left: auto;" />
                     </div>
                     <img :src="repairman.profilePic || repairman.imageUrl || defaultProfilePic" class="card-img-top"
                         alt="Profile Picture" height="200px" style="object-fit: cover; border-radius: 20px;">
                     <div class="card-body text-start" data-aos="fade-up" data-aos-delay="200">
                         <h5 class="card-title" style="font-weight: bold;">{{ repairman.username || repairman.name }}
                         </h5>
-                        <p class="text-muted mb-1"><span class="star-icon">★</span> 5.0 (123)</p>
+                        <p class="text-muted mb-1">
+                            <span class="star-icon">★</span>
+                            {{ repairmanRatings[repairman.id]?.averageRating || "0" }}
+                            ({{ repairmanRatings[repairman.id]?.totalReviews || "0" }})
+                        </p>
+
                         <p class="card-description">{{ truncateDescription(repairman.description) }}</p>
                         <ul class="list-unstyled">
                             <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill"

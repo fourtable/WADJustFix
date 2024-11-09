@@ -6,27 +6,31 @@
       <div class="row">
         <!-- First Hero Box -->
         <div class="col-lg-6 col-md-6 col-sm-12 my-3">
-          <div class="hero-box light-blue animate__animated animate__fadeInLeft animate__delay-1s">
+          <div class="hero-box light-blue animate__animated  animate__delay-1s">
             <h1>Need Something Fixed?</h1>
             <p>Send your request now to your favorite repairer and watch the magic happen!</p>
             <a v-if="uid" class="button animate__animated animate__pulse" @click="openQuotesPopup">Create
               Request &rarr;</a>
-            <router-link v-else class="button animate__animated animate__pulse" :to="{ name: 'login' }">Create Request&rarr;</router-link>
+            <router-link v-else class="button animate__animated animate__pulse" :to="{ name: 'login' }">Create
+              Request&rarr;</router-link>
           </div>
         </div>
         <!-- Second and Third Hero Boxes -->
         <div class="col-lg-6 col-md-6 col-sm-12 my-3">
-          <div class="hero-box light-green animate__animated animate__fadeInLeft animate__delay-2s">
+          <div class="hero-box light-green animate__animated animate__delay-2s">
             <h2>Join Us As a Fixer!</h2>
             <p>Whether you're a repair hobbyist or a professional, we welcome you!</p>
             <router-link class="button" :to="{ name: 'register' }">Register Now &rarr;</router-link>
           </div>
-          <div class="col-12 hero-box dark-green mt-4 animate__animated animate__fadeInLeft animate__delay-3s">
+          <div class="col-12 hero-box dark-green mt-4 animate__animated animate__delay-3s">
             <h2>Discover Our Repair Events</h2>
             <p>Attend our events to learn DIY repair techniques or upskill as a fixer.</p>
             <router-link class="button" :to="{ name: 'event' }">Learn More &rarr;</router-link>
           </div>
         </div>
+
+        <!-- Leaderboard Section -->
+        <Leaderboard />
 
         <!-- Map Section -->
 
@@ -63,6 +67,8 @@ import RepairmenCards from "../components/repairmenCards.vue";
 import { mapActions } from 'vuex';
 import Cookies from 'js-cookie';
 import router from '../router/index.js';
+import Leaderboard from "../components/Leaderboard.vue";
+
 
 const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
 

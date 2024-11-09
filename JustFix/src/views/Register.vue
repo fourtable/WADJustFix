@@ -67,8 +67,10 @@
                                 <div v-if="formData.otherChecked">
                                     <label for="otherExpertise">Please specify your expertise</label>
                                     <div style="display: flex; align-items: center;">
+
                                         <input type="text" id="otherExpertise" v-model="formData.otherExpertiseInput"
-                                            class="form-control mb-3" placeholder="Enter your expertise" required />
+                                            class="form-control mb-3" placeholder="Enter your expertise" />
+
                                         <button type="button" @click="addCustomExpertise"
                                             style="margin-left: 10px;">✔️</button>
                                     </div>
@@ -95,7 +97,7 @@
 
                             <button type="submit" class="btn px-5 py-3 mb-2">Register</button>
                         </form>
-                        
+
                         <!-- User Registration Form -->
                         <form v-if="selectedType === 'user'" class="form-wrapper" style="width: 100%;"
                             @submit.prevent="submitUserForm">
@@ -151,7 +153,7 @@ export default {
 
                 expertise: [],
                 otherChecked: false,
-                otherExpertise: '',
+                otherExpertiseInput: '', // Use only this for the input field
                 businessLocation: {
                     address: '',
                     lat: null,
@@ -172,9 +174,10 @@ export default {
         };
     },
     watch: {
-        'formData.otherExpertise'(newExpertise) {
-            if (newExpertise && !this.formData.expertise.includes(newExpertise)) {
+        'formData.otherExpertiseInput'(newExpertise) {
+            if (newExpertise && this.isConfirmed && !this.formData.expertise.includes(newExpertise)) {
                 this.formData.expertise.push(newExpertise);
+                this.isConfirmed = false;
             }
         }
     },
@@ -184,16 +187,19 @@ export default {
         },
     },
     methods: {
+        confirmExpertise() {
+            // Set isConfirmed to true when the tick button is clicked
+            this.isConfirmed = true;
+        },
         toggleExpertise(expertise) {
             if (expertise === "Others") {
                 this.formData.otherChecked = !this.formData.otherChecked;
 
-                // Clear custom expertise if "Others" is unchecked
+                // Clear custom expertise input if "Others" is unchecked
                 if (!this.formData.otherChecked) {
-                    const index = this.formData.expertise.indexOf(this.formData.otherExpertise);
-                    if (index > -1) this.formData.expertise.splice(index, 1);
-                    this.formData.otherExpertise = '';
+                    this.formData.otherExpertiseInput = ''; // Clear the input field
                 }
+
             } else {
                 // Add or remove the selected expertise
                 const index = this.formData.expertise.indexOf(expertise);
@@ -205,24 +211,22 @@ export default {
             }
         },
         addCustomExpertise() {
-            console.log("addCustomExpertise called");
-
-            const expertiseInput = this.formData.otherExpertiseInput.trim();
-            if (expertiseInput) {
-                this.formData.expertise.push(expertiseInput);
-                this.formData.otherExpertiseInput = ''; // Clear the input field
-                this.showCustomInput = false; // Hide the input field
-                console.log('Input:', expertiseInput);
-                console.log('Expertise array before push:', this.formData.expertise);
+            const customExpertise = this.formData.otherExpertiseInput.trim();
+            if (!this.formData.expertise.includes(customExpertise)) {
+                this.formData.expertise.push(customExpertise);
+                this.formData.otherExpertiseInput = ''; // Clear input after adding
             }
         },
-        removeExpertise(index) {
-            this.formData.expertise.splice(index, 1);
+        removeExpertise(expertise) {
+            const index = this.formData.expertise.indexOf(expertise);
+            if (index > -1) {
+                this.formData.expertise.splice(index, 1);
 
-            // Uncheck "Others" checkbox if the removed item is the custom expertise
-            if (this.formData.expertise[index] === this.formData.otherExpertise) {
-                this.formData.otherChecked = false;
-                this.formData.otherExpertise = '';
+                // Uncheck "Others" checkbox if the removed item was custom expertise
+                if (expertise === this.formData.otherExpertiseInput) {
+                    this.formData.otherChecked = false;
+                    this.formData.otherExpertiseInput = '';
+                }
             }
         },
 
@@ -404,12 +408,14 @@ export default {
     .extra-fixer-margin {
         margin-top: 200px;
     }
-} 
+}
+
 @media (max-width: 996px) and (min-width: 768px) {
     .extra-fixer-margin {
         margin-top: 500px;
     }
 }
+
 @media (max-width: 767px) and (min-width: 400px) {
     .extra-fixer-margin {
         margin-top: 250px;
