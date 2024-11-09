@@ -1,6 +1,6 @@
 <template>
     <div class="container-box py-5" id="leaderboard">
-      <h2 class="text-center mb-5">Leaderboard</h2>
+      <h2 class="text-center mb-5"> {{ currentMonthName }} Leaderboard</h2>
   
       <!-- Podium Section for Top 3 Repairers -->
       <div class="podium text-center mb-5">
@@ -45,7 +45,7 @@
   </template>
   
   <script>
-  import { ref, onMounted } from "vue";
+  import { ref, onMounted, computed } from "vue";
   import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
   import { db } from "../main";
   import { useRouter } from "vue-router";
@@ -54,6 +54,12 @@
     setup() {
       const topRepairers = ref([]);
       const router = useRouter(); 
+
+      // Computed property to get the current month name
+      const currentMonthName = computed(() => {
+        const date = new Date();
+        return date.toLocaleString("default", { month: "long" });
+      });
   
       // Fetch monthly points and top repairers
       const fetchTopRepairers = async () => {
@@ -142,7 +148,7 @@
         fetchTopRepairers();
         });
   
-    return { topRepairers, navigateToProfile };
+    return { topRepairers, navigateToProfile, currentMonthName };
     },
   };
   </script>
