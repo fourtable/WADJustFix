@@ -27,15 +27,15 @@
 ---
 
 ### **Deployment**
-click on the following link below to access our cloud deployed app.
+Click on the following link below to access our cloud deployed app.
 https://wad-just-fix.vercel.app
 
 ### **Test User Credentials**
+Use the following test accounts to explore **JustFix**:
 
-Use the following test accounts to explore JustFix:
-
-Role	Email	Password
-Admin	admin@justfix.com	123456
-User	1234@gmail.com	123456
-Fixer	pepsi@gmail.com	123456
+| Role   | Email               | Password |
+|--------|---------------------|----------|
+| Admin  | admin@justfix.com    | 123456   |
+| User   | 1234@gmail.com       | 123456   |
+| Fixer  | pepsi@gmail.com      | 123456   |
 
