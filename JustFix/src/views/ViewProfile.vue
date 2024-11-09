@@ -82,23 +82,24 @@
 
         <!-- Upcoming Events Tab -->
         <div id="upcoming-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'upcoming-events'">
-          <h3>Upcoming Events</h3>
           <div v-if="upcomingEvents.length > 0" v-for="event in upcomingEvents" :key="event.id" class="event"
             >
             <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
-            <p class="event-description">{{ event.description }}</p>
+            <p class="event-description">{{ event.description + "" + event.organiserID }}</p>
+            <div v-if="event.organiserID === id" class="event-actions">
+              <<button class="btn btn-primary" ><router-link :to="{ name: 'EventSignees', params: {eventId: event.id} }" class="btn btn-success">Manage</router-link></button>>
+            </div>
           </div>
-          <div v-else class="no-events">No Saved Events</div>
+          <div v-else class="no-events">No Upcoming Events</div>
         </div>
 
         <!-- Past Events Tab -->
         <div id="past-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'past-events'" >
-          <h3>Past Events</h3>
           <div v-if="pastEvents.length > 0" v-for="event in pastEvents" :key="event.id" class="event" >
             <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
             <p class="event-description">{{ event.description }}</p>
           </div>
-          <div v-else class="no-events">No Saved Events</div>
+          <div v-else class="no-events">No Past Events</div>
         </div>
 
 
@@ -186,6 +187,7 @@ export default {
             this.userData = { ...fetchedData, reviews: [] };
             await this.fetchUserReviews(uid);
             await this.fetchSavedEvents(uid);
+            await this.fetchSignedUpEvents(uid);
         } else {
             console.error("No user data found!");
         }
@@ -213,6 +215,28 @@ export default {
         this.userData.reviews = reviews;
       } catch (error) {
         console.error("Error fetching reviews:", error);
+      }
+    },
+    async fetchSignedUpEvents(uid) {
+      try {
+        console.log("Fetching saved events...");
+        const userDocRef = doc(db, "users", uid); // Reference to the Firestore user document
+        const docSnap = await getDoc(userDocRef); // Fetch the document
+
+        if (docSnap.exists()) {
+          // Check if events exist in the document
+          const allEvents = docSnap.data().signedUpEvents || []; // Get all events or empty array if none exist
+          const today = new Date();
+
+          // Filter events where eventDate is after today
+          this.upcomingEvents = allEvents.filter(event => event.eventDate.toDate() > today);
+          this.pastEvents = allEvents.filter(event => event.eventDate.toDate() < today);
+          console.log("Fetched upcoming events:", this.upcomingEvents);
+        } else {
+          console.log("No such document found for this user.");
+        }
+      } catch (error) {
+        console.error("Error fetching saved events: ", error);
       }
     },
     async fetchSavedEvents(uid) {
@@ -469,7 +493,7 @@ export default {
   font-weight: bold;
 }
 
-#saved-events {
+#saved-events, #upcoming-events, #past-events {
   margin: 20px auto;
   padding: 20px;
   background-color: #f9f9f9;
