@@ -140,6 +140,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           registrationDeadline:"",
           duration: "",
           totalSlots: "",
+          vacantSlots: "", 
           locationType: "",
           locationDetails: "",
           agreeToTerms: false,
@@ -274,6 +275,8 @@ s          <input type="number" v-model="form.duration" class="form-control" min
                 console.error("Error uploading image:", error);
               });
           }
+
+          this.form.vacantSlots = this.form.totalSlots; 
           
           // Prepare the form data
           const formData = {
@@ -287,6 +290,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
             registrationDeadline: this.form.registrationDeadline ? new Date(this.form.registrationDeadline) : null,
             duration: this.form.duration ? Number(this.form.duration) : 0,
             totalSlots: this.form.totalSlots ? Number(this.form.totalSlots) : 0,
+            vacantSlots: this.form.vacantSlots ? Number(this.form.vacantSlots) : 0,
             locationName: this.form.locationName || "",
             address: this.form.address || "",
             coordinates: this.form.coordinates || {}, // Ensures coordinates are stored as an object with lat and lng
