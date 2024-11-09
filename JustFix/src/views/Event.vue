@@ -23,7 +23,7 @@
       </div>
 
       <!-- Price Filter -->
-      <div  class="filter-item col-12 col-md-6 col-lg-3">
+      <!-- <div  class="filter-item col-12 col-md-6 col-lg-3">
         <label class="filter-title fw-bold d-block mb-1 ">Price</label>
         <div class="d-flex align-items-center input-group">
             <input 
@@ -45,7 +45,7 @@
               min="0"
             >
         </div>
-      </div>
+      </div> -->
 
       <!-- Event Status Filter -->
       <div  class="filter-item col-12 col-md-6 col-lg-3">
@@ -103,7 +103,9 @@
         <div class="modal-content">
           <EventPopup
             :event="selectedEvent"
+            :user="currentUser"
             @close="closeModal"
+            @openEventSignup="navigateToSignup"
           />
         </div>
       </div>
@@ -177,7 +179,7 @@ export default {
     return {
       isModalVisible: false,
       selectedEvent: null,
-      priceRange: { min: null, max: null },
+      // priceRange: { min: null, max: null },
       selectedStatus: "all",
       selectedRegion: "all", // Set default to "all"
       startDate: null,
@@ -185,7 +187,12 @@ export default {
       userLocation: null,
       events: [], // Stores all events fetched from Firebase
       filteredEvents: [], // Stores events filtered based on selected criteria
-      imageUrl: ''
+      imageUrl: '',
+      currentUser: this.$store.state.user || {
+      uid: Cookies.get('uid') || sessionStorage.getItem('uid'),
+      email: Cookies.get('email') || sessionStorage.getItem('email'),
+      name: Cookies.get('username') || sessionStorage.getItem('username')
+    },
     };
   },
   computed: {
@@ -208,6 +215,22 @@ export default {
       this.isModalVisible = false;
       this.selectedEvent = null;
       document.body.style.overflow = 'auto'; // Restore scrolling
+    },
+    navigateToSignup({ event, user }) {
+      if (event && user) {
+      this.$store.commit('setEventData', event);
+      this.$store.commit('setUserData', user);
+
+      // Check if Vuex state has been updated
+      // console.log("Vuex eventData after commit:", event);
+      // console.log("Vuex userData after commit:",user);
+      sessionStorage.setItem('eventData', JSON.stringify(event));
+      sessionStorage.setItem('userData', JSON.stringify(user));
+
+      this.$router.push({ name: 'eventSignup', params: { eventId: event.id } });
+    } else {
+      console.warn("Event or User data is missing in navigateToSignup");
+    }
     },
     async fetchEvents() {
       // Fetch all events from Firestore
@@ -267,20 +290,20 @@ export default {
   },
     applyFilters() {
       console.log("Applying Filters:", {
-      priceRange: this.priceRange,
+      // priceRange: this.priceRange,
       selectedStatus: this.selectedStatus,
       region: this.selectedRegion,
       dates: { start: this.startDate, end: this.endDate }
    });
       // Filter based on price
       this.filteredEvents = this.events.filter(event => {
-        const matchesPrice = this.filterByPrice(event);
+        // const matchesPrice = this.filterByPrice(event);
         const matchesStatus = this.filterByStatus(event);
         const matchesRegion = this.filterByRegion(event);
         const matchesDate = this.filterByDateRange(event);
 
 
-        return matchesPrice && matchesStatus && matchesDate && matchesRegion;
+        return  matchesStatus && matchesDate && matchesRegion;
       });
       console.log("Filtered Events:", this.filteredEvents);
     },
@@ -292,8 +315,6 @@ export default {
     return eventPrice >= minPrice && eventPrice <= maxPrice;
     },
     filterByStatus(event) {
-      if (this.selectedStatus === "all") return true;
-
       const deadline = event.registrationDeadline;
       const now = new Date();
       const deadlineDate = deadline && typeof deadline.toDate === 'function' 
@@ -302,16 +323,19 @@ export default {
 
       if (!deadlineDate) return false;
 
-      if (this.selectedStatus === "Open") {
+      if (this.selectedStatus === "all") {
         return deadlineDate > now;
+      };
+      if (this.selectedStatus === "Open") {
+        const twoWeeksFromNow = new Date();
+        twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
+        return deadlineDate >= twoWeeksFromNow;
       }
-
       if (this.selectedStatus === "Closing Soon") {
         const twoWeeksFromNow = new Date();
         twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
         return deadlineDate <= twoWeeksFromNow && deadlineDate > now;
       }
-
       return false;
     },
     filterByRegion(event) {

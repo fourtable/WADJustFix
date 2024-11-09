@@ -12,7 +12,7 @@
             v-if="index < event.category.length - 1">, </span></span></p>
       <p>Event Date: {{ formattedEventDate }}</p>
       <p>Time: {{ formattedEventTime }}</p>
-      <p>Price: ${{ event.price }}</p>
+      <!-- <p>Price: ${{ event.price }}</p> -->
       <p>Location: {{ event.locationName }}</p>
       <p>Address: {{ event.address }}</p>
       <p>Vacant Slots: {{ event.vacantSlots }}</p>
@@ -43,9 +43,14 @@ export default {
       type: Object,
       required: true
     },
+    user: {
+      type: Object,
+      required: true,
+      default: null,
+    },
     isVisible: Boolean
   },
-  setup(props) {
+  setup(props, {emit}) {
     const router = useRouter();
     const auth = getAuth();
     const store = useStore();// Access the Vuex store
@@ -112,7 +117,8 @@ export default {
         const existingEvents = docSnap.data().savedEvents || [];
         const eventExists = existingEvents.some(event =>
           event.title === newEvent.title &&
-          event.date === newEvent.date &&
+          event.date.seconds === newEvent.date.seconds &&
+          event.date.nanoseconds === newEvent.date.nanoseconds &&
           event.description === newEvent.description
         );
 
@@ -144,8 +150,38 @@ export default {
           // Store current path for redirect after login
           sessionStorage.setItem('intendedPath', '/EventSignup');
           router.push('/login');
-      } else {
-        router.push({ name: 'eventSignup', params: { event: props.event} });
+      } 
+      try {
+        const userDocRef = doc(db, 'users', uid);
+        const userSnap = await getDoc(userDocRef);
+        
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          const existingEvents = userData.signedUpEvents || [];
+          console.log(existingEvents);
+          console.log("Current event ID:", props.event.id);
+          const alreadySignedUp = existingEvents.some(event => event.eventId === props.event.Id);
+          
+          // Check if user is already signed up for this event
+          if (alreadySignedUp) {
+            alert('You have already signed up for this event.');
+            return;
+          }
+          // Step 3: Check if user has 5 or more upcoming events
+          const upcomingEvents = existingEvents.filter(event => {
+            const eventDate = event.eventDate.toDate();
+            return eventDate > new Date();
+          });
+          if (upcomingEvents.length >= 5) {
+            alert('You have reached the limit of 5 upcoming events.');
+            return;
+          }
+        }
+        // Step 5: Proceed to EventSignup.vue if checks pass
+        emit("openEventSignup", { event: props.event, user: props.user });
+        
+      } catch (error) {
+        console.error("Error in signup logic:", error);
       }
     };
 
@@ -174,6 +210,13 @@ export default {
     };
   },
   computed: {
+    currentUser() {
+      return this.user || {
+        uid: Cookies.get('uid') || sessionStorage.getItem('uid'),
+        email: Cookies.get('email') || sessionStorage.getItem('email'),
+        name: Cookies.get('username') || sessionStorage.getItem('username')
+      };
+    },
     // Convert Firebase Timestamp to readable date string for eventDate
     formattedEventDate() {
       const date = this.convertTimestampToDate(this.event.eventDate);
