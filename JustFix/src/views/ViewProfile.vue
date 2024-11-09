@@ -10,7 +10,7 @@
       <!-- Profile Details for Repairers -->
       <div class="profile-details" v-if="userData.userType === 'repairer'">
         <h2 class="profile-name">{{ userData.name }}</h2>
-        <p class="skill-level">Skill Level: {{ calculateSkillLevel(userData.experience) }}</p>
+        <!-- <p class="skill-level">Skill Level: {{ calculateSkillLevel(userData.experience) }}</p> -->
         <h4 v-if="userData.expertise && userData.expertise.length">Areas of Expertise:</h4>
         <div v-if="userData.expertise && userData.expertise.length">
           <span v-for="expertise in userData.expertise" :key="expertise" class="expertise-badge">
