@@ -74,10 +74,11 @@
     },
     async created() {
         // Auto-populate form with user data
-        if (this.userData) {
-          this.form.name = this.userData.name || "";
-          this.form.email = this.userData.email || "";
-        } else {
+        // if (this.userData) {
+          // this.form.name = this.userData.name || "";
+          // console.log(this.userData);
+          // this.form.email = this.userData.email || "";
+        // } else {
           // Fallback: Retrieve from session storage or cookies
           const username = sessionStorage.getItem('username') || Cookies.get('username');
           const userEmail = sessionStorage.getItem('email') || Cookies.get('email');
@@ -97,7 +98,7 @@
               console.error("Error fetching user details:", error);
             }
           }
-        }
+        
         console.log("Event data in EventSignup.vue after fallback:", this.eventData);
         console.log("User data in EventSignup.vue after fallback:", this.userData);
     },
@@ -121,14 +122,14 @@
           return;
         }
        // Fallback to session storage if `user` data is not in Vuex
-      const uid = this.user?.uid || sessionStorage.getItem('uid');
+      const uid = this.user?.uid || sessionStorage.getItem('uid') || Cookies.get('uid');
       if (!uid) {
         alert("User data not available. Please log in.");
         return;
       }
 
       // Proceed with the existing submit logic
-      const eventId = this.eventData.id;
+      const eventId = this.eventData.eventId;
         try {
           const userDocRef = doc(db, "users", uid);
           const userDocSnap = await getDoc(userDocRef);
@@ -158,6 +159,8 @@
             // vacantSlots: this.event.vacantSlots,
             // totalSlots: this.event.totalSlots,
           };
+
+          console.log(eventToSave);
 
           if (userDocSnap.exists()) {
             const userData = userDocSnap.data();
