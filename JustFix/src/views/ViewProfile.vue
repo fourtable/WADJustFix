@@ -85,9 +85,9 @@
           <div v-if="upcomingEvents.length > 0" v-for="event in upcomingEvents" :key="event.id" class="event"
             >
             <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
-            <p class="event-description">{{ event.description + "" + event.organiserID }}</p>
-            <div v-if="event.organiserID === id" class="event-actions">
-              <<button class="btn btn-primary" ><router-link :to="{ name: 'EventSignees', params: {eventId: event.id} }" class="btn btn-success">Manage</router-link></button>>
+            <p class="event-description">{{ event.description }}</p>
+            <div v-if="event.organiserId === id" class="event-actions">
+              <button class="btn btn-primary" @click="goToEventSignees(event.eventId)">Manage</button>
             </div>
           </div>
           <div v-else class="no-events">No Upcoming Events</div>
@@ -196,7 +196,7 @@ export default {
     } finally {
         this.loading = false; // End loading
     }
-},
+    },
     async fetchUserReviews(uid) {
       try {
         console.log("Fetched reviews:", this.userData.reviews);
@@ -303,6 +303,9 @@ export default {
       this.openPopup = false;
       this.confirmEventId = null;
     },
+    goToEventSignees(eventId) {
+      this.$router.push({ name: 'eventSignees', query: { eventId: eventId } });
+    },
     // Remove the event if user confirms
     async removeEvent(eventId) {
       try {
@@ -350,7 +353,7 @@ export default {
     signUpForEvent(event) {
       // console.log(`Signed up for event with ID: ${eventId}`);
       // Additional logic for signing up for the event
-      this.$router.push({ name: "eventSignup", params: { eventId: event.eventId } });
+      this.$router.push({ name: "EventSignees", params: { eventId: event.eventId } });
     },
     showNotification(message, type) {
       const notification = {

@@ -106,9 +106,9 @@ const routes = [
         component: Leaderboard
     },
     {
-        path: '/manageEvent/:eventid',
-        name: 'EventSignees',
-        component: EventSignees
+        path: '/eventSignees',
+        name: 'eventSignees',
+        component: EventSignees,
     },
 
 

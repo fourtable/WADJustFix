@@ -160,7 +160,7 @@ export default {
           locationName: this.eventData.locationName,
           address: this.eventData.address,
           duration: this.eventData.duration,
-          organiserId: this.eventData.organiserId,
+          createdAt: new Date(),
           // vacantSlots: this.event.vacantSlots,
           // totalSlots: this.event.totalSlots,
         };
