@@ -3,6 +3,7 @@
       <h2 class="text-center mb-5"> {{ currentMonthName }} Leaderboard</h2>
   
       <!-- Podium Section for Top 3 Repairers -->
+      <div class="podium-spacer"></div>
       <div class="podium text-center mb-5">
         <div class="podium-place second-place" v-if="topRepairers.length > 1">
           <!-- <div class="podium-item"> -->
@@ -34,11 +35,13 @@
   
       <!-- Leaderboard Table for Remaining Top Repairers -->
       <div class="leaderboard-list">
-        <div v-for="(repairer, index) in topRepairers.slice(3)" :key="repairer.UID" class="leaderboard-item">
+        <div v-for="(repairer, index) in topRepairers.slice(3)" :key="repairer.UID" class="leaderboard-item card" @click="navigateToProfile(repairer.UID)">
           <div class="rank">{{ index + 4 }}</div>
-          <img :src="repairer.profilePicURL" alt="Profile Picture" class="profile-pic" @click="navigateToProfile(repairer.UID)">
-          <div class="name">{{ repairer.displayName }}</div>
-          <div class="points">{{ repairer.monthlyPoints }} Points</div>
+          <img :src="repairer.profilePicURL" alt="Profile Picture" class="list-profile-pic">
+          <div class="user-info">
+            <div class="user-info-name">{{ repairer.displayName }} </div>
+            <div class="user-info-points">{{ repairer.monthlyPoints }} Points</div>
+          </div>
         </div>
       </div>
     </div>
@@ -155,12 +158,22 @@
   
   <style scoped>
   .container-box {
+    min-height: 100vh;
     max-width: 98%;
     margin: auto;
     border: 2px solid #ddd;
     border-radius: 10px;
-    padding: 20px;
+    padding: 60px 20px 20px;
     background-color: #e0e4e8;
+    overflow: hidden;
+  }
+
+  .podium-spacer {
+  height: 2px; /* Adjust height as needed to provide enough space */
+  }
+
+  #leaderboard h2 {
+    margin-bottom: 30px; /* Increase top margin */
   }
   
   .podium {
@@ -168,22 +181,25 @@
     justify-content: center;
     align-items: flex-end;
     gap: 20px;
+    margin-top: 60px;
   }
 
   .podium-place{
     /* text-align: center;
     position: relative; */
     position: relative;
-    width: 100px;
+    width: 150px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    padding-top: 60px;
-    padding-bottom: 20px;
+    padding-top: 70px;
+    padding-bottom: 30px;
     border-radius: 10px;
     color: #fff;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    border: 3px solid #888; /* Add border to all podium places */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Add animation */
   }
   
   /* .podium-item {
@@ -193,43 +209,62 @@
   
   .first-place {
     background-color: gold;
-    height: 200px;
-    width: 130px;
+    height: 250px;
+    width: 150px;
     z-index: 3;
+    border: 3px solid #e6ac00;
+    animation: glow 1.5s infinite alternate; /* Glowing effect for first place */
   }
 
   .second-place {
     background-color: #b0b0b0;
-    height: 170px;
-    width: 130px;
+    height: 220px;
+    width: 150px;
     z-index: 2;
-    border: 2px solid #888;
+    border: 3px solid #888;
   }
 
   .third-place {
     background-color: #cd7f32;
-    height: 150px;
-    width: 130px;
+    height: 200px;
+    width: 150px;
     z-index: 1;
+    border: 3px solid #8b5a2b;
   }
   
   .crown-icon {
-    font-size: 30px;
+    font-size: 35px;
     position: absolute;
-    top: -70px;
+    top: -80px;
     /* left: 50%;
     transform: translateX(-50%); */
   }
   
   .profile-pic {
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 90px;
     border-radius: 50%;
     object-fit: cover;
     position: absolute;
     top: -40px;
     border: 3px solid #fff;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Bounce animation on hover for podium places */
+  .podium-place:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Glowing effect for first place */
+  @keyframes glow {
+    0% {
+      box-shadow: 0 0 10px rgba(255, 223, 0, 0.8), 0 0 20px rgba(255, 223, 0, 0.6);
+    }
+    100% {
+      box-shadow: 0 0 20px rgba(255, 223, 0, 1), 0 0 30px rgba(255, 223, 0, 0.8);
+    }
   }
   
   .place {
@@ -252,28 +287,64 @@
     font-weight: bold;
   } */
   
-  .name {
+  .user-info-name {
     font-size: 1rem;
+    margin-right: 10px;
   }
   
-  .points {
+  .user-info-points {
+    /* margin-left: 10px; */
     color: #333;
   }
   
   .leaderboard-list {
     margin-top: 30px;
+    overflow-y: auto;
+    max-height: 80vh;
   }
   
-  .leaderboard-item {
+  .leaderboard-item.card {
     display: flex;
+    flex-direction: row;
     align-items: center;
     margin-bottom: 15px;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .leaderboard-item.card:hover {
+    transform: translateY(-5px) scale(1.03); /* Slight bounce on hover */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    /* Adds some space between the name and points */
+    /* margin-left: 15px; */
   }
   
   .rank {
     font-size: 1.5rem;
     font-weight: bold;
     margin-right: 15px;
+  }
+
+  .list-profile-pic {
+  width: 50px; /* Adjust as needed */
+  height: 50px; /* Adjust as needed */
+  border-radius: 50%;
+  object-fit: cover;
+  margin-top: 10px;
+  margin-right: 15px; /* Space between image and name */
+  border: 2px solid #fff; /* Optional border */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Optional shadow */
   }
   
   </style>
