@@ -32,7 +32,7 @@ const toggleSelection = (repairmanId) => {
         selectedRepairmen.value.push(repairmanId);
     }
     updateLocalStorage(); // Save to localStorage
-    console.log("Selected repairmen:", selectedRepairmen.value);
+    // console.log("Selected repairmen:", selectedRepairmen.value);
 };
 
 const clearSelected = () => {
@@ -79,8 +79,9 @@ const openQuotesListPopup = () => {
 
 // Computed property to get full repairman objects based on selected IDs
 const selectedRepairmenDetails = computed(() => {
-    return props.repairmen.filter(repairman => filteredRepairmen.value.includes(repairman.id));
+    return props.repairmen.filter(repairman => selectedRepairmen.value.includes(repairman.id));
 });
+
 
 const topSkills = (expertise) => expertise.slice(0, 3);
 
@@ -201,7 +202,7 @@ async function fetchReviews(revieweeID) {
 
         // Calculate the average rating
         const averageRating = reviewCount > 0 ? (totalRating / reviewCount).toFixed(2) : "New Fixer";
-        console.log("avg rating: " + averageRating);
+        // console.log("avg rating: " + averageRating);
         const totalReviews = reviews.length;
 
         // Return both the reviews array and the average rating
@@ -255,9 +256,12 @@ watch(filteredRepairmen, async () => {
                     <div class="card-body text-start" data-aos="fade-up" data-aos-delay="200">
                         <h5 class="card-title" style="font-weight: bold;">{{ repairman.username || repairman.name }}
                         </h5>
-                        <p class="text-muted mb-1"><span class="star-icon">★</span><span>{{ averageRating }}</span>
-                            <!-- Display the average rating here -->
+                        <p class="text-muted mb-1">
+                            <span class="star-icon">★</span>
+                            {{ repairmanRatings[repairman.id]?.averageRating || "0" }}
+                            ({{ repairmanRatings[repairman.id]?.totalReviews || "0" }})
                         </p>
+
                         <p class="card-description">{{ truncateDescription(repairman.description) }}</p>
                         <ul class="list-unstyled">
                             <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill"
@@ -312,9 +316,12 @@ watch(filteredRepairmen, async () => {
                     <div class="card-body text-start" data-aos="fade-up" data-aos-delay="200">
                         <h5 class="card-title" style="font-weight: bold;">{{ repairman.username || repairman.name }}
                         </h5>
-                        <p class="text-muted mb-1"><span class="star-icon">★</span> {{
-                            repairmanRatings[repairman.id].averageRating }}
-                            ({{ repairmanRatings[repairman.id].totalReviews }}) </p>
+                        <p class="text-muted mb-1">
+                            <span class="star-icon">★</span>
+                            {{ repairmanRatings[repairman.id]?.averageRating || "0" }}
+                            ({{ repairmanRatings[repairman.id]?.totalReviews || "0" }})
+                        </p>
+
                         <p class="card-description">{{ truncateDescription(repairman.description) }}</p>
                         <ul class="list-unstyled">
                             <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill"
