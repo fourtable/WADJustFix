@@ -149,7 +149,7 @@
   
   <style scoped>
   .container-box {
-    max-width: 800px;
+    max-width: 98%;
     margin: auto;
     border: 2px solid #ddd;
     border-radius: 10px;
