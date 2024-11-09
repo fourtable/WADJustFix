@@ -12,7 +12,6 @@
             v-if="index < event.category.length - 1">, </span></span></p>
       <p>Event Date: {{ formattedEventDate }}</p>
       <p>Time: {{ formattedEventTime }}</p>
-      <!-- <p>Price: ${{ event.price }}</p> -->
       <p>Location: {{ event.locationName }}</p>
       <p>Address: {{ event.address }}</p>
       <p>Vacant Slots: {{ event.vacantSlots }}</p>
@@ -21,7 +20,7 @@
       <!-- More event details as needed -->
       <div class="d-flex justify-content-between mt-3" v-if="userType !== 'admin'">
         <button class="btn" @click="handleSaveClick">Save Event</button>
-        <button class="btn" @click="handleSignupClick">Sign Up!</button>
+        <button class="btn" @click="handleSignupClick" v-if="!isSignedUp">Sign Up!</button>
       </div>
 
     </div>
@@ -47,6 +46,10 @@ export default {
       type: Object,
       required: true,
       default: null,
+    },
+    signedUpEventIds: {
+      type: Array,
+      default: () => []
     },
     isVisible: Boolean
   },
@@ -216,6 +219,9 @@ export default {
     };
   },
   computed: {
+    isSignedUp() {
+      return this.signedUpEventIds.includes(this.event.id); // Check if the event ID is in signedUpEventIds
+    },
     currentUser() {
       return this.user || {
         uid: Cookies.get('uid') || sessionStorage.getItem('uid'),

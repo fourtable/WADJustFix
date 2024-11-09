@@ -8,9 +8,12 @@
       <p class="card-text">Registration Deadline: {{ formattedRegistrationDeadline }}</p>
       <p class="card-text">Event Date: {{ formattedEventDate }}</p>
       <p class="card-text">Time: {{ formattedEventTime }}</p>
-      <span class="badge" :class="badgeClass">
-        {{ badgeText }}
-      </span>
+      <div class="badge-container">
+        <span class="badge" :class="badgeClass">
+          {{ badgeText }}
+        </span>
+        <span v-if="isSignedUp" class="badge badge-secondary">Signed Up</span>
+      </div>
     </div>
   </div>
 </template>
@@ -23,9 +26,17 @@ export default {
     event: {
       type: Object,
       required: true
+    },
+    signedUpEventIds: {
+      type: Array,
+      default: () => []
     }
   },
   computed: {
+    isSignedUp() {
+      console.log(this.event.id);
+      return this.signedUpEventIds.includes(this.event.id);
+    },
     // Convert Firebase Timestamp to readable date string for registrationDeadline
     formattedEventDate() {
       const date = this.convertTimestampToDate(this.event.eventDate);
@@ -69,21 +80,10 @@ export default {
     const twoWeeksLater = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days from now
     return deadlineDate <= twoWeeksLater && deadlineDate > today;
   },
-    
-    // Check if the event is closed (past registration deadline)
-    isClosed() {
-      const today = new Date();
-      const deadline = this.event.registrationDeadline;
-      const deadlineDate = deadline && typeof deadline.toDate === 'function' ? deadline.toDate() : deadline;
-
-      return today > deadlineDate;
-    },
     badgeText() {
-      if (this.isClosed) return "Closed";
       return this.isClosingSoon ? "Closing soon" : "Open";
     },
     badgeClass() {
-      if (this.isClosed) return "badge-secondary";
       return this.isClosingSoon ? "badge-danger" : "badge-success";
     },
     uid(){
@@ -156,5 +156,12 @@ h5{
 .badge-secondary {
   background-color: #6c757d;
   color: white;
+}
+.badge-container {
+  display: flex;
+  align-items: center; /* Center vertically if badges have different heights */
+}
+.badge:not(:last-child) {
+  margin-right: 50px; /* Adjust as needed for spacing */
 }
 </style>

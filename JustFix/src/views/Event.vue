@@ -22,31 +22,6 @@
         </select>
       </div>
 
-      <!-- Price Filter -->
-      <!-- <div  class="filter-item col-12 col-md-6 col-lg-3">
-        <label class="filter-title fw-bold d-block mb-1 ">Price</label>
-        <div class="d-flex align-items-center input-group">
-            <input 
-              type="number" 
-              class="form-control"
-              v-model="priceRange.min"
-              placeholder="Min Price"
-              min="0"
-               @input="applyFilters"
-            >
-            <span class="input-group-text">to</span>
-            <input 
-              type="number" 
-              class="form-control"
-              v-model="priceRange.max"
-              placeholder="Max Price"
-              :min="priceRange.min"
-              @input="applyFilters"
-              min="0"
-            >
-        </div>
-      </div> -->
-
       <!-- Event Status Filter -->
       <div  class="filter-item col-12 col-md-6 col-lg-3">
         <label class="filter-title fw-bold d-block mb-1">Event Status:</label>
@@ -93,7 +68,7 @@
         :key="event.id" 
         class="col-12 col-sm-6 col-md-4 col-lg-3 d-flex justify-content-center mb-4"
       >
-        <EventCard :event="event" @cardClicked="openModal(event)"/>
+        <EventCard :event="event" :signedUpEventIds="signedUpEventIds" @cardClicked="openModal(event)"/>
       </div>
     </div>
 
@@ -104,6 +79,7 @@
           <EventPopup
             :event="selectedEvent"
             :user="currentUser"
+            :signedUpEventIds="signedUpEventIds" 
             @close="closeModal"
             @openEventSignup="navigateToSignup"
           />
@@ -124,14 +100,13 @@
 
 <script>
 import { db,storage } from "../main"; // Import your Firebase instance
-import { collection, getDocs, updateDoc } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, getDoc } from "firebase/firestore";
 import EventCard from "../components/eventCard.vue";
 import EventPopup from '../components/eventPopup.vue';
 import { useRouter } from 'vue-router';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ref, onMounted } from 'vue';
 import Cookies from 'js-cookie';
-import { ref as storageRef, getDownloadURL, uploadBytes } from "firebase/storage";
 
 export default {
   components: {
@@ -144,7 +119,7 @@ export default {
 
     // Define a reactive variable to store login status
     const isLoggedIn = ref(false);
-     // Check authentication state using both Firebase and stored credentials
+    // Check authentication state using both Firebase and stored credentials
     const checkAuthState = () => {
       const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
       const firebaseUser = auth.currentUser;
@@ -179,7 +154,6 @@ export default {
     return {
       isModalVisible: false,
       selectedEvent: null,
-      // priceRange: { min: null, max: null },
       selectedStatus: "all",
       selectedRegion: "all", // Set default to "all"
       startDate: null,
@@ -187,11 +161,11 @@ export default {
       userLocation: null,
       events: [], // Stores all events fetched from Firebase
       filteredEvents: [], // Stores events filtered based on selected criteria
-      imageUrl: '',
       currentUser: this.$store.state.user || {
       uid: Cookies.get('uid') || sessionStorage.getItem('uid'),
       email: Cookies.get('email') || sessionStorage.getItem('email'),
-      name: Cookies.get('username') || sessionStorage.getItem('username')
+      name: Cookies.get('username') || sessionStorage.getItem('username'),
+      signedUpEventIds: [], // List of event IDs the user is signed up for
     },
     };
   },
@@ -203,9 +177,26 @@ export default {
   },
   async mounted() {
     await this.fetchEvents();
+    await this.fetchSignedUpEvents();
     await this.applyFilters();
+  
   },
   methods: {
+    async fetchSignedUpEvents() {
+      try{
+    const userId = this.currentUser.uid; // Ensure user is logged in
+    console.log(userId);
+    if (userId) {
+      const userDocRef = doc(db, "users", userId);
+      const userDoc = await getDoc(userDocRef);
+      const signedUpEvents = userDoc.exists() ? userDoc.data().signedUpEvents || [] : [];
+      this.signedUpEventIds = signedUpEvents.map(event => event.eventId);
+      console.log('signed up events id', this.signedUpEventIds)
+    }
+    }  catch (error) {
+    console.error("Error fetching signed-up events:", error);
+  }
+  },
     openModal(event) {
       this.selectedEvent = { ...event };
       this.isModalVisible = true;
@@ -221,9 +212,6 @@ export default {
       this.$store.commit('setEventData', event);
       this.$store.commit('setUserData', user);
 
-      // Check if Vuex state has been updated
-      // console.log("Vuex eventData after commit:", event);
-      // console.log("Vuex userData after commit:",user);
       sessionStorage.setItem('eventData', JSON.stringify(event));
       sessionStorage.setItem('userData', JSON.stringify(user));
 
@@ -290,29 +278,21 @@ export default {
   },
     applyFilters() {
       console.log("Applying Filters:", {
-      // priceRange: this.priceRange,
       selectedStatus: this.selectedStatus,
       region: this.selectedRegion,
       dates: { start: this.startDate, end: this.endDate }
-   });
+      });
       // Filter based on price
       this.filteredEvents = this.events.filter(event => {
-        // const matchesPrice = this.filterByPrice(event);
+        const hasVacantSlots = event.vacantSlots > 0; // Check if event has vacant slots
         const matchesStatus = this.filterByStatus(event);
         const matchesRegion = this.filterByRegion(event);
         const matchesDate = this.filterByDateRange(event);
 
 
-        return  matchesStatus && matchesDate && matchesRegion;
+        return  hasVacantSlots && matchesStatus && matchesDate && matchesRegion;
       });
       console.log("Filtered Events:", this.filteredEvents);
-    },
-    filterByPrice(event) {
-    const minPrice = this.priceRange.min || 0;
-    const maxPrice = this.priceRange.max || Infinity;
-    const eventPrice = Number(event.price) || 0;
-     
-    return eventPrice >= minPrice && eventPrice <= maxPrice;
     },
     filterByStatus(event) {
       const deadline = event.registrationDeadline;
