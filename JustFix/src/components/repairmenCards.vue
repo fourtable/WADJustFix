@@ -9,7 +9,9 @@ import { onMounted } from 'vue';
 import { db } from "../plugins/firebaseManager";
 import { collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js";
 import { watch } from 'vue';
+import { useAttrs } from 'vue';
 
+const attrs = useAttrs(); // Access all attributes passed to the component
 
 // Load selected repairmen from localStorage when the component mounts
 onMounted(() => {
@@ -227,7 +229,7 @@ watch(filteredRepairmen, async () => {
 
 <template>
     <!-- New Section for Selected Repairmen -->
-    <div v-if="selectedRepairmen.length > 0" class="selected-repairmen-section">
+    <div v-bind="attrs" v-if="selectedRepairmen.length > 0" class="selected-repairmen-section">
         <div class="container">
             <p class="section-title">Your Selected Repairmen</p>
             <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
