@@ -1,7 +1,7 @@
 <template>
   <div class="container-fluid p-5 mt-4">
     <!-- Header Section -->
-    <h1 class="mb-4">Explore our events!</h1>
+    <h1 class="mb-4 mt-3">Explore our events!</h1>
     <p class="subheader">Upskill, learn DIY skills, and become a better fixer!</p>
     <!-- Filters Section -->
     <div class="d-flex align-items-center flex-wrap gap-4 mb-4">
