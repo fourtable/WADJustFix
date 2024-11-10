@@ -66,7 +66,7 @@
       <div class="tab-content pb-5">
         <!-- Reviews Tab -->
         <div id="reviews" class="tab" v-show="activeTab === 'reviews'" style="padding:30px;">
-          <p style="font-size:30px; font-weight:300; ">Ratings: {{ averageRating || 'N/A' }} / 5 ⭐</p>
+          <p style="font-size:30px; font-weight:300; ">Ratings: {{ averageRating || 'N/A' }} / 5.0 ⭐</p>
           <div v-if="userData.reviews && userData.reviews.length">
             <div v-for="review in userData.reviews" :key="review.id" class="review">
               <div class="review-header">
