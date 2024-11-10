@@ -15,7 +15,10 @@
           <span class="trophy-icon">🏆</span>
           <p class="total-points">{{ totalPoints }}</p>
           <p>Total Points</p>
-          <button class="btn" @click="redeemPoints">Redeem Rewards</button>
+          <div class="button-container">
+            <button class="btn" @click="redeemPoints">Redeem Rewards</button>
+            <button class="btn" @click="viewTransactionLog">View Points History</button>
+          </div>
         </div>
       </div>
     </div>
@@ -80,7 +83,10 @@ export default {
     let pointsData = ref(Array(12).fill(0)); // Initialize with 12 months of 0 points
     const username = ref("");
     const chartLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
+    
+    const viewTransactionLog = () => {
+    router.push({ name: 'transactionLog' }); // Replace with the route name for the transaction log page
+    };
     const redeemPoints = () => {
       router.push({ name: 'redeem' }); // Navigate to the Redeem route
     };
@@ -163,7 +169,7 @@ export default {
       // Cleanup subscription on component unmount
       return () => unsubscribe();
     });
-    return { redeemPoints, joinEvents, leaveReview, sendRequest, chartLabels, totalPoints, pointsData };
+    return { redeemPoints, joinEvents, leaveReview, sendRequest, chartLabels, totalPoints, pointsData, viewTransactionLog };
   },
   methods: {
     // redeemPoints() {
@@ -239,11 +245,23 @@ export default {
   text-align: center; // Centers text within the box
 }
 
-.btn {
-  width: fit-content;
+.button-container {
+  display: flex;
+  flex-direction: row;
+  gap: 10px; /* Adjust spacing between buttons */
+  justify-content: center; /* Center buttons within the container */
   margin-top: 1rem;
+  width: 100%;
+}
+
+.btn {
+  // width: fit-content;
+  // margin-top: 1rem;
+  flex: 1;
+  padding: 10px 0;
   color: white;
   background-color: black;
+  text-align: center;
 }
 
 .btn:hover {
