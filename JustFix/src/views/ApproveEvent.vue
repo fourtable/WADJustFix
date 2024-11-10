@@ -21,7 +21,7 @@
             <p><strong>Event Date:</strong> {{ formatDate(event.eventDate) }}</p>
             <p><strong>Registration Deadline:</strong> {{ formatDate(event.registrationDeadline) }}</p>
             <p><strong>Duration:</strong> {{ event.duration || "Duration not specified" }} hours</p>
-            <p><strong>Price:</strong> ${{ event.price || 0 }}</p>
+            <!-- <p><strong>Price:</strong> ${{ event.price || 0 }}</p> -->
             <p><strong>Total Slots:</strong> {{ event.totalSlots || 0 }}</p>
             <p><strong>Status:</strong> {{ event.status || "pending" }}</p>
           </div>
@@ -63,6 +63,7 @@ export default {
           eventDate: eventDate || new Date(),
           registrationDeadline: registrationDeadline || new Date(),
           address: event.address || '',
+          locationName: event.locationName || '',
           name: event.name || "No name provided",
           email: event.email || "No email provided",
           category: event.category || [], // Ensure it matches the Firebase data structure
@@ -77,9 +78,9 @@ export default {
         await updateDoc(doc(db, "eventRequest", event.id), { status: "approved" });
         console.log(`Event "${event.title}" approved and added to events collection.`);
 
-        const newEventId = 'uqMHmH0RZbUj7ZNKlM02';
+        const newEventId = docRef.id;
 
-        const userDocRef = doc(db, "users", 'OxkuOPkzMeZAdrs59tqy01GyEEh2'); // Assuming `userId` is provided in the event object
+        const userDocRef = doc(db, "users", event.organiserID); // Assuming `userId` is provided in the event object
         const userDocSnap = await getDoc(userDocRef);
         // Create an event object with minimal data to store in the user's signedUpEvents array
         const eventToSave = {
@@ -89,8 +90,9 @@ export default {
           eventDate: event.eventDate.toDate() || new Date(),
           description: event.description || "No description provided.",
           // Add other necessary fields as required, for example:
-          location: event.location || "Not provided",
-          organiserId: event.organiserID,
+          locationName: event.locationName || "Not provided",
+          organiserID: event.organiserID || "not provided",
+          address: event.address || "not provided"
         };
 
         // Step 4: Update the user's document to add the new event to their signedUpEvents array
