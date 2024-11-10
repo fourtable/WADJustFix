@@ -307,7 +307,8 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    margin-bottom: 15px;
+    /* margin-bottom: 15px; */
+    margin: 10px auto;
     padding: 10px;
     background-color: #fff;
     border: 1px solid #ddd;
@@ -315,6 +316,8 @@
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    max-width: 90%; /* Limit maximum width to prevent horizontal overflow */
+    box-sizing: border-box; /* Include padding and border in element's total width */
   }
 
   .leaderboard-item.card:hover {
