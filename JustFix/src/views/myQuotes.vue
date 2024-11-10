@@ -1,7 +1,8 @@
 <template>
   <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center">
-      <h2>My Quotes</h2>
+      <h2 v-if="userType !== 'admin'">My Quotes</h2>
+      <h2 v-else >Quotes List</h2>
       <div v-if="userType === 'user'">
         <QuotesPopup :show="showQuotesPopup" :btnName="'+'" :action="'Create'" @close="showQuotesPopup = false" />
       </div>
@@ -15,7 +16,7 @@
         <div v-else class="table-cell">Customer</div>
         <div class="table-cell">Created</div>
         <div class="table-cell">Status</div>
-        <div class="table-cell">Actions</div>
+        <div v-if="userType !== 'admin'" class="table-cell">Actions</div>
       </div>
       <div v-if="uncompleteQuotes && uncompleteQuotes.length > 0" v-for="quote in uncompleteQuotes" :key="quote.id"
         class="table-row">
@@ -25,12 +26,12 @@
             <strong>{{ capitalizeWords(quote.item) }}</strong>
           </div>
         </div>
-        <div class="table-cell">{{ quote.category }}</div>
+        <div class="table-cell">{{ quote.category || '-' }}</div>
         <div v-if="userType == 'user'" class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
         <div v-else class="table-cell">{{ quote.userName }}</div>
         <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
         <div class="table-cell">{{ quote.status || '-' }}</div>
-        <div class="table-cell">
+        <div v-if="userType !== 'admin'" class="table-cell">
           <div class="button-container d-flex flex-column flex-xl-row">
             <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup">Review</ReviewPopup>
             <QuotesPopup v-if="quote.userId === uid && quote.status !== 'Completed'"
@@ -97,7 +98,7 @@
         <div v-else class="table-cell">Customer</div>
         <div class="table-cell">Created</div>
         <div class="table-cell">Status</div>
-        <div class="table-cell">Actions</div>
+        <div v-if="userType !== 'admin'" class="table-cell">Actions</div>
       </div>
       <div v-if="completedQuotes && completedQuotes.length > 0" v-for="quote in completedQuotes" :key="quote.id"
         class="table-row">
@@ -107,12 +108,12 @@
             <strong>{{ capitalizeWords(quote.item) }}</strong>
           </div>
         </div>
-        <div class="table-cell">{{ quote.category }}</div>
+        <div class="table-cell">{{ quote.category || '-' }}</div>
         <div v-if="userType == 'user'" class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
         <div v-else class="table-cell">{{ quote.userName }}</div>
         <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
         <div class="table-cell">{{ quote.status || '-' }}</div>
-        <div class="table-cell">
+        <div v-if="userType !== 'admin'" class="table-cell">
           <div class="button-container d-flex flex-column flex-xl-row">
             <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup">Review</ReviewPopup>
           </div>
