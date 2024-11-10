@@ -1,4 +1,4 @@
-# **#JustFix - WAD2 Project (G2T5)**
+# **JustFix - WAD2 Project (G2T5)**
 
 **JustFix** is a dynamic repair hub connecting repair specialists (fixers) with clients seeking reliable repair services. This project is developed as part of the Web Application Development 2 (WAD2) course, aiming to facilitate sustainable repair practices by making repairs accessible and convenient.
 
