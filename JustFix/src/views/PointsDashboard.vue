@@ -26,7 +26,7 @@
       <div class="col-lg-4 col-md-4 col-sm-6 col-12 mb-4 dashboard-section">
         <div class="earn-points-card h-100 d-flex flex-column">
           <h5>Join Events</h5>
-          <p>Participate in events to get 20 bonus points!</p>
+          <p>Participate in events to get 5 bonus points!</p>
           <div class="card-footer mt-auto">
             <button class="btn btn-primary w-100" @click="joinEvents">Join Events</button>
           </div>
@@ -37,7 +37,7 @@
       <div class="col-lg-4 col-md-4 col-sm-6 col-12 mb-4 dashboard-section">
         <div class="earn-points-card h-100 d-flex flex-column">
           <h5>Earn Points Through Repairs</h5>
-          <p>Complete/Request more repairs to earn an additional 50 points!</p>
+          <p>Complete/Request more repairs to earn an additional 10 points!</p>
           <div class="card-footer mt-auto">
             <button class="btn btn-primary w-100" @click="sendRequest">Send Request</button>
           </div>
