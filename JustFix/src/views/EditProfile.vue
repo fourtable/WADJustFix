@@ -1,13 +1,15 @@
 <template>
   <div class="profile-container">
-    <h2>Edit Profile</h2>
+    <h2 style="font-weight:500">Edit Profile</h2>
+
     <form @submit.prevent="updateProfile">
       <!-- Profile Picture -->
       <div class="mb-3">
         <label for="profilePic" class="form-label">Profile Picture</label>
         <input type="file" class="form-control" id="profilePic" @change="onFileChange" />
         <div v-if="profilePicFile">
-          <img :src="createObjectURL(profilePicFile)" alt="Profile Pic Preview" style="max-width: 150px; margin-top: 10px;" />
+          <img :src="createObjectURL(profilePicFile)" alt="Profile Pic Preview"
+            style="max-width: 150px; margin-top: 10px;" />
         </div>
       </div>
 
@@ -19,33 +21,34 @@
 
       <!-- Repairer-specific Fields -->
       <div v-if="profile.userType === 'repairer'">
-        <!-- Expertise Checkboxes -->
-        <div class="mb-3">
-          <label class="form-label">Area of Expertise</label>
-          <div id="expertiseOptions">
-            <div v-for="(expertise, index) in expertiseList" :key="index" class="form-check">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                :id="'expertise_' + index"
-                :value="expertise"
-                v-model="profile.expertise"
-              />
-              <label class="form-check-label" :for="'expertise_' + index">{{ expertise }}</label>
-            </div>
+        <label>Area of Expertise</label>
 
-            <!-- Other Expertise Input -->
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="other" v-model="profile.otherChecked" />
-              <label class="form-check-label" for="other">Others (please specify)</label>
-              <input
-                v-if="profile.otherChecked"
-                type="text"
-                v-model="profile.otherExpertise"
-                class="form-control mt-2"
-                placeholder="Enter your expertise"
-              />
-            </div>
+        <!-- Display selected expertise pills -->
+        <div id="selectedExpertise">
+          <div v-for="(expertise, index) in formData.expertise" :key="index" class="selected-expertise-pill">
+            {{ expertise }}
+            <span @click="removeExpertise(expertise)" class="remove-expertise">X</span>
+          </div>
+        </div>
+
+        <!-- Display available expertise options -->
+        <div id="expertiseOptions">
+          <div v-for="(expertise, index) in availableExpertise" :key="index" class="expertise-pill"
+            @click="toggleExpertise(expertise)">
+            {{ expertise }}
+          </div>
+          <div v-if="formData.otherChecked" class="expertise-pill">
+            {{ formData.otherExpertise }}
+          </div>
+        </div>
+
+        <!-- Custom Expertise Input -->
+        <div v-if="formData.otherChecked">
+          <label for="otherExpertise">Please specify your expertise</label>
+          <div style="display: flex; align-items: center;">
+            <input type="text" id="otherExpertise" v-model="formData.otherExpertiseInput" class="form-control mb-3"
+              placeholder="Enter your expertise" />
+            <button type="button" @click="addCustomExpertise" style="margin-left: 10px;">✔️</button>
           </div>
         </div>
       </div>
@@ -53,26 +56,22 @@
       <!-- Description Field -->
       <div class="mb-3">
         <label for="description" class="form-label">Description</label>
-        <textarea
-          id="description"
-          v-model="profile.description"
-          class="form-control"
-          rows="4"
-          placeholder="Write something about yourself..."
-        ></textarea>
+        <textarea id="description" v-model="profile.description" class="form-control" rows="4"
+          placeholder="Write something about yourself..."></textarea>
       </div>
 
       <!-- Submit Button -->
-      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <button type="submit" class="btn">Save Changes</button>
     </form>
   </div>
 </template>
+
 
 <script>
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
-import { storage, db, auth } from '../main'; // Assuming main.js exports the Firebase instances
+import { storage, db, auth } from '../main';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default {
@@ -82,24 +81,28 @@ export default {
         name: Cookies.get('username'),
         userType: '',
         experience: '',
-        expertise: [], // Initialize as an empty array
         description: '',
-        otherChecked: false,
-        otherExpertise: '',
         imageUrl: '',
       },
+      formData: {
+        expertise: [], // For displaying selected expertise as pills
+        otherChecked: false,
+        otherExpertiseInput: "", // Input for custom expertise
+        otherExpertise: "", // Final custom expertise
+      },
       profilePicFile: null,
-      expertiseList: [
-                "Home Appliances (e.g Microwaves, Standing Fans)",
-                "Electrical Fixtures (e.g Lighting, Wiring)",
-                "Electronics Repair (e.g Devices, TVs)",
-                "Plumbing (e.g Toilets, Heaters)",
-                "Air Conditioners (e.g Repairing, Maintaining)",
-                "Furnitures (e.g Shelves, Tables)",
-                "Windows and Doors (e.g Locks, Window Frames)",
-                "Automative Repairs (e.g Tires, Brakes)",
-                "Others"
-            ]
+      availableExpertise: [
+        "Home Appliances (e.g Microwaves, Standing Fans)",
+        "Electrical Fixtures (e.g Lighting, Wiring)",
+        "Electronics Repair (e.g Devices, TVs)",
+        "Plumbing (e.g Toilets, Heaters)",
+        "Air Conditioners (e.g Repairing, Maintaining)",
+        "Furnitures (e.g Shelves, Tables)",
+        "Windows and Doors (e.g Locks, Window Frames)",
+        "Automative Repairs (e.g Tires, Brakes)",
+        "Others"
+      ],
+
     };
   },
   methods: {
@@ -107,7 +110,32 @@ export default {
       this.profilePicFile = event.target.files[0];
     },
     createObjectURL(file) {
-      return window.URL.createObjectURL(file); // Fix for createObjectURL
+      return window.URL.createObjectURL(file);
+    },
+    toggleExpertise(expertise) {
+      if (expertise === "Others") {
+        this.formData.otherChecked = !this.formData.otherChecked;
+      } else if (this.formData.expertise.includes(expertise)) {
+        // Remove expertise if it's already selected
+        this.formData.expertise = this.formData.expertise.filter(item => item !== expertise);
+      } else {
+        // Add expertise to the selected list
+        this.formData.expertise.push(expertise);
+      }
+    },
+    removeExpertise(expertise) {
+      this.formData.expertise = this.formData.expertise.filter(item => item !== expertise);
+      if (expertise === this.formData.otherExpertise) {
+        this.formData.otherChecked = false;
+        this.formData.otherExpertise = "";
+      }
+    },
+    addCustomExpertise() {
+      if (this.formData.otherExpertiseInput.trim()) {
+        this.formData.otherExpertise = this.formData.otherExpertiseInput.trim();
+        this.formData.expertise.push(this.formData.otherExpertise);
+        this.formData.otherExpertiseInput = ""; // Clear input after adding
+      }
     },
     async updateProfile() {
       try {
@@ -117,19 +145,9 @@ export default {
         }
         const userId = user.uid;
 
-        // Ensure expertise is always an array before processing
-        if (!Array.isArray(this.profile.expertise)) {
-          this.profile.expertise = [];
-        }
-
-        // Include other expertise if checked
-        if (this.profile.otherChecked && this.profile.otherExpertise) {
-          this.profile.expertise.push(this.profile.otherExpertise);
-        }
-
-        // Remove parentheses from each expertise item for storage in Firebase
+        // Prepare expertise data, including custom expertise
         let cleanedExpertise = Array.from(
-          new Set(this.profile.expertise.map(expertise => 
+          new Set(this.formData.expertise.map(expertise =>
             expertise.replace(/\s*\(.*?\)/, '').trim()
           ))
         );
@@ -145,12 +163,12 @@ export default {
         const updatedProfile = {
           name: this.profile.name,
           userType: this.profile.userType,
-          expertise: cleanedExpertise, // Use cleaned expertise here
+          expertise: cleanedExpertise,
           description: this.profile.description,
           imageUrl: this.profile.imageUrl,
         };
 
-        // Only include experience if the user is a repairer
+        // Include experience if the user is a repairer
         if (this.profile.userType === 'repairer' && this.profile.experience) {
           updatedProfile.experience = this.profile.experience;
         }
@@ -160,63 +178,59 @@ export default {
         await updateDoc(userRef, updatedProfile);
 
         console.log('Profile updated successfully');
-        this.showNotification('Profile updated', 'alert'); // Use toaster notification
+        this.showNotification('Profile updated', 'alert');
         await this.fetchUserProfile(userId);
 
-        // Emit the updated profile info to other components
-        const event = new CustomEvent('profileUpdated', {
-          detail: {
-            username: this.profile.name,
-            profileImage: this.profile.imageUrl,
-          },
-        });
-        window.dispatchEvent(event);
-
+        // Redirect to the view profile page with user ID after saving
+        this.$router.push({ name: 'viewProfile', params: { id: userId } });
       } catch (error) {
         console.error('Error updating profile:', error.message);
       }
     },
-
     async fetchUserProfile(uid) {
-      const userDoc = await getDoc(doc(db, 'users', uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
+      try {
+        const userDoc = await getDoc(doc(db, 'users', uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const storedExpertise = userData.expertise || [];
 
-        // Transform the stored expertise to match expertiseList items with parentheses
-        const storedExpertise = userData.expertise || [];
-        const expertiseWithParentheses = storedExpertise.map((item) => {
-          // Find a matching item in the expertiseList
-          const matchedExpertise = this.expertiseList.find((expertise) =>
-            expertise.startsWith(item.trim())
-          );
-          return matchedExpertise || item; // If no match found, fallback to item itself
-        });
+          // Load profile data
+          this.profile = {
+            ...this.profile,
+            name: userData.name,
+            userType: userData.userType,
+            experience: userData.experience || '',
+            description: userData.description || '',
+            imageUrl: userData.imageUrl || ''
+          };
 
-        // Load profile data, including expertise with parentheses for checkbox display
-        this.profile = {
-          ...this.profile,
-          name: userData.name,
-          userType: userData.userType,
-          experience: userData.experience || '',
-          description: userData.description || '',
-          expertise: Array.from(new Set(expertiseWithParentheses)), // Ensure unique expertise
-          otherChecked: userData.otherExpertise ? true : false,
-          otherExpertise: userData.otherExpertise || '',
-          imageUrl: userData.imageUrl || ''
-        };
-      } else {
-        console.error('No user data found!');
+          // Map stored expertise to include parentheses if in availableExpertise
+          this.formData.expertise = storedExpertise.map(item => {
+            return this.availableExpertise.find(e => e.startsWith(item)) || item;
+          });
+          if (userData.otherExpertise) {
+            this.formData.otherChecked = true;
+            this.formData.otherExpertise = userData.otherExpertise;
+          }
+        } else {
+          console.error('No user data found!');
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error.message);
+      } finally {
+
       }
     },
+
     showNotification(message, type) {
-    const notification = {
-      type: type,
-      message: message,
-      timestamp: new Date().toISOString(),
-      isVisible: true,
-    };
-    this.$store.dispatch('addNotification', notification);
-  },
+      const notification = {
+        type: type,
+        message: message,
+        timestamp: new Date().toISOString(),
+        isVisible: true,
+      };
+      this.$store.dispatch('addNotification', notification);
+    },
   },
   mounted() {
     onAuthStateChanged(auth, (user) => {
@@ -224,10 +238,11 @@ export default {
         this.fetchUserProfile(user.uid);
       } else {
         console.error('User is not logged in');
-        window.location.href = '../login.html'; // Redirect to login if not authenticated
+        // window.location.href = '../login.html'; // Redirect to login if not authenticated
       }
     });
-  },
+  }
+
 };
 </script>
 
@@ -253,4 +268,95 @@ export default {
 .form-control {
   margin-top: 5px;
 }
+
+.btn {
+  padding: 8px 25px;
+  font-size: 0.9em;
+  border-radius: 15px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s;
+  background-color: black;
+  color: white;
+
+}
+
+.btn:hover {
+  background-color: #085C44;
+}
+
+
+/*expertise styles*/
+.selected-expertise-pill {
+  display: inline-block;
+  background-color: #085C44;
+  color: #fffcfc;
+  border-radius: 12px;
+  padding: 10px 15px;
+  margin: 5px;
+  font-size: 14px;
+  /* Same font size as available expertise pills */
+  cursor: pointer;
+  border-radius: 20px;
+}
+
+.selected-expertise-pill .remove-expertise {
+  font-weight: bold;
+  color: red;
+  /* Red color for the "X" */
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.expertise-pill {
+  display: inline-block;
+  background-color: #f2f2f2;
+  /* Light background for available expertise */
+  color: #333;
+  border-radius: 12px;
+  padding: 5px 15px;
+  margin: 5px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.expertise-pill:hover {
+  background-color: #ddd;
+  /* Change color on hover */
+}
+
+#expertiseOptions {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#selectedExpertise {
+  margin-bottom: 20px;
+}
+
+.remove-expertise {
+  cursor: pointer;
+}
+
+.profile-container {
+  max-width: 600px;
+  margin: auto;
+}
+
+.text-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+}
+
+.spinner-border.text-primary {
+  color: #007bff;
+  /* Bootstrap's primary blue color */
 </style>
