@@ -48,8 +48,10 @@
                         <router-link class="dropdown-item"
                             :to="{ name: 'viewProfile', params: { id: uid } }">Profile</router-link>
                     </li>
-                    <li v-if="type === 'admin'"><router-link class="dropdown-item" :to="{ name: 'myQuotes' }">Quotes List</router-link></li>
-                    <li v-else ><router-link class="dropdown-item" :to="{ name: 'myQuotes' }">My Quotes</router-link></li>
+                    <li v-if="type === 'admin'"><router-link class="dropdown-item" :to="{ name: 'myQuotes' }">Quotes
+                            List</router-link></li>
+                    <li v-else><router-link class="dropdown-item" :to="{ name: 'myQuotes' }">My Quotes</router-link>
+                    </li>
                     <li v-if="type !== 'admin'">
                         <router-link class="dropdown-item" :to="{ name: 'points' }">My Points</router-link>
                     </li>
@@ -68,7 +70,7 @@
                 <p class="customer-text animate__animated animate__fadeInUp">Customer</p>
                 <i class="fa fa-user customer-icon animate__animated animate__bounce"></i>
             </div>
-            <div v-if="type == 'admin' " style="margin-right: 5%;"></div>
+            <div v-if="type == 'admin'" style="margin-right: 5%;"></div>
             <div class="icon">
                 <i @click="toggleMobileNav" v-show="mobile" class="fa fa-bars"
                     :class="{ 'icon-active': mobileNav }"></i>
@@ -221,19 +223,33 @@ export default {
         },
         checkScreen() {
             this.windowWidth = window.innerWidth;
-            if (this.windowWidth <= 767) {
-                this.mobile = true;
-            } else {
-                this.mobile = false;
-                this.mobileNav = false;
+            console.log(this.type);
+            if (this.type == 'admin') {
+                if (this.windowWidth <= 834) {
+                    this.mobile = true;
+                } 
+                else {
+                    this.mobile = false;
+                    this.mobileNav = false;
+                }
             }
+            else {
+                if (this.windowWidth <= 767) {
+                    this.mobile = true;
+                } 
+                else {
+                    this.mobile = false;
+                    this.mobileNav = false;
+                }
+            }
+
         },
         logout() {
             const auth = getAuth();
             signOut(auth)
                 .then(() => {
                     this.uid = '';
-                    this.username='';
+                    this.username = '';
                     this.type = '';
                     this.profilePic = '';
                     // Clear cookies after signout
