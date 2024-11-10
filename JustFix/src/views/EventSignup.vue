@@ -1,6 +1,7 @@
 <template>
+   <div class="event-signup-container">
   <div class="container-fluid mt-5 p-5">
-    <button @click="this.$router.push('/event')" class="back mb-3"><</button>
+    <button @click="goBack" class="back mb-3"><</button>
     <h2 v-if="eventData">Sign up for {{ eventData.title }}</h2>
 
     <form @submit.prevent="submitForm" v-if="!formSubmitted">
@@ -39,6 +40,7 @@
         within 2-3 business days or you can check your email for updates.</p>
     </div>
   </div>
+</div>
 </template>
 
 <script>
@@ -100,6 +102,10 @@ export default {
     console.log("User data in EventSignup.vue after fallback:", this.userData);
   },
   methods: {
+    goBack() {
+      document.body.style.overflow = 'auto';
+      this.$router.push('/event'); // Navigate to the events page
+    },
     async getUserDetails(uid) {
       try {
         const userDoc = doc(db, "users", uid);
@@ -194,9 +200,6 @@ export default {
             points: 10,
             type: "earn",
         });
-
-        alert("You have successfully signed up for the event!");
-        this.showNotification("You have successfully signed up for the event!","alert");
         // Optionally, reset form or navigate as needed
         this.formSubmitted = true;
       } catch (error) {
@@ -225,19 +228,33 @@ export default {
       this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
     },
   },
+  mounted() {
+    // If you need to prevent scrolling on EventSignup
+    document.body.style.overflow = 'hidden';
+  },
+  beforeDestroy() {
+    // Reset the overflow style when the component is destroyed
+    document.body.style.overflow = 'auto';
+  },
+  beforeRouteLeave(to, from, next) {
+    // Ensure scrolling is re-enabled on the main page
+    document.body.style.overflow = 'auto';
+    next();
+  }
 };
 </script>
 
 <style scoped>
+.event-signup-container {
+  height: 100vh; /* Full viewport height */
+  overflow-y: auto; /* Enables scrolling if content overflows */
+}
 .container-fluid {
   max-width: 600px;
   /* Limits the width */
   width: 90%;
   /* Responsive width for smaller screens */
   margin: 0 auto;
-  /* Centers the container */
-  padding: 20px;
-  overflow-y: auto;
 }
 
 .organize-event-form {
@@ -267,7 +284,7 @@ export default {
   color: #085c44;
   display: inline-flex;
   align-items: center;
-  margin-top: 10px;
+  /* margin-top: 5px; */
   cursor: pointer;
 }
 

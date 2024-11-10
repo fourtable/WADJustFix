@@ -1,7 +1,7 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay" @click.self="closeModal">
     <div class="modal-content">
-      <button class="close-btn" @click="$emit('close')">✕</button>
+      <button class="close-btn"  @click="closeModal">✕</button>
       <img :src="event.imageUrl" class="card-img-top mb-2 mt-4 rounded-1" alt="Event Image" v-if="event.imageUrl">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <h3>{{ event.title }}</h3>
@@ -55,7 +55,7 @@ export default {
       type: Boolean,
       default: true // Show button by default if not explicitly set
     },
-    isVisible: Boolean
+    isModalVisible: true
   },
   setup(props, {emit}) {
     const router = useRouter();
@@ -271,6 +271,9 @@ export default {
     },
   },
   methods: {
+    closeModal() {
+      this.$emit('close'); // Emit a close event to the parent
+    },
     convertTimestampToDate(timestamp) {
       if (timestamp && typeof timestamp.toDate === 'function') {
         return timestamp.toDate();
@@ -291,6 +294,12 @@ export default {
       return `${day}/${month}/${year}`;
     },
   },
+  mounted() {
+    document.body.style.overflow = 'hidden'; // Disable scrolling when modal opens
+  },
+  destroyed() {
+    document.body.style.overflow = 'auto'; // Enable scrolling when modal is closed
+  }
 }
 
 </script>

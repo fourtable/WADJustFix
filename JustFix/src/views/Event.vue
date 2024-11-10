@@ -81,7 +81,7 @@
             :user="currentUser"
             :signedUpEventIds="signedUpEventIds" 
             :canSignUp="canSignUp"
-            @close="closeModal"
+            @close="isModalVisible=false"
             @openEventSignup="navigateToSignup"
           />
         </div>
@@ -185,6 +185,12 @@ export default {
   
   },
   methods: {
+    openModal() {
+      this.isModalVisible = true;
+    },
+    closeModal() {
+      this.isModalVisible = false;
+    },
     async fetchSignedUpEvents() {
       try{
       const userId = this.currentUser.uid; // Ensure user is logged in
