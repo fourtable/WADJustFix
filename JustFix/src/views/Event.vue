@@ -187,23 +187,23 @@ export default {
   methods: {
     async fetchSignedUpEvents() {
       try{
-    const userId = this.currentUser.uid; // Ensure user is logged in
-    console.log(userId);
-    if (userId) {
-      const userDocRef = doc(db, "users", userId);
-      const userDoc = await getDoc(userDocRef);
-      const signedUpEvents = userDoc.exists() ? userDoc.data().signedUpEvents || [] : [];
-      // Calculate upcoming signed-up events count
-      const now = new Date();
-        this.upcomingSignedUpCount = signedUpEvents.filter(event => {
-          const eventDate = event.eventDate.toDate ? event.eventDate.toDate() : new Date(event.eventDate);
-          return eventDate > now; // Count only upcoming events
-        }).length;
+      const userId = this.currentUser.uid; // Ensure user is logged in
+      console.log(userId);
+      if (userId) {
+        const userDocRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userDocRef);
+        const signedUpEvents = userDoc.exists() ? userDoc.data().signedUpEvents || [] : [];
+        // Calculate upcoming signed-up events count
+        const now = new Date();
+          this.upcomingSignedUpCount = signedUpEvents.filter(event => {
+            const eventDate = event.eventDate.toDate ? event.eventDate.toDate() : new Date(event.eventDate);
+            return eventDate > now; // Count only upcoming events
+          }).length;
 
         // Update canSignUp based on count
         this.canSignUp = this.upcomingSignedUpCount < 5;
-      this.signedUpEventIds = signedUpEvents.map(event => event.eventId);
-      console.log('signed up events id', this.signedUpEventIds)
+        this.signedUpEventIds = signedUpEvents.map(event => event.eventId);
+        console.log('signed up events id', this.signedUpEventIds)
     }
     }  catch (error) {
     console.error("Error fetching signed-up events:", error);

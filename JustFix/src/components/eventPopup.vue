@@ -51,6 +51,10 @@ export default {
       type: Array,
       default: () => []
     },
+    canSignUp: {
+      type: Boolean,
+      default: true // Show button by default if not explicitly set
+    },
     isVisible: Boolean
   },
   setup(props, {emit}) {
@@ -162,31 +166,11 @@ export default {
           router.push('/login');
       } 
       try {
-        const userDocRef = doc(db, 'users', uid);
-        const userSnap = await getDoc(userDocRef);
-        
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-          const existingEvents = userData.signedUpEvents || [];
-          console.log(existingEvents);
-          console.log("Current event ID:", props.event.id);
-          const alreadySignedUp = existingEvents.some(event => event.eventId === props.event.Id);
-          
-          // Check if user is already signed up for this event
-          if (alreadySignedUp) {
-            alert('You have already signed up for this event.');
+          // Check if user has reached the limit of 5 upcoming events
+          if (!props.canSignUp) {
+            showNotification('You have reached the limit of 5 upcoming events.','alert');
             return;
-          }
-          // Step 3: Check if user has 5 or more upcoming events
-          const upcomingEvents = existingEvents.filter(event => {
-            const eventDate = event.eventDate.toDate();
-            return eventDate > new Date();
-          });
-          if (upcomingEvents.length >= 5) {
-            alert('You have reached the limit of 5 upcoming events.');
-            return;
-          }
-        }
+          };
         // Step 5: Proceed to EventSignup.vue if checks pass
         emit("openEventSignup", { event: props.event, user: props.user });
         
@@ -306,21 +290,6 @@ export default {
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     },
-    // async showNotification(message, type) {
-    //   try {
-    //     const notification = {
-    //       type: type,
-    //       message: message,
-    //       timestamp: new Date().toISOString(),
-    //       isVisible: true,
-    //     };
-    //     // console.log('Dispatching notification:', notification);
-    //     this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
-    //   }
-    //   catch (error) {
-
-    //   }
-    // },
   },
 }
 
@@ -346,7 +315,7 @@ export default {
   border-radius: 8px;
   max-width: 500px;
   max-height: 80vh;
-  width: 100%;
+  width: 90%;
   overflow-y: auto;
   border: 2px solid #ccc;
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
@@ -366,14 +335,14 @@ export default {
 img {
   width: 100%;
 }
-
 .btn {
-  padding: 5px 10px;
+  padding: 5px 15px;
   border: 1px solid #085c44;
   border-radius: 30px;
   color: #085c44;
   display: inline-flex;
   align-items: center;
+  justify-content: center; 
   margin-top: 10px;
   cursor: pointer;
   width: 30%;

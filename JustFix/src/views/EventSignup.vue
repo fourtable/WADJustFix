@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid mt-5 p-5">
-    <button @click="$router.push('/event')" class="back mb-3"></button>
+    <button @click="this.$router.push('/event')" class="back mb-3"><</button>
     <h2 v-if="eventData">Sign up for {{ eventData.title }}</h2>
 
     <form @submit.prevent="submitForm" v-if="!formSubmitted">
@@ -14,11 +14,6 @@
         <input type="email" id="email" v-model="form.email" placeholder="Enter your Email" class="form-control"
           required>
       </div>
-
-      <!-- <div class="mb-3">
-          <label for="phone">Contact Number</label>
-          <input type="text" id="phone" v-model="form.phone" placeholder="Enter your contact number" class="form-control" required />
-        </div> -->
 
       <div class="mb-3">
         <label for="experienceLevel">Experience Level</label>
@@ -58,7 +53,6 @@ export default {
       form: {
         organiserId: '',
         name: "",
-        phone: "",
         // email: "",
         experienceLevel: "",
         agreeToTerms: false,
@@ -121,13 +115,13 @@ export default {
     },
     async submitForm() {
       if (!this.eventData) {
-        alert("Event data is not available.");
+        this.showNotification("Event data is not available.", 'alert');
         return;
       }
       // Fallback to session storage if `user` data is not in Vuex
       const uid = this.user?.uid || sessionStorage.getItem('uid') || Cookies.get('uid');
       if (!uid) {
-        alert("User data not available. Please log in.");
+        this.showNotification("User data not available. Please log in.", 'alert');
         return;
       }
 
@@ -142,13 +136,13 @@ export default {
         const eventDocSnap = await getDoc(eventDocRef);
 
         if (!eventDocSnap.exists()) {
-          alert("Event not found.");
+          this.showNotification("Event not found.", 'alert');
           return;
         }
         //move this logic to when they press signup button at popup
         const eventData = eventDocSnap.data();
         if (eventData.vacantSlots <= 0) {
-          alert("No vacant slots available.");
+          this.showNotification("No vacant slots available.", 'alert');
           return;
         }
         // // Define the event object to be saved in `signedupevents`
@@ -173,7 +167,7 @@ export default {
           const alreadySignedUp = existingEvents.some(event => event.eventId === eventId);
 
           if (alreadySignedUp) {
-            alert("You are already signed up for this event.");
+            this.showNotification("You are already signed up for this event.", 'alert');
             return;
           }
           // Update user's signedUpEvents by adding the new event
@@ -207,7 +201,6 @@ export default {
         this.formSubmitted = true;
       } catch (error) {
         console.error("Error submitting form:", error);
-        alert("There was an error during the signup process. Please try again.");
         this.showNotification("There was an error during the signup process. Please try again.","alert");
       }
     },
@@ -244,9 +237,7 @@ export default {
   margin: 0 auto;
   /* Centers the container */
   padding: 20px;
-  /* min-height: 100vh;
-  display: flex;
-  flex-direction: column; */
+  overflow-y: auto;
 }
 
 .organize-event-form {
