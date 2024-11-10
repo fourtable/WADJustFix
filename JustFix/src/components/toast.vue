@@ -25,7 +25,7 @@
       </div>
       <div v-if="notification.type == 'success'">
         <div class="toast-header">
-          <strong class="me-auto">Sucess</strong>
+          <strong class="me-auto">Success</strong>
           <button type="button" class="btn-close" @click="removeNotification(index)" aria-label="Close"></button>
         </div>
         <div class="toast-body d-flex justify-content-between align-items-center">

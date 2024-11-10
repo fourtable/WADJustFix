@@ -1,61 +1,70 @@
 <template>
   <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center">
-      <h2>My Quotes</h2>
+      <h2 v-if="userType !== 'admin'" class="mt-5">My Quotes</h2>
+      <h2 v-else >Quotes List</h2>
       <div v-if="userType === 'user'">
-        <QuotesPopup :show="showQuotesPopup" :btnName="'+'" :action="'Create'" @close="showQuotesPopup = false" />
+        <QuotesPopup class="mt-5" :show="showQuotesPopup" :btnName="'+'" :action="'Create'"
+          @close="showQuotesPopup = false" />
       </div>
     </div>
+
     <!-- List Group to display each quote -->
     <div class="mt-4">
       <div class="table-row header-row text-center">
         <div class="table-cell">Item</div>
-        <div class="table-cell">Category</div>
-        <div v-if="userType == 'user'" class="table-cell">Fixer</div>
-        <div v-else class="table-cell">Customer</div>
-        <div class="table-cell">Created</div>
-        <div class="table-cell">Status</div>
-        <div class="table-cell">Actions</div>
+        <div class="table-cell text-center">Category</div>
+        <div v-if="userType == 'user'" class="table-cell text-center">Fixer</div>
+        <div v-else class="table-cell text-center">Customer</div>
+        <div class="table-cell text-center">Created</div>
+        <div class="table-cell text-center">Status</div>
+        <div v-if="userType !== 'admin'" class="table-cell text-center">Actions</div>
       </div>
+
       <div v-if="uncompleteQuotes && uncompleteQuotes.length > 0" v-for="quote in uncompleteQuotes" :key="quote.id"
         class="table-row">
-        <div class="table-cell">
-          <div @click="showQuoteDetails(quote)" style="cursor: pointer; display: flex; align-items: center;">
+        <!-- Item Column -->
+        <div class="table-cell text-center">
+          <div @click="showQuoteDetails(quote)"
+            style="cursor: pointer; display: flex; align-items: center; justify-content: center;">
             <img :src="quote.picture" alt="Quote Image" class="quote-image img-thumbnail" />
             <strong>{{ capitalizeWords(quote.item) }}</strong>
           </div>
         </div>
-        <div class="table-cell">{{ quote.category }}</div>
-        <div v-if="userType == 'user'" class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
-        <div v-else class="table-cell">{{ quote.userName }}</div>
-        <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
-        <div class="table-cell">{{ quote.status || '-' }}</div>
-        <div class="table-cell">
-          <div class="button-container d-flex flex-column flex-xl-row">
+
+        <!-- Category Column, centered -->
+        <div class="table-cell text-center">{{ quote.category || '-' }}</div>
+
+        <!-- Fixer/Customer Column -->
+        <div v-if="userType == 'user'" class="table-cell text-center">{{ quote.repairerName || 'No Repairer' }}</div>
+        <div v-else class="table-cell text-center">{{ quote.userName }}</div>
+
+        <!-- Created Date Column, centered -->
+        <div class="table-cell text-center">{{ formatTimestamp(quote.timestamp) }}</div>
+
+        <!-- Status Column -->
+        <div class="table-cell text-center">{{ quote.status || '-' }}</div>
+
+        <!-- Actions Column -->
+        <div v-if="userType !== 'admin'" class="table-cell text-center">
+          <div class="button-container d-flex flex-column">
             <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup">Review</ReviewPopup>
             <QuotesPopup v-if="quote.userId === uid && quote.status !== 'Completed'"
-              :disableStatus="quote.status == 'In Progress'" :show="showEditQuotesPopup" :btnName="'Edit'" :action="'Edit'"
-              :editQuote="quote" @close="showQuotesPopup = false" />
-            <!-- <button v-if="quote.userId === uid && quote.status !== 'Completed'" :disabled="quote.status === 'In Progress'"
-              class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" @click="deleteQuote(quote.id)">
-              Remove 
-            </button> -->
+              :disableStatus="quote.status == 'In Progress'" :show="showEditQuotesPopup" :btnName="'Edit'"
+              :action="'Edit'" :editQuote="quote" @close="showQuotesPopup = false" />
             <ConfirmationPopup v-if="quote.userId === uid && quote.status !== 'Completed'" :quote="quote"
               :disableStatus="quote.status == 'In Progress'"></ConfirmationPopup>
             <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
-              class="btn btn-success btn-sm table-button mb-2 mb-xl-0" @click="completeQuote(quote)">
+              class="btn btn-success btn-sm table-button px-3 px-md-4 mb-2" @click="completeQuote(quote)">
               Complete
             </button>
-            <!-- <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
-              class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" @click="rejectQuote(quote)">
-              Reject
-            </button> -->
             <RejectPopup v-if="quote.repairerId === uid && quote.status === 'In Progress'" :quote="quote" />
           </div>
         </div>
       </div>
+
       <!-- Display message if no quotes are available -->
-      <div v-else class="text-center">No quotes available</div>
+      <div v-else class="text-center mt-3">No quotes available</div>
     </div>
 
     <!-- Quote Details Modal -->
@@ -84,71 +93,76 @@
     <!-- Modal backdrop -->
     <div v-if="showModal" class="modal-backdrop fade show" @click="closeModal"></div>
   </div>
+
+  <!-- Completed Quotes Section -->
   <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center">
       <h2>Completed Quotes</h2>
     </div>
-    <!-- List Group to display each quote -->
+
     <div class="mt-4">
       <div class="table-row header-row text-center">
         <div class="table-cell">Item</div>
-        <div class="table-cell">Category</div>
-        <div v-if="userType == 'user'" class="table-cell">Fixer</div>
-        <div v-else class="table-cell">Customer</div>
-        <div class="table-cell">Created</div>
-        <div class="table-cell">Status</div>
-        <div class="table-cell">Actions</div>
+        <div class="table-cell text-center">Category</div>
+        <div v-if="userType == 'user'" class="table-cell text-center">Fixer</div>
+        <div v-else class="table-cell text-center">Customer</div>
+        <div class="table-cell text-center">Created</div>
+        <div class="table-cell text-center">Status</div>
+        <div v-if="userType !== 'admin'" class="table-cell text-center">Actions</div>
       </div>
+
       <div v-if="completedQuotes && completedQuotes.length > 0" v-for="quote in completedQuotes" :key="quote.id"
         class="table-row">
-        <div class="table-cell">
-          <div @click="showQuoteDetails(quote)" style="cursor: pointer; display: flex; align-items: center;">
+        <!-- Item Column -->
+        <div class="table-cell text-center">
+          <div @click="showQuoteDetails(quote)"
+            style="cursor: pointer; display: flex; align-items: center; justify-content: center;">
             <img :src="quote.picture" alt="Quote Image" class="quote-image img-thumbnail" />
             <strong>{{ capitalizeWords(quote.item) }}</strong>
           </div>
         </div>
-        <div class="table-cell">{{ quote.category }}</div>
-        <div v-if="userType == 'user'" class="table-cell">{{ quote.repairerName || 'No Repairer' }}</div>
-        <div v-else class="table-cell">{{ quote.userName }}</div>
-        <div class="table-cell">{{ formatTimestamp(quote.timestamp) }}</div>
-        <div class="table-cell">{{ quote.status || '-' }}</div>
-        <div class="table-cell">
-          <div class="button-container d-flex flex-column flex-xl-row">
-            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup">Review</ReviewPopup>
+
+        <!-- Category Column, centered -->
+        <div class="table-cell text-center">{{ quote.category || '-' }}</div>
+
+        <!-- Fixer/Customer Column -->
+        <div v-if="userType == 'user'" class="table-cell text-center">{{ quote.repairerName || 'No Repairer' }}</div>
+        <div v-else class="table-cell text-center">{{ quote.userName }}</div>
+
+        <!-- Created Date Column, centered -->
+        <div class="table-cell text-center">{{ formatTimestamp(quote.timestamp) }}</div>
+
+        <!-- Status Column -->
+        <div class="table-cell text-center">{{ quote.status || '-' }}</div>
+
+        <!-- Actions Column -->
+        <div v-if="userType !== 'admin'" class="table-cell text-center">
+          <div class="button-container d-flex flex-column align-items-center justify-content-center">
+            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" :isReviewed="userType === 'repairer' && quote.fixerReview || userType === 'user' && quote.customerReview" ref="reviewPopup">
+              Review
+            </ReviewPopup>
+            <QuotesPopup v-if="quote.userId === uid && quote.status !== 'Completed'"
+              :disableStatus="quote.status == 'In Progress'" :show="showEditQuotesPopup" :btnName="'Edit'"
+              :action="'Edit'" :editQuote="quote" @close="showQuotesPopup = false" />
+            <ConfirmationPopup v-if="quote.userId === uid && quote.status !== 'Completed'" :quote="quote"
+              :disableStatus="quote.status == 'In Progress'"></ConfirmationPopup>
+            <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
+              class="btn btn-success btn-sm table-button px-3 px-md-4 mb-2" @click="completeQuote(quote)">
+              Complete
+            </button>
+            <RejectPopup v-if="quote.repairerId === uid && quote.status === 'In Progress'" :quote="quote" />
           </div>
         </div>
       </div>
+
       <!-- Display message if no quotes are available -->
-      <div v-else class="text-center">No quotes completed </div>
+      <div v-else class="text-center mt-3">No quotes completed</div>
     </div>
-
-    <!-- Quote Details Modal -->
-    <div class="modal fade" :class="{ show: showModal }" :style="{ display: showModal ? 'block' : 'none' }"
-      tabindex="-1" aria-labelledby="quoteDetailsLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="quoteDetailsLabel">{{ selectedQuote.category }}</h5>
-            <button type="button" class="btn-close" @click="closeModal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div v-if="selectedQuote.picture">
-              <p><strong>Picture:</strong></p>
-              <img :src="selectedQuote.picture" alt="Quote Image" class="img-fluid quote-image" />
-            </div>
-            <p><strong>Description:</strong></p>
-            <div class="description-box">
-              <p>{{ selectedQuote.description }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal backdrop -->
-    <div v-if="showModal" class="modal-backdrop fade show" @click="closeModal"></div>
   </div>
 </template>
+
+
+
 
 <script>
 import { ref, onMounted, computed, watch } from 'vue';
@@ -188,7 +202,6 @@ export default {
       return this.quotes.filter(quote => quote.status !== 'Completed');
     },
     uid() {
-      console.log(Cookies.get('uid') || sessionStorage.getItem('uid'));
       return Cookies.get('uid') || sessionStorage.getItem('uid');
     },
     userType() {
@@ -211,7 +224,7 @@ export default {
     onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
         window.location.href = './login';
-      } 
+      }
     });
   },
   watch: {
@@ -388,11 +401,12 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
+
   /* Center vertically */
   padding: 10px;
   transition: background-color 0.3s ease;
   /* Smooth transition */
-  border: 2px solid #cdf696;
+  border: 2px solid #085C44;
   /* Bottom border for each row */
 
   /* Image styling */
@@ -413,26 +427,21 @@ img {
 
 /* Change background color on hover */
 .table-cell:hover {
-  background-color: #cdf696;
+  /* background-color: #cdf696; */
   /* Light gray background on hover */
 }
 
 /* Flexbox for horizontal alignment */
 .table-cell {
   flex: 1;
-  /* Equal space for each cell */
   display: flex;
   align-items: center;
-  /* Center vertically */
   justify-content: center;
-  /* Align to the left */
   padding: 5px;
-  /* Add some padding for aesthetics */
   border-right: 1px solid #dee2e6;
   max-height: 10vh;
   min-height: 7vh;
   min-width: 5vw;
-  /* Right border for each cell */
 }
 
 /* Remove the last cell's right border */
@@ -443,12 +452,13 @@ img {
 
 /* Header styling */
 .header-row {
+  height: 40px;
   font-weight: bold;
-  background-color: #cdf696;
+  background-color: #085C44;
   /* Bootstrap primary color */
-  color: black;
+  color: white;
   /* Text color */
-  border: 2px solid #cdf696;
+  /* border: 2px solid #000; */
   justify-content: flex-start;
   /* border-bottom: 2px solid #cdf696; */
   /* Bottom border for header */
@@ -463,17 +473,24 @@ img {
 /* Flexbox for button container */
 .button-container {
   display: flex;
-  gap: 10px;
+  gap: 0px;
+  padding: 0px;
   flex-wrap: nowrap;
 }
 
 .table-button {
+  height: 25px;
   flex: 1 1 auto;
   min-width: 80px;
   padding: 0.5vw 1vw;
   /* Adjusts padding relative to viewport width */
   font-size: calc(0.8rem + 0.2vw);
   /* Responsive font size */
+  width: 10vh;
+  /* Set a fixed width for both buttons */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Maintain button shape on smaller screens */
@@ -491,14 +508,6 @@ img {
   /* Optional: rounded corners */
   overflow: hidden;
   /* Ensures inner rows don't overflow */
-}
-
-.table-button {
-  width: 10vh;
-  /* Set a fixed width for both buttons */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Media queries for mobile responsiveness */
@@ -538,5 +547,50 @@ img {
 
 .modal-body {
   color: black;
+}
+
+.table-cell {
+  display: flex;
+  justify-content: center;
+  /* Center horizontally */
+  align-items: center;
+  /* Center vertically */
+  width: 100%;
+  overflow: hidden;
+  /* Prevent overflow */
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  /* Allows wrapping of buttons */
+  gap: 10px;
+  width: auto;
+  /* Ensure container doesn't exceed the available width */
+  justify-content: center;
+  /* Ensures buttons are centered within the container */
+  align-items: center;
+  /* Aligns the buttons at the center */
+}
+
+.btn {
+  padding-left: 20px;
+  padding-right: 20px;
+  margin-bottom: 6px;
+}
+
+@media (min-width: 576px) {
+  .btn {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+@media (min-width: 768px) {
+  .btn {
+    padding-left: 30px;
+    padding-right: 30px;
+  }
 }
 </style>

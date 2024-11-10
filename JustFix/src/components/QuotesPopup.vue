@@ -44,7 +44,7 @@
                 <label for="description" class="form-label">Description</label>
                 <textarea v-model="formData.description" class="form-control" id="description"></textarea>
               </div>
-              <button type="submit" class="btn btn-primary">
+              <button type="submit" class="btn" style="background-color: black; color:white;">
                 {{ localAction === 'Edit' ? 'Update Quote' : 'Create Quote' }}
               </button>
             </form>
@@ -153,7 +153,7 @@ export default {
             picture: this.formData.picture, // Ensure picture is a URL or the required file format
             description: this.formData.description,
           });
-          this.showNotification("Quote updated successfully",'alert');
+          this.showNotification("Quote updated successfully", 'alert');
           // console.log('Quote updated successfully');
         } else {
           // Create a new quote in Firestore
@@ -167,7 +167,7 @@ export default {
             userName: this.userName,
             repairerId: '',
           });
-          this.showNotification("Quote created!",'alert');
+          this.showNotification("Quote created!", 'alert');
         }
 
         // Close the modal after saving

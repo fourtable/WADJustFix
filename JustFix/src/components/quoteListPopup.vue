@@ -28,7 +28,8 @@
                     </ul>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" @click="sendQuotes">Send</button>
+                    <button type="button" class="btn" @click="sendQuotes"
+                        style="color:white; background-color: black">Send</button>
                 </div>
             </div>
         </div>
@@ -81,7 +82,7 @@ function showNotification(message, type) {
 // Function to send selected quotes to repairers
 const sendQuotes = async () => {
     if (selectedQuoteIds.value.length === 0 || props.selectedRepairmen.length === 0) {
-        showNotification('Please select at least one quote and one repairer.','alert');
+        showNotification('Please select at least one quote and one repairer.', 'alert');
         return;
     }
 
@@ -168,7 +169,7 @@ const fetchUserQuotes = () => {
         const quotesCollection = collection(db, 'quotes');
         const quotesQuery = query(quotesCollection, where('repairerId', '==', ''));
         if (userType === 'user') {
-            userQuotesQuery = query(quotesQuery, where('userId', '==', uid));   
+            userQuotesQuery = query(quotesQuery, where('userId', '==', uid));
         } else {
             userQuotesQuery = quotesQuery;
         }
@@ -210,6 +211,8 @@ const sendNotification = async (receiverId, message, name) => {
 <style lang="scss" scoped>
 .modal-backdrop {
     z-index: 1040;
+    width: 100%;
+    height: 100%;
 }
 
 .modal {

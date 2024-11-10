@@ -1,5 +1,5 @@
 <template>
-    <div v-if="username" class="container">
+    <div v-if="username" class="container mt-3">
         <div class="card">
             <div class="row g-0">
                 <div class="col-12 col-lg-5 col-xl-3 border-end">
@@ -36,7 +36,7 @@
                     </div>
                     <div class="chat-messages" ref="messagesContainer">
                         <div v-if="chatHistory.length === 0" class="text-center mt-3">
-                            <em>No messages yet. Start the conversation!</em>
+                            <em>No messages yet. Select a Fixer to start the conversation!</em>
                         </div>
                         <div v-else>
                             <div v-for="message in chatHistory" :key="message.id"
@@ -238,10 +238,10 @@ async function acceptQuote() {
 
         // update points earned by user
         await addDoc(pointCollection, {
-          Date: serverTimestamp(),
-          UID: contactId.value,
-          points: 10,
-          type: "earn",
+            Date: serverTimestamp(),
+            UID: contactId.value,
+            points: 10,
+            type: "earn",
         });
 
         console.log("Quote accepted and updated in Firestore:", selectedQuote.value);
@@ -708,8 +708,10 @@ const sendNotification = async (receiverId, message, name) => {
     padding-right: 10px;
     margin-left: auto;
 
+
     .message-content {
         background-color: #cdf696;
+        margin-right: 7px;
     }
 }
 
