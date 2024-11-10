@@ -266,6 +266,7 @@ export default {
     },
     isRegistrationClosed(registrationDate) {
       const today = new Date();
+      console.log(registrationDate);
       // const regDate = new Date(registrationDate.seconds * 1000); // Converts Firestore timestamp if necessary
       return registrationDate < today; // Returns true if registration date is in the past
     },
