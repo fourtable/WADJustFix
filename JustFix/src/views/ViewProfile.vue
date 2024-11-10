@@ -1,6 +1,6 @@
 <template>
   <div v-if="loading" class="loading-indicator">Loading profile...</div>
-    <div class="profile-container" v-else-if="userData">
+  <div class="profile-container" v-else-if="userData">
     <div class="profile-info">
       <div class="profile-pic">
         <img v-if="userData.imageUrl" :src="imagePath" alt="Profile Picture" />
@@ -9,45 +9,50 @@
 
       <!-- Profile Details for Repairers -->
       <div class="profile-details" v-if="userData.userType === 'repairer'">
-        <h2 class="profile-name">{{ userData.name }}</h2>
+        <h2 class="profile-name pb-3" style="font-weight:700;">{{ userData.name }}</h2>
         <!-- <p class="skill-level">Skill Level: {{ calculateSkillLevel(userData.experience) }}</p> -->
-        <h4 v-if="userData.expertise && userData.expertise.length">Areas of Expertise:</h4>
+        <p v-if="userData.expertise && userData.expertise.length">Areas of Expertise:</p>
         <div v-if="userData.expertise && userData.expertise.length">
-          <span v-for="expertise in userData.expertise" :key="expertise" class="expertise-badge">
+          <span v-for="expertise in userData.expertise" :key="expertise" class="expertise-badge mb-4">
             {{ expertise }}
           </span>
         </div>
         <div v-else>
           <p>No areas of expertise provided.</p>
         </div>
-        <div v-if="userData.description" >
-          <h4>About Me:</h4>
+        <div v-if="userData.description">
+          <!-- <p>About Me:</p> -->
           <p>{{ userData.description }}</p>
         </div>
-        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }}<span v-if="calculateJoinedDate(userData.createdAt) !== 'Today'"> ago</span></p>
+        <p style="font-weight:300; font-size:13px; ;">Joined: {{ calculateJoinedDate(userData.createdAt)
+          }}<span v-if="calculateJoinedDate(userData.createdAt) !== 'Today'"> ago</span></p>
       </div>
 
       <!-- Basic Profile Details for Non-Repairers -->
       <div class="profile-details" v-else>
         <h2 class="profile-name">{{ userData.name }}</h2>
         <p>User</p>
-        <div v-if="userData.description" >
+        <div v-if="userData.description">
           <h4>About Me:</h4>
           <p>{{ userData.description }}</p>
         </div>
-        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }}<span v-if="calculateJoinedDate(userData.createdAt) !== 'Today'"> ago</span></p>
+        <p>Joined: {{ calculateJoinedDate(userData.createdAt) }}<span
+            v-if="calculateJoinedDate(userData.createdAt) !== 'Today'"> ago</span></p>
       </div>
     </div>
 
     <!-- Edit Profile Button for Profile Owner -->
-    <div v-if="isOwnProfile" class="edit-profile-btn" >
-      <router-link :to="{ name: 'editProfile' }" class="btn btn-primary">Edit Profile</router-link>
+    <div v-if="isOwnProfile" class="edit-profile-btn">
+      <router-link :to="{ name: 'editProfile' }" class="btn btn-primary px-3" style="border-radius: 20px;">Edit
+        Profile</router-link>
     </div>
-    <div v-else class="edit-profile-btn"><router-link :to="{ name: 'chat', query: {repairerId: this.id, repairName: userData.name, repairerPic: userData.imageUrl} }" class="btn btn-success">Chat</router-link></div>
+    <div v-else class="edit-profile-btn"><router-link
+        :to="{ name: 'chat', query: { repairerId: this.id, repairName: userData.name, repairerPic: userData.imageUrl } }"
+        class="btn">Chat</router-link></div>
 
     <!-- Tabs -->
     <div v-if="userData.userType !== 'admin'">
-      <div class="tabs" >
+      <div class="tabs">
         <button class="tab-button" :class="{ active: activeTab === 'reviews' }"
           @click="switchTab('reviews')">Reviews</button>
         <button v-if="isOwnProfile" class="tab-button" :class="{ active: activeTab === 'upcoming-events' }"
@@ -58,12 +63,12 @@
           @click="switchTab('saved-events')">Saved Events</button>
       </div>
 
-      <div class="tab-content">
+      <div class="tab-content pb-5">
         <!-- Reviews Tab -->
-        <div id="reviews" class="tab" v-show="activeTab === 'reviews'" >
-          <h3>Ratings: {{ averageRating || 'N/A' }} / 5 ⭐</h3>
+        <div id="reviews" class="tab" v-show="activeTab === 'reviews'" style="padding:30px;">
+          <p style="font-size:30px; font-weight:300; ">Ratings: {{ averageRating || 'N/A' }} / 5 ⭐</p>
           <div v-if="userData.reviews && userData.reviews.length">
-            <div v-for="review in userData.reviews" :key="review.id" class="review" >
+            <div v-for="review in userData.reviews" :key="review.id" class="review">
               <div class="review-header">
                 <strong>{{ review.customer }}</strong> - {{ review.date }}
               </div>
@@ -82,20 +87,19 @@
 
         <!-- Upcoming Events Tab -->
         <div id="upcoming-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'upcoming-events'">
-          <div v-if="upcomingEvents.length > 0" v-for="event in upcomingEvents" :key="event.id" class="event"
-            >
+          <div v-if="upcomingEvents.length > 0" v-for="event in upcomingEvents" :key="event.id" class="event">
             <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
             <p class="event-description">{{ event.description }}</p>
             <div v-if="event.organiserId === id" class="event-actions">
-              <button class="btn btn-primary" @click="goToEventSignees(event.eventId)">Manage</button>
+              <button class="btn" @click="goToEventSignees(event.eventId)">Manage</button>
             </div>
           </div>
           <div v-else class="no-events">No Upcoming Events</div>
         </div>
 
         <!-- Past Events Tab -->
-        <div id="past-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'past-events'" >
-          <div v-if="pastEvents.length > 0" v-for="event in pastEvents" :key="event.id" class="event" >
+        <div id="past-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'past-events'">
+          <div v-if="pastEvents.length > 0" v-for="event in pastEvents" :key="event.id" class="event">
             <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
             <p class="event-description">{{ event.description }}</p>
           </div>
@@ -103,14 +107,13 @@
         </div>
 
 
-        <div id="saved-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'saved-events'" >
-          <div v-if="savedEvents.length > 0" v-for="event in savedEvents" :key="event.id" class="event"
-            >
+        <div id="saved-events" class="tab" v-if="isOwnProfile" v-show="activeTab === 'saved-events'">
+          <div v-if="savedEvents.length > 0" v-for="event in savedEvents" :key="event.id" class="event">
             <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
             <p class="event-description">{{ event.description }}</p>
             <div class="event-actions">
               <button class="btn btn-remove" @click="openConfirmRemoveModal(event.eventId)">Remove</button>
-              <button class="btn btn-signup" @click="signUpForEvent(event )">Sign Up</button>
+              <button class="btn btn-signup" @click="signUpForEvent(event)">Sign Up</button>
             </div>
           </div>
           <div v-else class="no-events">No Saved Events</div>
@@ -128,23 +131,23 @@
         </div> -->
 
         <div v-if="openPopup" class="modal" tabindex="-1" role="dialog" style="display: block;">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Confirm Deletion</h5>
-                        <button type="button" class="close" @click="closeConfirmModal">
-                            <span>&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                      <p>Are you sure you want to remove this event?</p>
-                    </div>
-                    <div class="modal-actions">
-                      <button class="btn btn-danger" @click="removeEvent(confirmEventId)">Yes</button>
-                      <button class="btn btn-secondary" @click="closeConfirmModal">No</button>
-                    </div>
-                </div>
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="close" @click="closeConfirmModal">
+                  <span>&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p>Are you sure you want to remove this event?</p>
+              </div>
+              <div class="modal-actions">
+                <button class="btn btn-danger" @click="removeEvent(confirmEventId)">Yes</button>
+                <button class="btn btn-secondary" @click="closeConfirmModal">No</button>
+              </div>
             </div>
+          </div>
         </div>
       </div>
     </div>
@@ -180,22 +183,22 @@ export default {
   methods: {
     async fetchUserData(uid) {
       this.loading = true; // Start loading
-    try {
+      try {
         const userDoc = await getDoc(doc(db, 'users', uid));
         if (userDoc.exists()) {
-            const fetchedData = userDoc.data();
-            this.userData = { ...fetchedData, reviews: [] };
-            await this.fetchUserReviews(uid);
-            await this.fetchSavedEvents(uid);
-            await this.fetchSignedUpEvents(uid);
+          const fetchedData = userDoc.data();
+          this.userData = { ...fetchedData, reviews: [] };
+          await this.fetchUserReviews(uid);
+          await this.fetchSavedEvents(uid);
+          await this.fetchSignedUpEvents(uid);
         } else {
-            console.error("No user data found!");
+          console.error("No user data found!");
         }
-    } catch (error) {
+      } catch (error) {
         console.error("Error fetching user data:", error);
-    } finally {
+      } finally {
         this.loading = false; // End loading
-    }
+      }
     },
     async fetchUserReviews(uid) {
       try {
@@ -283,7 +286,7 @@ export default {
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
       if (diffDays === 0) return 'Today';
-      
+
       let years = Math.floor(diffDays / 365);
       let remainingDays = diffDays % 365;
       let months = Math.floor(remainingDays / 30);
@@ -377,18 +380,18 @@ export default {
     }
 
     onAuthStateChanged(auth, (user) => {
-        if (user) {
-            this.loggedInUserId = user.uid;
-            const userId = this.id || this.$route.params.id;
-            if (userId) {
-                this.fetchUserData(userId); // Call fetch after user is authenticated
-            } else {
-                console.error('No user ID found in route params');
-            }
+      if (user) {
+        this.loggedInUserId = user.uid;
+        const userId = this.id || this.$route.params.id;
+        if (userId) {
+          this.fetchUserData(userId); // Call fetch after user is authenticated
         } else {
-            console.error("User is not logged in");
-            this.$router.push({ name: 'Home' }); // Redirect to Home if not authenticated
+          console.error('No user ID found in route params');
         }
+      } else {
+        console.error("User is not logged in");
+        this.$router.push({ name: 'Home' }); // Redirect to Home if not authenticated
+      }
     });
   },
   computed: {
@@ -443,6 +446,7 @@ export default {
   /* Centers the button */
   margin-top: 20px;
   /* Adds spacing from the content above */
+
 }
 
 .tabs {
@@ -488,15 +492,19 @@ export default {
 
 .expertise-badge {
   display: inline-block;
+  background-color: #f2f2f2;
+  /* Light background for available expertise */
+  color: #333;
+  border-radius: 12px;
   padding: 5px 15px;
   margin: 5px;
-  border-radius: 30px;
-  background-color: #B3C7FA;
-  color: #085C44;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-#saved-events, #upcoming-events, #past-events {
+#saved-events,
+#upcoming-events,
+#past-events {
   margin: 20px auto;
   padding: 20px;
   background-color: #f9f9f9;
@@ -553,12 +561,18 @@ export default {
 }
 
 .btn {
-  padding: 8px 16px;
+  padding: 8px 25px;
   font-size: 0.9em;
   border-radius: 4px;
   cursor: pointer;
   border: none;
   transition: background-color 0.3s;
+  background-color: black;
+
+}
+
+.btn:hover {
+  background-color: #085C44;
 }
 
 /* Remove button style */
@@ -580,6 +594,7 @@ export default {
 .btn-signup:hover {
   background-color: #45a049;
 }
+
 .modal-actions {
   margin-top: 20px;
   display: flex;
