@@ -37,8 +37,9 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex';
-import { db } from "../main";
-import { collection, addDoc, doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { db, realtimeDb} from "../main";
+import { collection, getDoc, addDoc, doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { ref as dbRef, get, query as dbquery, set, onValue, update, push, remove } from 'firebase/database';
 
 export default {
   computed: {
@@ -56,7 +57,7 @@ export default {
 
         const eventsCollection = collection(db, "events");
         const docRef = await addDoc(eventsCollection, {
-          userId: event.userId,
+          organiserID: event.organiserID,
           title: event.title || "Untitled Event",
           description: event.description || "No description provided.",
           eventDate: eventDate || new Date(),
@@ -64,39 +65,56 @@ export default {
           address: event.address || '',
           name: event.name || "No name provided",
           email: event.email || "No email provided",
-          phone: event.phone || "No phone provided",
           category: event.category || [], // Ensure it matches the Firebase data structure
           duration: event.duration || "Duration not specified",
-          price: event.price || 0,
           totalSlots: event.totalSlots || 0,
+          vacantSlots: event.vacantSlots,
           imageUrl: event.imageUrl || "", // Include the image URL
-          status: "approved",
           createdAt: new Date()
         });
-
-        // await updateDoc(doc(db, "eventRequest", event.id), { status: "approved" });
+        
+        await this.sendNotification(event.organiserID, event.title + " has been approved!", 'JustFix')
+        await updateDoc(doc(db, "eventRequest", event.id), { status: "approved" });
         console.log(`Event "${event.title}" approved and added to events collection.`);
 
-        const newEventId = docRef.id;
+        const newEventId = 'uqMHmH0RZbUj7ZNKlM02';
 
-        const userDocRef = doc(db, "users", event.userId); // Assuming `userId` is provided in the event object
-
+        const userDocRef = doc(db, "users", 'OxkuOPkzMeZAdrs59tqy01GyEEh2'); // Assuming `userId` is provided in the event object
+        const userDocSnap = await getDoc(userDocRef);
         // Create an event object with minimal data to store in the user's signedUpEvents array
         const eventToSave = {
           address: event.address,
           eventId: newEventId,
           title: event.title || "Untitled Event",
-          eventDate: event.eventDate || new Date(),
+          eventDate: event.eventDate.toDate() || new Date(),
           description: event.description || "No description provided.",
           // Add other necessary fields as required, for example:
           location: event.location || "Not provided",
-          organiserId: event.organiserId,
+          organiserId: event.organiserID,
         };
 
         // Step 4: Update the user's document to add the new event to their signedUpEvents array
-        await updateDoc(userDocRef, {
-          signedUpEvents: arrayUnion(eventToSave) // Add the new event to the array
-        });
+
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          const existingEvents = userData.signedUpEvents || [];
+          const alreadySignedUp = existingEvents.some(signedUpEvents => signedUpEvents.eventId === newEventId);
+          // console.log(existingEvents);
+          // console.log(alreadySignedUp);
+          // console.log(eventToSave);
+          if (alreadySignedUp) {
+            return;
+          }
+          // Update user's signedUpEvents by adding the new event
+          await updateDoc(userDocRef, {
+            signedUpEvents: arrayUnion(eventToSave)
+          });
+        } else {
+          // If user document doesn't exist, create it with `signedupevents` field
+          await setDoc(userDocRef, {
+            signedUpEvents: [eventToSave]
+          });
+        }
 
         this.fetchEventRequests(); // Refresh the list to remove approved event from view
       } catch (error) {
@@ -118,7 +136,19 @@ export default {
         return new Date(date.seconds * 1000).toLocaleString();
       }
       return "No date available";
-    }
+    },
+    async sendNotification (receiverId, message, name){
+      const notificationRef = dbRef(realtimeDb, `notifications/${receiverId}`);
+      await push(notificationRef, {
+        notificationType: 'message',
+        senderId: 'admin',
+        senderName: name,
+        message: message,
+        timestamp: new Date().toISOString(),
+        read: false,
+      });
+      // console.log('Notification sent to:', receiverId);
+    },
   }
 };
 </script>
