@@ -192,6 +192,10 @@ export default {
             }
         }
     },
+    beforeRouteLeave(to, from, next) {
+    document.body.style.overflow = 'auto'; // Ensure scrolling is enabled when leaving login page
+    next();
+    }
 };
 </script>
 

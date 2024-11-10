@@ -226,17 +226,19 @@ export default {
       document.body.style.overflow = 'auto'; // Restore scrolling
     },
     navigateToSignup({ event, user }) {
-      if (event && user) {
-      this.$store.commit('setEventData', event);
-      this.$store.commit('setUserData', user);
-
-      sessionStorage.setItem('eventData', JSON.stringify(event));
-      sessionStorage.setItem('userData', JSON.stringify(user));
-
-      this.$router.push({ name: 'eventSignup', params: { eventId: event.id } });
-    } else {
-      console.warn("Event or User data is missing in navigateToSignup");
-    }
+      const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
+      if (!uid) {
+        this.$router.push('/login');
+      } else if (event && user) {
+        // Proceed with signup if user is logged in
+        this.$store.commit('setEventData', event);
+        this.$store.commit('setUserData', user);
+        sessionStorage.setItem('eventData', JSON.stringify(event));
+        sessionStorage.setItem('userData', JSON.stringify(user));
+        this.$router.push({ name: 'eventSignup', params: { eventId: event.id } });
+      } else {
+          console.warn("Event or User data is missing in navigateToSignup");
+      }
     },
     async fetchEvents() {
       // Fetch all events from Firestore
@@ -372,7 +374,16 @@ export default {
     if (lat >= 1.20 && lat <= 1.28 && lng >= 103.75 && lng <= 103.85) return "South";
     return "Unknown";
 },
-}
+},
+beforeRouteLeave(to, from, next) {
+    document.body.style.overflow = 'auto'; // Ensure scrolling is re-enabled
+    next();
+},
+beforeRouteEnter(to, from, next) {
+    next(vm => {
+        document.body.style.overflow = 'auto'; // Reset scrolling on entering Event.vue
+    });
+},
 };
 </script>
 
