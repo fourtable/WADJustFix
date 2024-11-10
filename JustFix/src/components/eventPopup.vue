@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click.self="closeModal">
+  <div class="modal-overlay">
     <div class="modal-content">
       <button class="close-btn"  @click="closeModal">✕</button>
       <img :src="event.imageUrl" class="card-img-top mb-2 mt-4 rounded-1" alt="Event Image" v-if="event.imageUrl">
@@ -161,9 +161,8 @@ export default {
     const handleSignupClick = async () => {
       const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
       if (!uid) {
-          // Store current path for redirect after login
-          sessionStorage.setItem('intendedPath', '/EventSignup');
           router.push('/login');
+          return;
       } 
       try {
           // Check if user has reached the limit of 5 upcoming events
@@ -273,6 +272,7 @@ export default {
   methods: {
     closeModal() {
       this.$emit('close'); // Emit a close event to the parent
+      document.body.style.overflow = 'auto'; 
     },
     convertTimestampToDate(timestamp) {
       if (timestamp && typeof timestamp.toDate === 'function') {
