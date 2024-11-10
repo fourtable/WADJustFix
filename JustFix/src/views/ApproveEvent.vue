@@ -78,9 +78,9 @@ export default {
         await updateDoc(doc(db, "eventRequest", event.id), { status: "approved" });
         console.log(`Event "${event.title}" approved and added to events collection.`);
 
-        const newEventId = 'uqMHmH0RZbUj7ZNKlM02';
+        const newEventId = docRef.id;
 
-        const userDocRef = doc(db, "users", 'OxkuOPkzMeZAdrs59tqy01GyEEh2'); // Assuming `userId` is provided in the event object
+        const userDocRef = doc(db, "users", event.organiserID); // Assuming `userId` is provided in the event object
         const userDocSnap = await getDoc(userDocRef);
         // Create an event object with minimal data to store in the user's signedUpEvents array
         const eventToSave = {
