@@ -138,7 +138,9 @@
         <!-- Actions Column -->
         <div v-if="userType !== 'admin'" class="table-cell text-center">
           <div class="button-container d-flex flex-column align-items-center justify-content-center">
-            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" ref="reviewPopup">Review</ReviewPopup>
+            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" :isReviewed="userType === 'repairer' && quote.fixerReview || userType === 'user' && quote.customerReview" ref="reviewPopup">
+              Review
+            </ReviewPopup>
             <QuotesPopup v-if="quote.userId === uid && quote.status !== 'Completed'"
               :disableStatus="quote.status == 'In Progress'" :show="showEditQuotesPopup" :btnName="'Edit'"
               :action="'Edit'" :editQuote="quote" @close="showQuotesPopup = false" />
@@ -200,7 +202,6 @@ export default {
       return this.quotes.filter(quote => quote.status !== 'Completed');
     },
     uid() {
-      console.log(Cookies.get('uid') || sessionStorage.getItem('uid'));
       return Cookies.get('uid') || sessionStorage.getItem('uid');
     },
     userType() {

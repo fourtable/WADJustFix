@@ -1,6 +1,6 @@
 <template>
     <div>
-        <button class="btn btn-primary btn-sm table-button mb-2 mb-lg-0" @click="openPopup">
+        <button v-show="!isReviewed" class="btn btn-primary btn-sm table-button mb-2 mb-lg-0" @click="openPopup">
             Review
         </button>
         <div v-if="show" class="modal" tabindex="-1" role="dialog">
@@ -51,7 +51,7 @@ import { collection, onSnapshot, query, where, getDocs, getDoc, doc, updateDoc, 
 import Cookies from 'js-cookie';
 
 export default {
-    props: ['quote'],
+    props: ['quote','isReviewed'],
     data() {
         return {
             show: false,
@@ -78,6 +78,10 @@ export default {
                 return this.quote.repairerName;
             }
         },
+        userType(){
+            console.log(Cookies.get('userType') || sessionStorage.getItem('userType'))
+            return Cookies.get('userType') || sessionStorage.getItem('userType');
+        }
     },
     methods: {
         openPopup() {
@@ -125,14 +129,39 @@ export default {
             };
             try {
                 const reviewsCollection = collection(db, "reviews");
+                const quoteDocRef = doc(db, "quotes", this.quote.id);
                 const pointCollection = collection(db, 'points');
-                await addDoc(pointCollection, {
-                    Date: serverTimestamp(),
-                    UID: this.uid,
-                    points: 10,
-                    type: "earn",
-                });
-                await addDoc(reviewsCollection, reviewData);
+                // await addDoc(pointCollection, {
+                //     Date: serverTimestamp(),
+                //     UID: this.uid,
+                //     points: 10,
+                //     type: "earn",
+                // });
+                // await addDoc(reviewsCollection, reviewData);
+
+                const quoteSnapshot = await getDoc(quoteDocRef);
+
+                if (quoteSnapshot.exists()) {
+                    const quoteData = quoteSnapshot.data();
+
+                    // Check reviewer type and update the appropriate field
+                    if (this.userType === "repairer") {
+                        await updateDoc(quoteDocRef, {
+                            fixerReview: true
+                        });
+                        console.log("Fixer review updated successfully.");
+                    } else if (this.userType === "user") {
+                        await updateDoc(quoteDocRef, {
+                            customerReview: true
+                        });
+                        console.log("Customer review updated successfully.");
+                    } else {
+                        console.log("Reviewer role is undefined or does not match.");
+                    }
+                } 
+                else {
+                    console.log("Quote document not found.");
+                }
                 console.log("Review submitted:", reviewData);
                 // Reset the form
                 this.resetReviewForm();
