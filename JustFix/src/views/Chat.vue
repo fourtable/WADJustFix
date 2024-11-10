@@ -228,6 +228,7 @@ async function acceptQuote() {
         });
 
         const pointCollection = collection(db, 'points');
+        // for user (fixer)
         await addDoc(pointCollection, {
             Date: serverTimestamp(),
             UID: uid,

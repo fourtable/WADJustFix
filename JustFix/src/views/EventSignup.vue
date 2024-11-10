@@ -48,7 +48,7 @@
 
 <script>
 import { db } from "../main"; // Import your Firebase instance
-import { collection, addDoc, arrayUnion, doc, getDoc, setDoc, updateDoc, increment } from "firebase/firestore";
+import { collection, addDoc, arrayUnion, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
 import Cookies from 'js-cookie';
 
 export default {
@@ -133,7 +133,7 @@ export default {
 
       // Proceed with the existing submit logic
       const eventId = this.eventData.id;
-      console.log(eventId);
+      console.log(this.eventData);
       try {
         const userDocRef = doc(db, "users", uid);
         const userDocSnap = await getDoc(userDocRef);
@@ -160,10 +160,11 @@ export default {
           locationName: this.eventData.locationName,
           address: this.eventData.address,
           duration: this.eventData.duration,
+          organiserID: this.eventData.organiserID,
           // vacantSlots: this.event.vacantSlots,
           // totalSlots: this.event.totalSlots,
         };
-
+        console.log(this.eventData.organiserID);
         console.log(eventToSave);
 
         if (userDocSnap.exists()) {
@@ -191,12 +192,23 @@ export default {
           vacantSlots: increment(-1)
         });
 
+        const pointCollection = collection(db, 'points');
+        // for user (fixer)
+        await addDoc(pointCollection, {
+            Date: serverTimestamp(),
+            UID: uid,
+            points: 10,
+            type: "earn",
+        });
+
         alert("You have successfully signed up for the event!");
+        this.showNotification("You have successfully signed up for the event!","alert");
         // Optionally, reset form or navigate as needed
         this.formSubmitted = true;
       } catch (error) {
         console.error("Error submitting form:", error);
         alert("There was an error during the signup process. Please try again.");
+        this.showNotification("There was an error during the signup process. Please try again.","alert");
       }
     },
     resetForm() {

@@ -112,6 +112,7 @@ export default {
     try {
       const docSnap = await getDoc(userDocRef);
       const newEvent = { 
+        oraganiserId: props.event.organiserID,
         duration: props.event.duration,
         address: props.event.address || '',
         eventId: props.event.id,
@@ -130,7 +131,7 @@ export default {
         );
         console.log(eventExists);
         console.log(newEvent.eventId === props.event.id);
-        console.log(newEvent.eventId);
+        console.log(newEvent);
         if (!eventExists) {
           await updateDoc(userDocRef, {
             savedEvents: arrayUnion(newEvent)
