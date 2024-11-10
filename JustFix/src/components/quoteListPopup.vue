@@ -211,6 +211,8 @@ const sendNotification = async (receiverId, message, name) => {
 <style lang="scss" scoped>
 .modal-backdrop {
     z-index: 1040;
+    width: 100%;
+    height: 100%;
 }
 
 .modal {
