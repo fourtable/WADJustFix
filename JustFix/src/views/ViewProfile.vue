@@ -42,13 +42,13 @@
     </div>
 
     <!-- Edit Profile Button for Profile Owner -->
-    <div v-if="isOwnProfile" class="edit-profile-btn">
-      <router-link :to="{ name: 'editProfile' }" class="btn btn-primary px-3">Edit
+    <div class="edit-profile-btn">
+      <router-link v-if="isOwnProfile"  :to="{ name: 'editProfile' }" class="btn btn-primary px-3">Edit
         Profile</router-link>
-    </div>
-    <div v-else class="edit-profile-btn"><router-link
+        <router-link v-else
         :to="{ name: 'chat', query: { repairerId: this.id, repairName: userData.name, repairerPic: userData.imageUrl } }"
-        class="btn">Chat</router-link></div>
+        class="btn">Chat</router-link>
+    </div>
 
     <!-- Tabs -->
     <div v-if="userData.userType !== 'admin'">
@@ -267,7 +267,7 @@ export default {
     isRegistrationClosed(registrationDate) {
       const today = new Date();
       // const regDate = new Date(registrationDate.seconds * 1000); // Converts Firestore timestamp if necessary
-      return registrationDate < today; // Returns true if registration date is in the past
+      return registrationDate.toDate() < today; // Returns true if registration date is in the past
     },
     formatTimestamp(timestamp) {
       const date = new Date(timestamp.seconds * 1000); // Convert Firebase Timestamp to JavaScript Date object
@@ -457,7 +457,7 @@ export default {
   /* Centers the button */
   margin-top: 20px;
   /* Adds spacing from the content above */
-
+  color: #fff;
 }
 
 .tabs {
@@ -574,6 +574,7 @@ export default {
 .btn {
   padding: 8px 25px;
   font-size: 0.9em;
+  color: #ccc;
   border-radius: 24px;
   cursor: pointer;
   border: none;

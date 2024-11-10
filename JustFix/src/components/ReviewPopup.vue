@@ -47,7 +47,7 @@
 <script>
 import { db } from '../main';
 import { ref } from 'vue';
-import { collection, onSnapshot, query, where, getDocs, getDoc, doc, updateDoc, Timestamp, addDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, getDocs, getDoc, doc, updateDoc, Timestamp, addDoc, serverTimestamp } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 
 export default {
