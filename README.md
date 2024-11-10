@@ -37,5 +37,5 @@ Use the following test accounts to explore **JustFix**:
 |--------|---------------------|----------|
 | Admin  | admin@justfix.com    | 123456   |
 | User   | 1234@gmail.com       | 123456   |
-| Fixer  | pepsi@gmail.com      | 123456   |
+| Fixer  | fixer1@gmail.com      | 123456   |
 
