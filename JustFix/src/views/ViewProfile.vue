@@ -568,11 +568,13 @@ export default {
   border: none;
   transition: background-color 0.3s;
   background-color: black;
+  color: white;
 
 }
 
 .btn:hover {
   background-color: #085C44;
+  color: white;
 }
 
 /* Remove button style */
