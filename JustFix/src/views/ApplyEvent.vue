@@ -1,6 +1,6 @@
 <template>
     <div class="container-fluid mt-5 p-5">
-      <button @click="$router.push('/event')" class="back mb-3"></button>
+      <button @click="$router.push('/event')" class="back mb-3"><</button>
       <h2>Host Your Own Event</h2>
       <p>Are you a skilled repair expert? Want to share your expertise with others? Host your own event and inspire a community of learners! Click here to request to organize an event with us.</p>
       
@@ -52,7 +52,7 @@
 
         <div class="mb-3">
           <label for="duration">Duration (hours)</label>
-s          <input type="number" v-model="form.duration" class="form-control" min="1" required />
+          <input type="number" v-model="form.duration" class="form-control" min="1" required />
         </div>
 
         <div class="mb-3">
@@ -280,7 +280,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           
           // Prepare the form data
           const formData = {
-            uid: this.form.uid, // Use uid directly here
+            organiserID: this.form.uid, // Use uid directly here
             name: this.form.name || "",
             email: this.form.email || "",
             category: cleanedCategories || [],

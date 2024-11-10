@@ -1,7 +1,7 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-content">
-      <button class="close-btn" @click="$emit('close')">✕</button>
+      <button class="close-btn"  @click="closeModal">✕</button>
       <img :src="event.imageUrl" class="card-img-top mb-2 mt-4 rounded-1" alt="Event Image" v-if="event.imageUrl">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <h3>{{ event.title }}</h3>
@@ -51,7 +51,11 @@ export default {
       type: Array,
       default: () => []
     },
-    isVisible: Boolean
+    canSignUp: {
+      type: Boolean,
+      default: true // Show button by default if not explicitly set
+    },
+    isModalVisible: true
   },
   setup(props, {emit}) {
     const router = useRouter();
@@ -118,6 +122,7 @@ export default {
         eventId: props.event.id,
         title: props.event.title,
         eventDate: props.event.eventDate,
+        registrationDeadline: props.event.registrationDeadline,
         description: props.event.description,
         locationName: props.event.locationName || '',}; // Replace with actual event data
 
@@ -157,36 +162,15 @@ export default {
     const handleSignupClick = async () => {
       const uid = Cookies.get('uid') || sessionStorage.getItem('uid');
       if (!uid) {
-          // Store current path for redirect after login
-          sessionStorage.setItem('intendedPath', '/EventSignup');
           router.push('/login');
+          return;
       } 
       try {
-        const userDocRef = doc(db, 'users', uid);
-        const userSnap = await getDoc(userDocRef);
-        
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-          const existingEvents = userData.signedUpEvents || [];
-          console.log(existingEvents);
-          console.log("Current event ID:", props.event.id);
-          const alreadySignedUp = existingEvents.some(event => event.eventId === props.event.Id);
-          
-          // Check if user is already signed up for this event
-          if (alreadySignedUp) {
-            alert('You have already signed up for this event.');
+          // Check if user has reached the limit of 5 upcoming events
+          if (!props.canSignUp) {
+            showNotification('You have reached the limit of 5 upcoming events.','alert');
             return;
-          }
-          // Step 3: Check if user has 5 or more upcoming events
-          const upcomingEvents = existingEvents.filter(event => {
-            const eventDate = event.eventDate.toDate();
-            return eventDate > new Date();
-          });
-          if (upcomingEvents.length >= 5) {
-            alert('You have reached the limit of 5 upcoming events.');
-            return;
-          }
-        }
+          };
         // Step 5: Proceed to EventSignup.vue if checks pass
         emit("openEventSignup", { event: props.event, user: props.user });
         
@@ -287,6 +271,10 @@ export default {
     },
   },
   methods: {
+    closeModal() {
+      this.$emit('close'); // Emit a close event to the parent
+      document.body.style.overflow = 'auto'; 
+    },
     convertTimestampToDate(timestamp) {
       if (timestamp && typeof timestamp.toDate === 'function') {
         return timestamp.toDate();
@@ -306,22 +294,13 @@ export default {
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     },
-    // async showNotification(message, type) {
-    //   try {
-    //     const notification = {
-    //       type: type,
-    //       message: message,
-    //       timestamp: new Date().toISOString(),
-    //       isVisible: true,
-    //     };
-    //     // console.log('Dispatching notification:', notification);
-    //     this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
-    //   }
-    //   catch (error) {
-
-    //   }
-    // },
   },
+  mounted() {
+    document.body.style.overflow = 'hidden'; // Disable scrolling when modal opens
+  },
+  destroyed() {
+    document.body.style.overflow = 'auto'; // Enable scrolling when modal is closed
+  }
 }
 
 </script>
@@ -346,7 +325,7 @@ export default {
   border-radius: 8px;
   max-width: 500px;
   max-height: 80vh;
-  width: 100%;
+  width: 90%;
   overflow-y: auto;
   border: 2px solid #ccc;
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
@@ -366,14 +345,14 @@ export default {
 img {
   width: 100%;
 }
-
 .btn {
-  padding: 5px 10px;
+  padding: 5px 15px;
   border: 1px solid #085c44;
   border-radius: 30px;
   color: #085c44;
   display: inline-flex;
   align-items: center;
+  justify-content: center; 
   margin-top: 10px;
   cursor: pointer;
   width: 30%;

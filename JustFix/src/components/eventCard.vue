@@ -122,7 +122,7 @@ export default {
 
 <style scoped>
 .event-card {
-  width: 300px;
+  width: 400px;
   height: 380px;
   margin-bottom: 10px;
   padding: 0px;
@@ -139,9 +139,30 @@ export default {
   border-top-right-radius: 20px;
   overflow: hidden;
   height: 180px;
+  width: 100%; /* Ensures full width of the container */
+  /* display: flex;
+  align-items: center;
+  justify-content: center; */
+}
+.card-img-top {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image fills the container and maintains aspect ratio */
 }
 h5{
   font-size: medium;
+}
+.card-body {
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+}
+.card-title {
+  margin-bottom: 4px; /* Reduce space below the title */
+}
+.card-text {
+  font-size: small;
+  margin: 7px 0; /* Reduce spacing between text lines */
 }
 .badge{
   padding:3%;
@@ -156,12 +177,12 @@ h5{
 .badge-secondary {
   background-color: #6c757d;
   color: white;
+  right: 5px;
 }
 .badge-container {
   display: flex;
-  align-items: center; /* Center vertically if badges have different heights */
-}
-.badge:not(:last-child) {
-  margin-right: 50px; /* Adjust as needed for spacing */
+  justify-content: space-between; /* Pushes badges to opposite ends */
+  width: 100%; /* Ensures the badges take up the full width */
+  margin-top: auto; /* Pushes the badges to the bottom */
 }
 </style>

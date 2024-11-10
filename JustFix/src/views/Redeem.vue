@@ -10,7 +10,7 @@
         <h3 class="text-center">My Rewards</h3>
         <div class="row">
           <div class="col-lg-4 col-md-6 col-sm-12 mb-4" v-for="myReward in myRewards" :key="myReward.id">
-            <div class="card h-100">
+            <div class="card h-100" @click="showQrCode(myReward)">
               <img :src="myReward.imageURL" class="card-img-top" alt="My Reward Image"
                 style="object-fit: cover; border-radius: 15px 15px 0 0; height: 200px;">
               <div class="card-body d-flex flex-column">
@@ -41,6 +41,32 @@
                 Redeem
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for QR Code -->
+    <div
+      class="modal fade"
+      id="qrCodeModal"
+      tabindex="-1"
+      aria-labelledby="qrCodeModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="qrCodeModalLabel">QR Code for Reward</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body text-center">
+            <canvas id="qrCodeCanvas"></canvas>
           </div>
         </div>
       </div>
@@ -82,6 +108,7 @@
   import { onAuthStateChanged } from "firebase/auth";
   import { merge } from "chart.js/helpers";
   // import { useToast } from "vue-toastification";
+  import QRCode from "qrcode";
   
   export default {
     setup() {
@@ -90,6 +117,7 @@
       const userId = ref(null);
       const redeeming = ref(false);
       const myRewards = ref([]);
+      const qrCodeCanvas = ref(null); // Reference to the QR Code canvas
   
       // Fetch available rewards from Firestore
       const fetchRewards = async () => {
@@ -211,6 +239,21 @@
           alert("You do not have enough points to redeem this reward.");
         }
       };
+
+      // Display QR code for selected reward
+      const showQrCode = async (reward) => {
+        const qrData = `Reward ID: ${reward.id}, Reward Name: ${reward.name}`;
+        try {
+          const canvas = document.getElementById("qrCodeCanvas");
+          await QRCode.toCanvas(canvas, qrData, { width: 200 });
+          const modal = new bootstrap.Modal(
+            document.getElementById("qrCodeModal")
+          );
+          modal.show();
+        } catch (error) {
+          console.error("Error generating QR code:", error);
+        }
+      };
   
       onMounted(() => {
         // Check if user is authenticated
@@ -226,7 +269,7 @@
         });
       });
   
-      return { rewards, userPoints, redeemReward, redeeming, myRewards };
+      return { rewards, userPoints, redeemReward, redeeming, myRewards, showQrCode };
     },
   };
   </script>

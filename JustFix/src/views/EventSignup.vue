@@ -1,6 +1,7 @@
 <template>
+   <div class="event-signup-container">
   <div class="container-fluid mt-5 p-5">
-    <button @click="$router.push('/event')" class="back mb-3"></button>
+    <button @click="goBack" class="back mb-3"><</button>
     <h2 v-if="eventData">Sign up for {{ eventData.title }}</h2>
 
     <form @submit.prevent="submitForm" v-if="!formSubmitted">
@@ -14,11 +15,6 @@
         <input type="email" id="email" v-model="form.email" placeholder="Enter your Email" class="form-control"
           required>
       </div>
-
-      <!-- <div class="mb-3">
-          <label for="phone">Contact Number</label>
-          <input type="text" id="phone" v-model="form.phone" placeholder="Enter your contact number" class="form-control" required />
-        </div> -->
 
       <div class="mb-3">
         <label for="experienceLevel">Experience Level</label>
@@ -44,6 +40,7 @@
         within 2-3 business days or you can check your email for updates.</p>
     </div>
   </div>
+</div>
 </template>
 
 <script>
@@ -58,7 +55,6 @@ export default {
       form: {
         organiserId: '',
         name: "",
-        phone: "",
         // email: "",
         experienceLevel: "",
         agreeToTerms: false,
@@ -106,6 +102,10 @@ export default {
     console.log("User data in EventSignup.vue after fallback:", this.userData);
   },
   methods: {
+    goBack() {
+      document.body.style.overflow = 'auto';
+      this.$router.push('/event'); // Navigate to the events page
+    },
     async getUserDetails(uid) {
       try {
         const userDoc = doc(db, "users", uid);
@@ -121,13 +121,13 @@ export default {
     },
     async submitForm() {
       if (!this.eventData) {
-        alert("Event data is not available.");
+        this.showNotification("Event data is not available.", 'alert');
         return;
       }
       // Fallback to session storage if `user` data is not in Vuex
       const uid = this.user?.uid || sessionStorage.getItem('uid') || Cookies.get('uid');
       if (!uid) {
-        alert("User data not available. Please log in.");
+        this.showNotification("User data not available. Please log in.", 'alert');
         return;
       }
 
@@ -142,13 +142,13 @@ export default {
         const eventDocSnap = await getDoc(eventDocRef);
 
         if (!eventDocSnap.exists()) {
-          alert("Event not found.");
+          this.showNotification("Event not found.", 'alert');
           return;
         }
         //move this logic to when they press signup button at popup
         const eventData = eventDocSnap.data();
         if (eventData.vacantSlots <= 0) {
-          alert("No vacant slots available.");
+          this.showNotification("No vacant slots available.", 'alert');
           return;
         }
         // // Define the event object to be saved in `signedupevents`
@@ -170,10 +170,10 @@ export default {
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
           const existingEvents = userData.signedUpEvents || [];
-          const alreadySignedUp = existingEvents.some(event => event.eventId === eventId);
+          const alreadySignedUp = existingEvents.some(signedUpEvents => signedUpEvents.eventId === eventId);
 
           if (alreadySignedUp) {
-            alert("You are already signed up for this event.");
+            this.showNotification("You are already signed up for this event.", 'alert');
             return;
           }
           // Update user's signedUpEvents by adding the new event
@@ -200,14 +200,10 @@ export default {
             points: 10,
             type: "earn",
         });
-
-        alert("You have successfully signed up for the event!");
-        this.showNotification("You have successfully signed up for the event!","alert");
         // Optionally, reset form or navigate as needed
         this.formSubmitted = true;
       } catch (error) {
         console.error("Error submitting form:", error);
-        alert("There was an error during the signup process. Please try again.");
         this.showNotification("There was an error during the signup process. Please try again.","alert");
       }
     },
@@ -232,21 +228,33 @@ export default {
       this.$store.dispatch('addNotification', notification); // Dispatch the action to add notification
     },
   },
+  mounted() {
+    // If you need to prevent scrolling on EventSignup
+    document.body.style.overflow = 'hidden';
+  },
+  beforeDestroy() {
+    // Reset the overflow style when the component is destroyed
+    document.body.style.overflow = 'auto';
+  },
+  beforeRouteLeave(to, from, next) {
+    // Ensure scrolling is re-enabled on the main page
+    document.body.style.overflow = 'auto';
+    next();
+  }
 };
 </script>
 
 <style scoped>
+.event-signup-container {
+  height: 100vh; /* Full viewport height */
+  overflow-y: auto; /* Enables scrolling if content overflows */
+}
 .container-fluid {
   max-width: 600px;
   /* Limits the width */
   width: 90%;
   /* Responsive width for smaller screens */
   margin: 0 auto;
-  /* Centers the container */
-  padding: 20px;
-  /* min-height: 100vh;
-  display: flex;
-  flex-direction: column; */
 }
 
 .organize-event-form {
@@ -276,7 +284,7 @@ export default {
   color: #085c44;
   display: inline-flex;
   align-items: center;
-  margin-top: 10px;
+  /* margin-top: 5px; */
   cursor: pointer;
 }
 
