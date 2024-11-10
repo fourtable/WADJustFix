@@ -90,8 +90,8 @@
           <div v-if="upcomingEvents.length > 0" v-for="event in upcomingEvents" :key="event.id" class="event">
             <h4 class="event-title">{{ event.title }} - {{ formatTimestamp(event.eventDate) }}</h4>
             <p class="event-description">{{ event.description }}</p>
-            <div v-if="event.organiserId === id" class="event-actions">
-              <button class="btn" @click="goToEventSignees(event.eventId)">Manage</button>
+            <div v-if="event.organiserID === id" class="event-actions">
+              <button class="btn btn-manage" @click="goToEventSignees(event.eventId)">Manage</button>
             </div>
           </div>
           <div v-else class="no-events">No Upcoming Events</div>
@@ -593,6 +593,15 @@ export default {
 
 .btn-signup:hover {
   background-color: #45a049;
+}
+
+.btn-manage {
+  background-color: #251666;
+  color: #fff;
+}
+
+.btn-manage:hover {
+  background-color: #4635e4;
 }
 
 .modal-actions {
