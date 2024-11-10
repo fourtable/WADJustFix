@@ -131,13 +131,13 @@ export default {
                 const reviewsCollection = collection(db, "reviews");
                 const quoteDocRef = doc(db, "quotes", this.quote.id);
                 const pointCollection = collection(db, 'points');
-                // await addDoc(pointCollection, {
-                //     Date: serverTimestamp(),
-                //     UID: this.uid,
-                //     points: 10,
-                //     type: "earn",
-                // });
-                // await addDoc(reviewsCollection, reviewData);
+                await addDoc(pointCollection, {
+                    Date: serverTimestamp(),
+                    UID: this.uid,
+                    points: 10,
+                    type: "earn",
+                });
+                await addDoc(reviewsCollection, reviewData);
 
                 const quoteSnapshot = await getDoc(quoteDocRef);
 
