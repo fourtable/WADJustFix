@@ -1,6 +1,6 @@
 <template>
     <div class="container-box py-5" id="leaderboard">
-      <h2 class="text-center mb-5"> {{ currentMonthName }} Leaderboard</h2>
+      <h2 class="text-center mb-5"> Our top specialist fixers in {{ currentMonthName }} </h2>
   
       <!-- Podium Section for Top 3 Repairers -->
       <div class="podium-spacer"></div>

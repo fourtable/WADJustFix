@@ -1,6 +1,6 @@
 <template>
     <div>
-        <button v-show="!isReviewed" class="btn btn-primary btn-sm table-button mb-2 mb-lg-0" @click="openPopup">
+        <button v-show="!isReviewed" class="btn btn-success btn-sm table-button mb-2 mb-lg-0 d-flex" @click="openPopup">
             Review
         </button>
         <div v-if="show" class="modal" tabindex="-1" role="dialog">
@@ -51,7 +51,7 @@ import { collection, onSnapshot, query, where, getDocs, getDoc, doc, updateDoc, 
 import Cookies from 'js-cookie';
 
 export default {
-    props: ['quote','isReviewed'],
+    props: ['quote', 'isReviewed'],
     data() {
         return {
             show: false,
@@ -78,7 +78,7 @@ export default {
                 return this.quote.repairerName;
             }
         },
-        userType(){
+        userType() {
             console.log(Cookies.get('userType') || sessionStorage.getItem('userType'))
             return Cookies.get('userType') || sessionStorage.getItem('userType');
         }
@@ -131,13 +131,13 @@ export default {
                 const reviewsCollection = collection(db, "reviews");
                 const quoteDocRef = doc(db, "quotes", this.quote.id);
                 const pointCollection = collection(db, 'points');
-                // await addDoc(pointCollection, {
-                //     Date: serverTimestamp(),
-                //     UID: this.uid,
-                //     points: 10,
-                //     type: "earn",
-                // });
-                // await addDoc(reviewsCollection, reviewData);
+                await addDoc(pointCollection, {
+                    Date: serverTimestamp(),
+                    UID: this.uid,
+                    points: 10,
+                    type: "earn",
+                });
+                await addDoc(reviewsCollection, reviewData);
 
                 const quoteSnapshot = await getDoc(quoteDocRef);
 
@@ -158,7 +158,7 @@ export default {
                     } else {
                         console.log("Reviewer role is undefined or does not match.");
                     }
-                } 
+                }
                 else {
                     console.log("Quote document not found.");
                 }

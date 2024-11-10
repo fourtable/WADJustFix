@@ -635,6 +635,22 @@ const sendNotification = async (receiverId, message, name) => {
     /* Full height to fill the parent */
 }
 
+@media (max-width: 991px) {
+    .chat-list {
+        max-height: 80px;
+        /* Adjust this height to show only one contact */
+        overflow-y: auto;
+        /* Enable vertical scrolling */
+    }
+
+    .chat-container {
+        max-height: calc(100vh - 150px);
+        /* Reserve space for the contacts list */
+        overflow-y: auto;
+        /* Enable vertical scrolling for chat messages */
+    }
+}
+
 .chat-header {
     display: flex;
     align-items: center;

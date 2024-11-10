@@ -1,17 +1,20 @@
 <template>
   <div class="container mt-5 pt-4">
-    <h1 class="text-center mb-4">Sign Up List</h1>
+    <h1 class="text-center mb-4 mt-5">Sign Up List</h1>
     <!-- Loading Spinner -->
     <div v-if="isLoading" class="text-center">
       <p>Loading users...</p>
     </div>
     <div v-else class="event">
       <h4 class="event-title text-center">{{ event.title }} - {{ formatDate(event.eventDate) }}</h4>
-      <p class="event-description"  style="text-align: right;" >Total Sign Ups: {{ event.totalSlots - event.vacantSlots }}</p>
+      <p class="event-description mt-3" style="text-align: center;">Total Sign Ups: {{ event.totalSlots -
+        event.vacantSlots }}
+      </p>
     </div>
 
     <div v-if="users.length > 0" class="table-responsive">
-      <table class="table table-striped table-bordered">
+      
+      <table class="table table-success table-hover table-striped table-bordered">
         <thead>
           <tr>
             <th>Name</th>
@@ -134,7 +137,16 @@ td {
 button {
   font-size: 0.9em;
 }
-.event{
+
+.event {
   font-size: 30px;
+}
+
+.event-description {
+  border: #085C44 2px solid;
+  padding: 2px;
+  border-radius: 10px;
+  padding-right: 4px;
+  width: 300px;
 }
 </style>
