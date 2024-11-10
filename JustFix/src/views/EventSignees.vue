@@ -1,9 +1,13 @@
 <template>
   <div class="container mt-5 pt-4">
-    <h1 class="text-center mb-4">All Users</h1>
+    <h1 class="text-center mb-4">Sign Up List</h1>
     <!-- Loading Spinner -->
     <div v-if="isLoading" class="text-center">
       <p>Loading users...</p>
+    </div>
+    <div v-else class="event">
+      <h4 class="event-title text-center">{{ event.title }} - {{ formatDate(event.eventDate) }}</h4>
+      <p class="event-description"  style="text-align: right;" >Total Sign Ups: {{ event.totalSlots - event.vacantSlots }}</p>
     </div>
 
     <div v-if="users.length > 0" class="table-responsive">
@@ -33,13 +37,14 @@
 
 <script>
 import { db } from "../main";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 
 export default {
   data() {
     return {
       users: [],
       isLoading: true, // Loading state
+      event: [],
     };
   },
   computed: {
@@ -49,8 +54,15 @@ export default {
   },
   async created() {
     await this.fetchUsers();
+    await this.fetchEvent();
   },
   methods: {
+    async fetchEvent() {
+      const eventDocRef = doc(db, "events", this.eventId); // Use 'doc' here
+      const eventDoc = await getDoc(eventDocRef); // Use 'getDoc' for single document
+      this.event = eventDoc.exists() ? eventDoc.data() : null;
+      console.log(this.event);
+    },
     async fetchUsers() {
       try {
         const usersRef = collection(db, "users");
@@ -69,7 +81,7 @@ export default {
         this.users = filteredUsers.map(doc => ({ id: doc.id, ...doc.data() }));
 
         console.log(this.users); // Log the users for debugging
-      }  catch (error) {
+      } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
         // Set isLoading to false once the data is loaded (or error occurs)
@@ -121,5 +133,8 @@ td {
 
 button {
   font-size: 0.9em;
+}
+.event{
+  font-size: 30px;
 }
 </style>
