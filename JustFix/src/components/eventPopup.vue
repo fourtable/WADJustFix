@@ -122,6 +122,7 @@ export default {
         eventId: props.event.id,
         title: props.event.title,
         eventDate: props.event.eventDate,
+        registrationDeadline: props.event.registrationDeadline,
         description: props.event.description,
         locationName: props.event.locationName || '',}; // Replace with actual event data
 
