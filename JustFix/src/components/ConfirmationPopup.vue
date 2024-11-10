@@ -85,3 +85,18 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+/* Inside the component where the Review button is */
+.table-button {
+    width: 140px;
+    /* Adjust width as needed */
+    height: 30px;
+    /* Adjust height as needed */
+    font-size: 16px;
+    /* Optional: Adjust font size to fit */
+    padding: 10px;
+    /* Optional: Add padding for more space inside */
+    border-radius: 25px;
+}
+</style>

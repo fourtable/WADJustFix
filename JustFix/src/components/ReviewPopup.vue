@@ -1,6 +1,6 @@
 <template>
     <div>
-        <button v-show="!isReviewed" class="btn btn-success btn-sm table-button mb-2 mb-lg-0 d-flex" @click="openPopup">
+        <button v-show="!isReviewed" class="btn btn-success table-button mb-2 mb-lg-0 d-flex" @click="openPopup">
             Review
         </button>
         <div v-if="show" class="modal" tabindex="-1" role="dialog">
@@ -334,5 +334,18 @@ label {
         width: 70px;
         /* Adjust size for xs */
     }
+}
+
+/* Inside the component where the Review button is */
+.table-button {
+    width: 140px;
+    /* Adjust width as needed */
+    height: 30px;
+    /* Adjust height as needed */
+    font-size: 16px;
+    /* Optional: Adjust font size to fit */
+    padding: 10px;
+    /* Optional: Add padding for more space inside */
+    border-radius: 25px;
 }
 </style>

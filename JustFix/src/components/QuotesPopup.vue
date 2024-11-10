@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Button to trigger modal -->
-    <button type="button" :class="buttonClass" :disabled="disableStatus" @click="openModal" >
+    <button type="button" :class="buttonClass" :disabled="disableStatus" @click="openModal">
       {{ btnName }}
     </button>
 
@@ -227,3 +227,16 @@ export default {
   },
 };
 </script>
+<style scoped>
+.table-button {
+  width: 140px;
+  /* Adjust width as needed */
+  height: 30px;
+  /* Adjust height as needed */
+  font-size: 16px;
+  /* Optional: Adjust font size to fit */
+  padding: 10px;
+  /* Optional: Add padding for more space inside */
+  border-radius: 25px;
+}
+</style>
