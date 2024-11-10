@@ -15,7 +15,7 @@
           <span class="trophy-icon">🏆</span>
           <p class="total-points">{{ totalPoints }}</p>
           <p>Total Points</p>
-          <button class="btn btn-primary" @click="redeemPoints">Redeem Rewards</button>
+          <button class="btn" @click="redeemPoints">Redeem Rewards</button>
         </div>
       </div>
     </div>
@@ -74,7 +74,7 @@ export default {
     LineChart
   },
   setup() {
-    
+
     const router = useRouter();
     const totalPoints = ref(0);
     let pointsData = ref(Array(12).fill(0)); // Initialize with 12 months of 0 points
@@ -120,14 +120,14 @@ export default {
 
           // monthlyPoints[monthIndex] += pointsValue;
           // totalPoints.value += pointsValue;
-          if (data.Date.toDate() <= currentDate){
+          if (data.Date.toDate() <= currentDate) {
             if (data.type == "redeem") {
-                totalPoints.value -= pointsValue;
-              } else {
-                totalPoints.value += pointsValue;
-                monthlyPoints[monthIndex] += pointsValue;
-              }
+              totalPoints.value -= pointsValue;
+            } else {
+              totalPoints.value += pointsValue;
+              monthlyPoints[monthIndex] += pointsValue;
             }
+          }
         });
 
         pointsData.value = [...monthlyPoints];
@@ -192,111 +192,119 @@ export default {
   margin-top: 5vh;
   border-radius: 10px;
   flex: 1;
-  min-height: 92vh; /* Ensures the container fills most of the viewport height */
-  background-color: #cdf696;
-  padding: 20px; /* Adjust padding as needed to keep internal spacing */
+  min-height: 92vh;
+  /* Ensures the container fills most of the viewport height */
+  background-color: #085C44;
+  padding: 20px;
+  /* Adjust padding as needed to keep internal spacing */
 }
 
-  .dashboard-section {
-    height: 100%;
-    // height: auto;
-    margin-top: 10px;
-    margin-bottom: 10px;
-  }
+.dashboard-section {
+  height: 100%;
+  // height: auto;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
 
-  .row {
-    display: flex;  /* Use flexbox for better responsiveness */
-    flex-wrap: wrap;  /* Allow wrapping */
-    // align-items: stretch
-  }
+.row {
+  display: flex;
+  /* Use flexbox for better responsiveness */
+  flex-wrap: wrap;
+  /* Allow wrapping */
+  // align-items: stretch
+}
 
-  .line-graph-container {
-    // position: relative;
-    max-height: 342px;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    flex: 1 1 400px;
-  }
+.line-graph-container {
+  // position: relative;
+  max-height: 342px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex: 1 1 400px;
+}
 
-  .points-box {
-    // position: relative;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center; // Centers content vertically and horizontally
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    // margin-top: 1rem;
-    max-height: 342px;
-    text-align: center; // Centers text within the box
-  }
+.points-box {
+  // position: relative;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; // Centers content vertically and horizontally
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  // margin-top: 1rem;
+  max-height: 342px;
+  text-align: center; // Centers text within the box
+}
 
-  button.btn-primary {
-    width: fit-content;
-    margin-top: 1rem;
-    // margin-bottom: 1rem;
-  }
+.btn {
+  width: fit-content;
+  margin-top: 1rem;
+  color: white;
+  background-color: black;
+}
 
+.btn:hover {
+  background-color: #085C44;
+  color: white;
+}
 
-  .trophy-icon {
-    font-size: 5rem;
-    color: #ffc107;
-  }
+.trophy-icon {
+  font-size: 5rem;
+  color: #ffc107;
+}
 
-  .total-points {
-    font-size: 3rem;
-    font-weight: bold;
-  }
+.total-points {
+  font-size: 3rem;
+  font-weight: bold;
+}
 
-  .points-actions {
-    display: flex;
-    justify-content: flex-end;
-  }
+.points-actions {
+  display: flex;
+  justify-content: flex-end;
+}
 
-  .earn-points-card {
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    // display: flex;
-    // flex-direction: column;
-    justify-content: space-between;
-    min-height: 240px;
-    // max-height: 200px;
-  }
+.earn-points-card {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  // display: flex;
+  // flex-direction: column;
+  justify-content: space-between;
+  min-height: 240px;
+  // max-height: 200px;
+}
 
-  .card-footer{
-    display: flex;
-    justify-content: flex-start;
-    margin-top: auto;
-    // margin-bottom: 10px
-  }
+.card-footer {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: auto;
+  // margin-bottom: 10px
+}
 
-  // @media (max-width: 768px) {
-  //   /* Stack vertically on mobile screens and limit height */
-  //   .row {
-  //     flex-direction: column-reverse;
-  //   }
+// @media (max-width: 768px) {
+//   /* Stack vertically on mobile screens and limit height */
+//   .row {
+//     flex-direction: column-reverse;
+//   }
 
-  //   .dashboard-section {
-  //     height: auto;
-  //   }
+//   .dashboard-section {
+//     height: auto;
+//   }
 
-  //   .line-graph-container, 
-  //   .points-box {
-  //     max-height: 300px; /* Limit graph and points box height on small screens */
-  //     overflow-y: auto;  /* Allow scrolling if content overflows */
-  //     width: 100%;
-  //     flex: none
-  //   }
-  //   .earn-points-card{
-  //     // flex: 1;
-  //     // height: 100%;
-  //     flex-basis: auto;
-  //   }
-  // }
-</style>
+//   .line-graph-container, 
+//   .points-box {
+//     max-height: 300px; /* Limit graph and points box height on small screens */
+//     overflow-y: auto;  /* Allow scrolling if content overflows */
+//     width: 100%;
+//     flex: none
+//   }
+//   .earn-points-card{
+//     // flex: 1;
+//     // height: 100%;
+//     flex-basis: auto;
+//   }
+// }</style>
