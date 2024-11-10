@@ -2,15 +2,15 @@
   <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center">
       <h2 v-if="userType !== 'admin'" class="mt-5">My Quotes</h2>
-      <h2 v-else >Quotes List</h2>
+      <h2 v-else>Quotes List</h2>
       <div v-if="userType === 'user'">
-        <QuotesPopup class="mt-5" :show="showQuotesPopup" :btnName="'+'" :action="'Create'"
+        <QuotesPopup class="mt-5" :show="showQuotesPopup" :btnName="'Add a Quote'" :action="'Create'"
           @close="showQuotesPopup = false" />
       </div>
     </div>
 
     <!-- List Group to display each quote -->
-    <div class="mt-4">
+    <div class="mt-4" style="overflow-x:auto;">
       <div class="table-row header-row text-center">
         <div class="table-cell">Item</div>
         <div class="table-cell text-center">Category</div>
@@ -102,6 +102,7 @@
 
     <div class="mt-4">
       <div class="table-row header-row text-center">
+
         <div class="table-cell">Item</div>
         <div class="table-cell text-center">Category</div>
         <div v-if="userType == 'user'" class="table-cell text-center">Fixer</div>
@@ -138,12 +139,17 @@
         <!-- Actions Column -->
         <div v-if="userType !== 'admin'" class="table-cell text-center">
           <div class="button-container d-flex flex-column align-items-center justify-content-center">
-            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote" :isReviewed="userType === 'repairer' && quote.fixerReview || userType === 'user' && quote.customerReview" ref="reviewPopup">
+
+            <ReviewPopup v-if="quote.status === 'Completed'" :quote="quote"
+              :isReviewed="userType === 'repairer' && quote.fixerReview || userType === 'user' && quote.customerReview"
+              ref="reviewPopup">
               Review
             </ReviewPopup>
+            <!-- Edit -->
             <QuotesPopup v-if="quote.userId === uid && quote.status !== 'Completed'"
               :disableStatus="quote.status == 'In Progress'" :show="showEditQuotesPopup" :btnName="'Edit'"
               :action="'Edit'" :editQuote="quote" @close="showQuotesPopup = false" />
+            <!-- delete -->
             <ConfirmationPopup v-if="quote.userId === uid && quote.status !== 'Completed'" :quote="quote"
               :disableStatus="quote.status == 'In Progress'"></ConfirmationPopup>
             <button v-if="quote.repairerId === uid && quote.status === 'In Progress'"
@@ -425,12 +431,6 @@ img {
   }
 }
 
-/* Change background color on hover */
-.table-cell:hover {
-  /* background-color: #cdf696; */
-  /* Light gray background on hover */
-}
-
 /* Flexbox for horizontal alignment */
 .table-cell {
   flex: 1;
@@ -438,7 +438,7 @@ img {
   align-items: center;
   justify-content: center;
   padding: 5px;
-  border-right: 1px solid #dee2e6;
+  /* border-right: 1px solid #dee2e6; */
   max-height: 10vh;
   min-height: 7vh;
   min-width: 5vw;
@@ -455,19 +455,9 @@ img {
   height: 40px;
   font-weight: bold;
   background-color: #085C44;
-  /* Bootstrap primary color */
-  color: white;
-  /* Text color */
-  /* border: 2px solid #000; */
-  justify-content: flex-start;
-  /* border-bottom: 2px solid #cdf696; */
-  /* Bottom border for header */
-}
 
-@media (max-width: 768px) {
-  .header-row {
-    display: none;
-  }
+  color: white;
+  justify-content: flex-start;
 }
 
 /* Flexbox for button container */
@@ -493,56 +483,14 @@ img {
   justify-content: center;
 }
 
-/* Maintain button shape on smaller screens */
-@media (max-width: 768px) {
-  .table-button {
-    padding: 0.5rem 1rem;
-  }
-}
-
 /* Container styling */
 .table-container {
   border: 1px solid #dee2e6;
   /* Outer border for the entire table */
   border-radius: 5px;
   /* Optional: rounded corners */
-  overflow: hidden;
+  overflow-y: auto;
   /* Ensures inner rows don't overflow */
-}
-
-/* Media queries for mobile responsiveness */
-@media (max-width: 768px) {
-
-  /* Stack table cells vertically on small screens */
-  .table-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .table-cell {
-    flex-direction: row;
-    width: 100%;
-    border-right: none;
-    padding: 5px 0;
-  }
-
-  /* Resize image for smaller screens */
-  .quote-image {
-    width: 40px;
-    height: 40px;
-  }
-
-  /* Adjust button width and font size for smaller screens */
-  .table-button {
-    width: 100%;
-    /* Full width for easier clicking on mobile */
-    font-size: 14px;
-  }
-
-  /* Reduce padding for smaller screen */
-  .table-row {
-    padding: 8px;
-  }
 }
 
 .modal-body {
@@ -578,19 +526,5 @@ img {
   padding-left: 20px;
   padding-right: 20px;
   margin-bottom: 6px;
-}
-
-@media (min-width: 576px) {
-  .btn {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-}
-
-@media (min-width: 768px) {
-  .btn {
-    padding-left: 30px;
-    padding-right: 30px;
-  }
 }
 </style>

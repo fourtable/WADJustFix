@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Button to trigger modal -->
-    <button type="button" :class="buttonClass" :disabled="disableStatus" @click="openModal">
+    <button type="button" :class="buttonClass" :disabled="disableStatus" @click="openModal" >
       {{ btnName }}
     </button>
 
@@ -222,7 +222,7 @@ export default {
   },
   computed: {
     buttonClass() {
-      return this.btnName === 'Edit' ? 'btn btn-warning btn-sm table-button' : 'btn btn-primary';
+      return this.btnName === 'Edit' ? 'btn btn-warning btn-sm table-button d-flex ' : 'btn btn-dark d-flex';
     },
   },
 };

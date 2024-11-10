@@ -1,7 +1,8 @@
 <template>
     <div>
         <!-- Delete button -->
-        <button class="btn btn-danger btn-sm table-button mb-2 mb-xl-0" :disabled="disableStatus" @click="openDeleteConfirmPopup">Delete</button>
+        <button class="btn btn-danger btn-sm table-button mb-2 mb-xl-0 d-flex" :disabled="disableStatus"
+            @click="openDeleteConfirmPopup">Delete</button>
 
         <!-- Confirmation Modal -->
         <div v-if="showConfirmPopup" class="modal" tabindex="-1" role="dialog" style="display: block;">
@@ -62,10 +63,10 @@ export default {
                 await deleteDoc(quoteRef);
 
                 console.log("Quote deleted successfully");
-                this.showNotification('Quote deleted successfully','alert');
+                this.showNotification('Quote deleted successfully', 'alert');
 
                 // Close the confirmation popup after deletion
-                this.closeDeleteConfirmPopup('Quote deleted successfully','alert');
+                this.closeDeleteConfirmPopup('Quote deleted successfully', 'alert');
             } catch (error) {
                 console.error("Error deleting quote:", error);
             }
