@@ -113,7 +113,8 @@
             <p class="event-description">{{ event.description }}</p>
             <div class="event-actions">
               <button class="btn btn-remove" @click="openConfirmRemoveModal(event.eventId)">Remove</button>
-              <button class="btn btn-signup" @click="signUpForEvent(event)">Sign Up</button>
+              <button class="btn btn-signup" @click="signUpForEvent(event)"
+                :disabled="isEventInUpcoming(event.eventId) || isRegistrationClosed(event.registrationDeadline)">Sign Up</button>
             </div>
           </div>
           <div v-else class="no-events">No Saved Events</div>
@@ -259,6 +260,15 @@ export default {
         console.error("Error fetching saved events: ", error);
       }
     },
+    isEventInUpcoming(eventId) {
+      // Checks if the saved event is in upcoming events by eventId
+      return this.upcomingEvents.some(upcomingEvent => upcomingEvent.eventId === eventId);
+    },
+    isRegistrationClosed(registrationDate) {
+      const today = new Date();
+      // const regDate = new Date(registrationDate.seconds * 1000); // Converts Firestore timestamp if necessary
+      return registrationDate < today; // Returns true if registration date is in the past
+    },
     formatTimestamp(timestamp) {
       const date = new Date(timestamp.seconds * 1000); // Convert Firebase Timestamp to JavaScript Date object
       const month = date.getMonth() + 1; // Months are 0-indexed, so add 1
@@ -356,7 +366,8 @@ export default {
     signUpForEvent(event) {
       // console.log(`Signed up for event with ID: ${eventId}`);
       // Additional logic for signing up for the event
-      this.$router.push({ name: "EventSignees", params: { eventId: event.eventId } });
+      this.$store.commit('setEventData', event);
+      this.$router.push({ name: "eventSignup", params: { eventId: event.eventId } });
     },
     showNotification(message, type) {
       const notification = {

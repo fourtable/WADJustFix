@@ -101,11 +101,6 @@ const routes = [
         meta: { requiresAdmin: true } // Add this to specify admin-only access
     },    
     {
-        path: '/leaderboard',
-        name: 'leaderboard',
-        component: Leaderboard
-    },
-    {
         path: '/eventSignees',
         name: 'eventSignees',
         component: EventSignees,
