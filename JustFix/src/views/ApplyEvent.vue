@@ -280,7 +280,7 @@ s          <input type="number" v-model="form.duration" class="form-control" min
           
           // Prepare the form data
           const formData = {
-            uid: this.form.uid, // Use uid directly here
+            organiserID: this.form.uid, // Use uid directly here
             name: this.form.name || "",
             email: this.form.email || "",
             category: cleanedCategories || [],

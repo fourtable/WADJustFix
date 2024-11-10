@@ -43,7 +43,7 @@
 
     <!-- Edit Profile Button for Profile Owner -->
     <div v-if="isOwnProfile" class="edit-profile-btn">
-      <router-link :to="{ name: 'editProfile' }" class="btn btn-primary px-3" style="border-radius: 20px;">Edit
+      <router-link :to="{ name: 'editProfile' }" class="btn btn-primary px-3">Edit
         Profile</router-link>
     </div>
     <div v-else class="edit-profile-btn"><router-link
@@ -563,7 +563,7 @@ export default {
 .btn {
   padding: 8px 25px;
   font-size: 0.9em;
-  border-radius: 4px;
+  border-radius: 24px;
   cursor: pointer;
   border: none;
   transition: background-color 0.3s;

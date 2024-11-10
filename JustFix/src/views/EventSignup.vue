@@ -164,7 +164,7 @@ export default {
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
           const existingEvents = userData.signedUpEvents || [];
-          const alreadySignedUp = existingEvents.some(event => event.eventId === eventId);
+          const alreadySignedUp = existingEvents.some(signedUpEvents => signedUpEvents.eventId === eventId);
 
           if (alreadySignedUp) {
             this.showNotification("You are already signed up for this event.", 'alert');
