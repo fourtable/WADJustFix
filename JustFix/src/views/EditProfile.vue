@@ -1,6 +1,6 @@
 <template>
   <div class="profile-container">
-    <h2 style="font-weight:500">Edit Profile</h2>
+    <h2 style="font-weight:500; margin-top: 75px">Edit Profile</h2>
 
     <form @submit.prevent="updateProfile">
       <!-- Profile Picture -->
