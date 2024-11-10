@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay">
+  <div class="modal-overlay" @click.self="closeModal">
     <div class="modal-content">
       <button class="close-btn"  @click="closeModal">✕</button>
       <img :src="event.imageUrl" class="card-img-top mb-2 mt-4 rounded-1" alt="Event Image" v-if="event.imageUrl">
