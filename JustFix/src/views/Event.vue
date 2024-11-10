@@ -80,6 +80,7 @@
             :event="selectedEvent"
             :user="currentUser"
             :signedUpEventIds="signedUpEventIds" 
+            :canSignUp="canSignUp"
             @close="closeModal"
             @openEventSignup="navigateToSignup"
           />
@@ -166,6 +167,8 @@ export default {
       email: Cookies.get('email') || sessionStorage.getItem('email'),
       name: Cookies.get('username') || sessionStorage.getItem('username'),
       signedUpEventIds: [], // List of event IDs the user is signed up for
+      upcomingSignedUpCount: 0, // Tracks the count of upcoming signed-up events
+      canSignUp: true, // Determines if the "Sign Up" button should appear
     },
     };
   },
@@ -190,6 +193,15 @@ export default {
       const userDocRef = doc(db, "users", userId);
       const userDoc = await getDoc(userDocRef);
       const signedUpEvents = userDoc.exists() ? userDoc.data().signedUpEvents || [] : [];
+      // Calculate upcoming signed-up events count
+      const now = new Date();
+        this.upcomingSignedUpCount = signedUpEvents.filter(event => {
+          const eventDate = event.eventDate.toDate ? event.eventDate.toDate() : new Date(event.eventDate);
+          return eventDate > now; // Count only upcoming events
+        }).length;
+
+        // Update canSignUp based on count
+        this.canSignUp = this.upcomingSignedUpCount < 5;
       this.signedUpEventIds = signedUpEvents.map(event => event.eventId);
       console.log('signed up events id', this.signedUpEventIds)
     }
@@ -263,17 +275,9 @@ export default {
           return data.results[0].geometry.location;
         }
         return null;
-        // if (data.results && data.results.length > 0) {
-        //   const location = data.results[0].geometry.location;
-        //   return { lat: location.lat, lng: location.lng };
-        // } else {
-        //   console.error("Geocoding failed for address:", address);
-        //   return null;
-        // }
       } catch (error) {
         console.error("Error geocoding address:", error);
         return null;
-        //
       }
   },
     applyFilters() {

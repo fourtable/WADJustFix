@@ -30,7 +30,7 @@ export default {
     signedUpEventIds: {
       type: Array,
       default: () => []
-    }
+    },
   },
   computed: {
     isSignedUp() {
