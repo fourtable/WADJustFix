@@ -82,7 +82,7 @@ export default {
 
         const pointCollection = collection(db, "points");
         await addDoc(pointCollection, {
-          Date: serverTimestamp(),
+          Date: new Date(),
           description: "Organize " + event.title,
           UID: event.organiserID,
           points: 10,

@@ -132,7 +132,7 @@ export default {
                 const quoteDocRef = doc(db, "quotes", this.quote.id);
                 const pointCollection = collection(db, 'points');
                 await addDoc(pointCollection, {
-                    Date: serverTimestamp(),
+                    Date: new Date().toLocaleDateString(),
                     description: "Leave review for " + revieweeName.value,
                     UID: this.uid,
                     points: 10,
