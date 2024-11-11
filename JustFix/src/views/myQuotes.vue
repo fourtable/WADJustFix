@@ -240,7 +240,7 @@ export default {
 
     onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
-        window.location.href = './login';
+        this.$router.push('/login');
       }
     });
   },
