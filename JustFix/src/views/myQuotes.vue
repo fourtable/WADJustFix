@@ -39,7 +39,7 @@
             <div class="table-cell text-center">{{ quote.category || '-' }}</div>
 
             <!-- Fixer/Customer Column -->
-            <div v-if="userType == 'user'" class="table-cell text-center">{{ quote.repairerName || 'No Repairer' }}
+            <div v-if="userType == 'user'" class="table-cell text-center">{{ quote.repairerName || 'No Fixer' }}
             </div>
             <div v-else class="table-cell text-center">{{ quote.userName }}</div>
 
