@@ -133,7 +133,7 @@ export default {
                 const pointCollection = collection(db, 'points');
                 await addDoc(pointCollection, {
                     Date: serverTimestamp(),
-                    description: "Leave review for " + revieweeName,
+                    description: "Leave review for " + revieweeName.value,
                     UID: this.uid,
                     points: 10,
                     type: "earn",
