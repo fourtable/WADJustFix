@@ -38,9 +38,11 @@ export default {
 
     const fetchTransactions = async (userId) => {
       try {
+        const currentDate = new Date();
         const transactionsRef = query(
           collection(db, "points"),
           where("UID", "==", userId),
+          where("Date", "<=", currentDate),
           orderBy("Date", "desc")
         );
         const querySnapshot = await getDocs(transactionsRef);

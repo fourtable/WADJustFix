@@ -187,7 +187,8 @@ export default {
             UID: userId.value,
             points: reward.cost,
             type: "redeem",
-            Date: Timestamp.now()
+            Date: Timestamp.now(),
+            description: 'Redeemed reward',
           });
           // Update user's points
           // await updateDoc(userRef, {

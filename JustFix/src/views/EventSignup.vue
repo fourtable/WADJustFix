@@ -195,10 +195,11 @@ export default {
         const pointCollection = collection(db, 'points');
         // for user (fixer)
         await addDoc(pointCollection, {
-            Date: serverTimestamp(),
+            Date: this.eventData.eventDate,
             UID: uid,
             points: 10,
             type: "earn",
+            description: `Signed up for ${this.eventData.title}`
         });
         // Optionally, reset form or navigate as needed
         this.formSubmitted = true;
