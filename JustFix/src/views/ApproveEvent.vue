@@ -80,6 +80,7 @@ export default {
 
         const newEventId = docRef.id;
 
+        const pointCollection = collection(db, "points");
         await addDoc(pointCollection, {
           Date: serverTimestamp(),
           description: "Organize " + event.title,
