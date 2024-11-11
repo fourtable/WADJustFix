@@ -1,28 +1,31 @@
-name: Deploy to Vercel
+name: Deploy
 
 on:
   push:
     branches:
-      - main  # Trigger on push to main branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the code
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2  # This uses the checkout action
 
+      # Step 2: Set up Node.js environment (if applicable)
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'  # Use your Node.js version
+          node-version: '16'  # Or the version of Node.js you're using
 
+      # Step 3: Install dependencies (for a Node.js project)
       - name: Install dependencies
-        run: |
-          npm install
+        run: npm install  # This runs the 'npm install' command
 
-      - name: Set up environment variables
+      # Step 4: Set environment variables
+      - name: Set environment variables
         env:
           VITE_GOOGLE_API_KEY: ${{ secrets.VITE_GOOGLE_API_KEY }}
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
@@ -33,17 +36,7 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDERID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDERID }}
           VITE_FIREBASE_APPID: ${{ secrets.VITE_FIREBASE_APPID }}
           VITE_FIREBASE_MEASUREMENTID: ${{ secrets.VITE_FIREBASE_MEASUREMENTID }}
-        run: echo "Environment variables set successfully"
 
-      - name: Build the project
-        run: |
-          npm run build
-
-      - name: Deploy to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}  # Optional, for organization deployment
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}  # Optional, for specific project deployment
-        run: |
-          npm install -g vercel
-          vercel --prod --token $VERCEL_TOKEN
+      # Step 5: Example deployment step (adjust to your needs)
+      - name: Deploy to Firebase
+        run: npm run deploy  # This runs your deploy script, or adjust it to your deployment process
