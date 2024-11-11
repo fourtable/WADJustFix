@@ -69,7 +69,8 @@
                                     <div style="display: flex; align-items: center;">
 
                                         <input type="text" id="otherExpertise" v-model="formData.otherExpertiseInput"
-                                            class="form-control mb-3" placeholder="Enter your expertise" />
+                                            class="form-control mb-3" maxlength="15"
+                                            placeholder="Enter your expertise" />
 
                                         <button type="button" @click="addCustomExpertise"
                                             style="margin-left: 10px;">✔️</button>

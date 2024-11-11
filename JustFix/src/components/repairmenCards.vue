@@ -88,7 +88,7 @@ const selectedRepairmenDetails = computed(() => {
 
 const topSkills = (expertise) => expertise.slice(0, 3);
 
-const truncateDescription = (description, maxLength = 100) => {
+const truncateDescription = (description, maxLength = 50) => {
     if (!description) return '';
     return description.length <= maxLength ? description : description.slice(0, maxLength) + '...';
 };
@@ -304,7 +304,7 @@ watch(filteredRepairmen, async () => {
             <div class="col-lg-3 col-md-4 col-sm-6 custom-col mb-3" v-for="repairman in filteredRepairmen"
                 :key="repairman.id" data-aos="fade-up" data-aos-delay="100">
 
-                <div class="card text-center shadow-sm" style="padding: 0; border-radius: 20px;"
+                <div class="card text-center shadow-sm mb-3" style="padding: 0; border-radius: 20px;"
                     @click="navigateToProfile(repairman.id)"
                     :class="{ selected: selectedRepairmen.includes(repairman.id) }">
                     <div class="card-header d-flex align-items-center" v-if="userType === 'user'"
@@ -325,8 +325,8 @@ watch(filteredRepairmen, async () => {
 
                         <p class="card-description">{{ truncateDescription(repairman.description) }}</p>
                         <ul class="list-unstyled">
-                            <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index" class="skill-pill"
-                                data-aos="flip-right" data-aos-delay="300">
+                            <li v-for="(skill, index) in topSkills(repairman.expertise)" :key="index"
+                                class="skill-pill">
                                 {{ skill }}
                             </li>
                         </ul>

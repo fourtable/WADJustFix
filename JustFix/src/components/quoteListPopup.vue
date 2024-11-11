@@ -22,8 +22,11 @@
                         <li v-else class="list-group-item text-center">
                             No quotes available.
                             <br>
-                            <QuotesPopup :show="showQuotesPopup" :btnName="'Add Quotes'" :action="'Create'"
-                                @close="showQuotesPopup = false" />
+                            <div class="d-flex justify-content-center mt-2">
+
+                                <QuotesPopup :show="showQuotesPopup" :btnName="'Add Quotes'" :action="'Create'"
+                                    @close="showQuotesPopup = false" />
+                            </div>
                         </li>
                     </ul>
                 </div>
