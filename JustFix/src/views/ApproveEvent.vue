@@ -110,9 +110,6 @@ export default {
           const userData = userDocSnap.data();
           const existingEvents = userData.signedUpEvents || [];
           const alreadySignedUp = existingEvents.some(signedUpEvents => signedUpEvents.eventId === newEventId);
-          // console.log(existingEvents);
-          // console.log(alreadySignedUp);
-          // console.log(eventToSave);
           if (alreadySignedUp) {
             return;
           }
