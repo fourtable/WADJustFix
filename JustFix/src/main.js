@@ -15,15 +15,16 @@ import { getStorage } from 'firebase/storage';
 import store from './store/store';
 
 // Firebase configuration
+
 const firebaseConfig = {
-    apiKey: "AIzaSyDiBHdWrHj34O4hn0qP98qgThAAgDuL5JU",
-    authDomain: "justfix-726f7.firebaseapp.com",
-    databaseURL: "https://justfix-726f7-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "justfix-726f7",
-    storageBucket: "justfix-726f7.appspot.com",
-    messagingSenderId: "297198741199",
-    appId: "1:297198741199:web:4a00011fa3067f8014b9ba",
-    measurementId: "G-YN894CVT62"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH,
+    databaseURL: import.meta.env.VITE_FIREBASE_DATABASE,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECTID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDERID,
+    appId: import.meta.env.VITE_FIREBASE_APPID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENTID
 };
 
 // Initialize Firebase
@@ -88,7 +89,7 @@ async function initMap() {
             title: repairman.name,
             content: customContent
         });
-    
+
         // Add click event to marker to navigate to the repairer's profile
         google.maps.event.addDomListener(customContent, 'click', () => {
             router.push({ name: 'viewProfile', params: { id: repairman.id } });
@@ -104,7 +105,7 @@ window.initMap = initMap;
     var d = b.maps || (b.maps = {}),
         r = new Set,
         e = new URLSearchParams,
-        u = () => h || (h = new Promise(async(f, n) => {
+        u = () => h || (h = new Promise(async (f, n) => {
             await (a = m.createElement("script"));
             e.set("libraries", [...r] + "");
             for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]);
@@ -117,7 +118,7 @@ window.initMap = initMap;
         }));
     d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n))
 })({
-    key: "AIzaSyAe51tIu9Mpq06AxiZRLbiziX_NH2X6cLw",
+    key: import.meta.env.VITE_GOOGLE_API_KEY,
     v: "weekly",
 });
 
@@ -127,14 +128,14 @@ export function useAuth() {
     const unsubscribe = auth.onAuthStateChanged(_user => (user.value = _user));
     onUnmounted(unsubscribe);
     const isLogin = computed(() => user.value !== null);
-  
+
     const signIn = async () => {
         const googleProvider = new GoogleAuthProvider();
         await auth.signInWithPopup(googleProvider);
     };
 
     const signOut = () => auth.signOut();
-  
+
     return { user, isLogin, signIn, signOut };
 }
 
