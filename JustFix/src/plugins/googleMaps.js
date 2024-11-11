@@ -58,7 +58,6 @@ export const fetchRepairers = async () => {
         name: data.name,
         lat: data.businessLocation.lat,
         lng: data.businessLocation.lng,
-        rating: data.rating || 'N/A', // Optional, in case you want to display rating
         expertise: data.expertise || [], // Optional, for displaying expertise
         description: data.description || 'No description available', // Retrieve description field
       });
@@ -84,7 +83,6 @@ export const placeRepairmenOnMap = (repairmen) => {
       content: `
         <div style="max-width: 200px; font-size: 14px;">
           <h4>${repairman.name}</h4>
-          <p>Rating: ${repairman.rating}</p>
           <p>Expertise: ${repairman.expertise.length > 0 ? repairman.expertise.join(', ') : 'N/A'}</p>
           <p>Description: ${repairman.description}</p>
           <button id="viewProfileBtn-${repairman.id}" style="cursor:pointer; background-color:#007BFF; color:white; border:none; padding:5px 10px; border-radius:4px;">View Profile</button>

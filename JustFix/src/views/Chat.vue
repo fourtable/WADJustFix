@@ -89,9 +89,13 @@
                                                 @click="rejectQuote">Reject</button>
                                             {{ selectedQuote.status }}
                                         </div>
-                                        <div v-if="selectedQuote.status && selectedQuote.repairerId == uid"
+                                        <div v-if="selectedQuote.status == 'In Progress' && selectedQuote.repairerId == uid"
                                             class="modal-footer">
                                             Quote have been accepted!
+                                        </div>
+                                        <div v-if="selectedQuote.status == 'Rejected' && selectedQuote.repairerId == uid"
+                                            class="modal-footer">
+                                            Quote have been rejected!
                                         </div>
                                     </div>
                                 </div>
@@ -265,8 +269,28 @@ async function rejectQuote() {
     try {
         // const messageDocRef = doc(db, 'chats', messageId.value);
         // Delete the message
-        this.newMessage.value = "Quote Rejected";
+        newMessage.value = "Quote Rejected";
         sendMessage();
+        const chatsRef = collection(db, 'chats');
+        // Query to find documents with the specified quoteId
+        const q = query(chatsRef, where("quoteId", "==", selectedQuote.value.id));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+            return;
+        }
+
+        // Update each document with the specified fields
+        querySnapshot.forEach(async (doc) => {
+            const chatDocRef = doc.ref;
+            // Update the fields in quoteData
+            await updateDoc(chatDocRef, {
+                "quoteData.repairerId": uid,
+                "quoteData.repairerName": username,
+                "quoteData.status": 'Rejected'
+            });
+
+            // console.log("Updated chat with ID:", doc.id);
+        });
         console.log("Quote rejected:", messageId.value);
         await sendNotification(selectedQuote.value.userId, "Quote rejected", username);
         closeQuoteDetails();
