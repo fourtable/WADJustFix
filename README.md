@@ -36,8 +36,6 @@ Use the following test accounts to explore **JustFix**:
 | Role   | Email               | Password |
 |--------|---------------------|----------|
 | Admin  | admin@justfix.com    | 123456   |
-| User (unpopulated)   | 1234@gmail.com       | 123456   |
-| User (populated)  | 1234@gmail.com       | 123456   |
-| Fixer (unpopulated)  | fixer1@gmail.com      | 123456   |
-| Fixer (populated)  | kimjennie@gmail.com      | 123456   |
+| User   | isabelle@gmail.com   | 123456   |
+| Fixer  | kimjennie@gmail.com  | 123456   |
 
