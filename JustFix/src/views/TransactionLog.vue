@@ -5,6 +5,7 @@
     <thead>
       <tr>
         <th>Date</th>
+        <th>Description</th>
         <th>Type</th>
         <th>Points</th>
       </tr>
@@ -12,9 +13,10 @@
     <tbody>
       <tr v-for="(transaction, index) in transactions" :key="index">
         <td>{{ formatDate(transaction.Date) }}</td>
+        <td>{{ transaction.description || '-' }}</td>
         <td>{{ transaction.type }}</td>
-        <td :class="transaction.type === 'redeem' ? 'negative-points' : 'positive-points'">
-          {{ transaction.type === 'redeem' ? '-' : '+' }}{{ transaction.points }}
+        <td :class="transaction.type === 'earn' ? 'positive-points' : 'negative-points' ">
+          {{ transaction.type === 'earn' ? '+' : '-' }}{{ transaction.points }}
         </td>
       </tr>
     </tbody>

@@ -39,7 +39,7 @@
             <div class="table-cell text-center">{{ quote.category || '-' }}</div>
 
             <!-- Fixer/Customer Column -->
-            <div v-if="userType == 'user'" class="table-cell text-center">{{ quote.repairerName || 'No Fixer' }}
+            <div v-if="userType == 'user'" class="table-cell text-center">{{ quote.repairerName || 'No Repairer' }}
             </div>
             <div v-else class="table-cell text-center">{{ quote.userName }}</div>
 
@@ -300,7 +300,16 @@ export default {
         // Update points earned by repairer
         await addDoc(pointCollection, {
           Date: serverTimestamp(),
+          description: "Completing Quote",
           UID: this.uid,
+          points: 10,
+          type: "earn",
+        });
+        
+        await addDoc(pointCollection, {
+          Date: serverTimestamp(),
+          description: "Completing Quote",
+          UID: quote.userId,
           points: 10,
           type: "earn",
         });

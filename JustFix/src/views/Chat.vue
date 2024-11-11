@@ -231,6 +231,7 @@ async function acceptQuote() {
         // for user (fixer)
         await addDoc(pointCollection, {
             Date: serverTimestamp(),
+            description: "Quote Accepted",
             UID: uid,
             points: 10,
             type: "earn",
@@ -239,6 +240,7 @@ async function acceptQuote() {
         // update points earned by user
         await addDoc(pointCollection, {
             Date: serverTimestamp(),
+            description: "Quote Accepted",
             UID: contactId.value,
             points: 10,
             type: "earn",

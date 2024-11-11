@@ -83,9 +83,10 @@ export default {
         const pointCollection = collection(db, 'points');
         await addDoc(pointCollection, {
           Date: serverTimestamp(),
+          description: "Rejected Quote in Progress",
           UID: this.uid,
           points: 10,
-          type: "redeem",
+          type: "deduct",
         });
         this.notifyUser(this.quote.userId, "Quote Rejected");
         console.log("Quote rejected");

@@ -80,6 +80,14 @@ export default {
 
         const newEventId = docRef.id;
 
+        await addDoc(pointCollection, {
+          Date: serverTimestamp(),
+          description: "Organize " + event.title,
+          UID: event.organiserID,
+          points: 10,
+          type: "earn",
+        });
+
         const userDocRef = doc(db, "users", event.organiserID); // Assuming `userId` is provided in the event object
         const userDocSnap = await getDoc(userDocRef);
         // Create an event object with minimal data to store in the user's signedUpEvents array
