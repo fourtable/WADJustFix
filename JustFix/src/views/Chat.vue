@@ -630,7 +630,7 @@ const sendNotification = async (receiverId, message, name) => {
 }
 
 .chat-list {
-    max-height: 70vh;
+    max-height: 590px;
     overflow-y: auto;
 }
 
