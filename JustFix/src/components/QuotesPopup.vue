@@ -18,12 +18,12 @@
             <form @submit.prevent="handleSubmit">
               <!-- Form fields -->
               <div class="mb-3">
-                <label for="item" class="form-label">Item</label>
-                <input type="text" v-model="formData.item" class="form-control" id="item">
+                <label for="item" class="form-label" required>Item</label>
+                <input type="text" v-model="formData.item" class="form-control" id="item" required>
               </div>
               <div class="mb-3">
                 <label for="category" class="form-label">Category</label>
-                <select v-model="formData.category" class="form-control" id="category">
+                <select v-model="formData.category" class="form-control" id="category" required>
                   <option disabled value="">Select a category</option>
                   <option v-for="option in expertiseOptions" :key="option" :value="option">
                     {{ option }}
@@ -38,11 +38,11 @@
                     style="max-width: 100%; max-height: 200px;">
                 </div>
                 <!-- Input for updating picture -->
-                <input type="file" @change="onFileChange" class="form-control" id="picture">
+                <input type="file" @change="onFileChange" class="form-control" id="picture" required>
               </div>
               <div class="mb-3">
                 <label for="description" class="form-label">Description</label>
-                <textarea v-model="formData.description" class="form-control" id="description"></textarea>
+                <textarea v-model="formData.description" class="form-control" id="description" required></textarea>
               </div>
               <button type="submit" class="btn" style="background-color: black; color:white;">
                 {{ localAction === 'Edit' ? 'Update Quote' : 'Create Quote' }}
