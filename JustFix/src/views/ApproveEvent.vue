@@ -39,7 +39,7 @@
 import { mapActions, mapGetters } from 'vuex';
 import { db, realtimeDb} from "../main";
 import { collection, getDoc, addDoc, doc, updateDoc, arrayUnion } from "firebase/firestore";
-import { ref as dbRef, get, query as dbquery, set, onValue, update, push, remove } from 'firebase/database';
+import { ref as dbRef, get, query as dbquery, set, onValue, update, push, remove, serverTimestamp } from 'firebase/database';
 
 export default {
   computed: {
@@ -80,6 +80,7 @@ export default {
 
         const newEventId = docRef.id;
 
+        const pointCollection = collection(db, "points");
         await addDoc(pointCollection, {
           Date: serverTimestamp(),
           description: "Organize " + event.title,
@@ -109,9 +110,6 @@ export default {
           const userData = userDocSnap.data();
           const existingEvents = userData.signedUpEvents || [];
           const alreadySignedUp = existingEvents.some(signedUpEvents => signedUpEvents.eventId === newEventId);
-          // console.log(existingEvents);
-          // console.log(alreadySignedUp);
-          // console.log(eventToSave);
           if (alreadySignedUp) {
             return;
           }
