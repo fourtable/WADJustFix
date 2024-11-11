@@ -137,7 +137,7 @@ const expertiseOptions = ref([
     "Plumbing",
     "Air Conditioners",
     "Electronics Repair",
-    "Furniture",
+    "Furnitures",
     "Windows and Doors",
     "Automotive Repairs",
     "Others"
