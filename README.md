@@ -28,7 +28,7 @@
 
 ### **Deployment**
 Click on the following link below to access our cloud deployed app.
-[https://wad-just-fix.vercel.app]([https://wad-just-k9qfp4w86-joshs-projects-6288c042.vercel.app](https://wad-just-k9qfp4w86-joshs-projects-6288c042.vercel.app))
+[https://wad-just-k9qfp4w86-joshs-projects-6288c042.vercel.app](https://wad-just-k9qfp4w86-joshs-projects-6288c042.vercel.app))
 
 ### **Test User Credentials**
 Use the following test accounts to explore **JustFix**:
