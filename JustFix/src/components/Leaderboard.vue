@@ -5,7 +5,7 @@
       <!-- Podium Section for Top 3 Repairers -->
       <div class="podium-spacer"></div>
       <div class="podium text-center mb-5">
-        <div class="podium-place second-place" v-if="topRepairers.length > 1">
+        <div class="podium-place second-place" v-if="topRepairers.length > 1" @click="navigateToProfile(topRepairers[1].UID)">
           <!-- <div class="podium-item"> -->
             <img :src="topRepairers[1].profilePicURL" alt="2nd Place" class="profile-pic podium-2" @click="navigateToProfile(topRepairers[1].UID)">
             <div class="place">2</div>
@@ -13,7 +13,7 @@
             <div class="points">{{ topRepairers[1].monthlyPoints }} Points</div>
           <!-- </div> -->
         </div>
-        <div class="podium-place first-place" v-if="topRepairers.length > 0">
+        <div class="podium-place first-place" v-if="topRepairers.length > 0" @click="navigateToProfile(topRepairers[0].UID)">
           <!-- <div class="podium-item"> -->
             <img :src="topRepairers[0].profilePicURL" alt="1st Place" class="profile-pic podium-1" @click="navigateToProfile(topRepairers[0].UID)">
             <!-- <img src="crown.png" alt="Crown" class="crown"> -->
@@ -23,7 +23,7 @@
             <div class="points">{{ topRepairers[0].monthlyPoints }} Points</div>
           <!-- </div> -->
         </div>
-        <div class="podium-place third-place" v-if="topRepairers.length > 2">
+        <div class="podium-place third-place" v-if="topRepairers.length > 2" @click="navigateToProfile(topRepairers[2].UID)">
           <!-- <div class="podium-item"> -->
             <img :src="topRepairers[2].profilePicURL" alt="3rd Place" class="profile-pic podium-3" @click="navigateToProfile(topRepairers[2].UID)">
             <div class="place">3</div>
