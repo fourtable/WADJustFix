@@ -11,14 +11,6 @@ jobs:
 
     steps:
       # Step 1: Checkout the code
-      - name: Checkout code
-        uses: actions/checkout@v2  # This uses the checkout action
-
-      # Step 2: Set up Node.js environment (if applicable)
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '16'  # Or the version of Node.js you're using
 
       # Step 3: Install dependencies (for a Node.js project)
       - name: Install dependencies
