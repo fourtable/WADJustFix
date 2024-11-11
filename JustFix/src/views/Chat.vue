@@ -292,7 +292,7 @@ onAuthStateChanged(auth, async (currentUser) => {
             selectContact({ otherUserId: contactId.value });
         }
     } else {
-        window.location.href = './login';
+        this.$router.push('/login');
     }
 });
 
