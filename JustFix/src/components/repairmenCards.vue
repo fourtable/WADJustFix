@@ -58,18 +58,21 @@ const router = useRouter();
 
 const userType = Cookies.get('userType') || sessionStorage.getItem('userType');
 
+const emit = defineEmits(['toggle-overlay']);
 
 const isQuotesListPopupVisible = ref(false); // State for controlling visibility
 
 const closeModal = () => {
     console.log("Modal closed");
     isQuotesListPopupVisible.value = false; // This should control the visibility of the modal
+    emit('toggle-overlay', false); // Emit event to hide overlay
 };
 
 const openQuotesListPopup = () => {
     const uid = Cookies.get('uid') || sessionStorage.getItem('uid')
     if (uid) {
         isQuotesListPopupVisible.value = true; // Set visibility to true when the button is clicked
+        emit('toggle-overlay', true); // Emit event to show overlay
     }
     else {
         router.push({
@@ -233,8 +236,6 @@ watch(filteredRepairmen, async () => {
             <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
                 <button @click="openQuotesListPopup" :disabled="selectedRepairmen.length === 0" class="hero-button">Send
                     Quote</button>
-                <quoteListPopup v-if="isQuotesListPopupVisible" :selectedRepairmen="selectedRepairmen"
-                    @close="closeModal" @quoteSent="clearSelectedRepairmen" />
                 <span @click="clearSelected" class="clear-link"
                     style="text-decoration: underline; cursor: pointer; margin-top: 8px; padding-right: 14px;">
                     Clear Selected Repairmen
@@ -335,7 +336,8 @@ watch(filteredRepairmen, async () => {
             </div>
         </div>
     </div>
-
+    <quoteListPopup v-if="isQuotesListPopupVisible" :selectedRepairmen="selectedRepairmen" @close="closeModal"
+        @quoteSent="clearSelectedRepairmen" />
 </template>
 
 
